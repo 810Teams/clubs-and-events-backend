@@ -1,5 +1,5 @@
 """
-ASGI config for clubs_and_events_backend project.
+ASGI config for clubs_and_events project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'clubs_and_events_backend.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'clubs_and_events.settings')
 
 application = get_asgi_application()
