@@ -76,9 +76,17 @@ WSGI_APPLICATION = 'clubs_and_events.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': list(open('KEY.txt'))[1].replace('\n', ''),
+        'USER': list(open('KEY.txt'))[2].replace('\n', ''),
+        'PASSWORD': list(open('KEY.txt'))[3].replace('\n', ''),
+        'HOST': list(open('KEY.txt'))[0].replace('\n', ''),
+        'PORT': '3306',
     }
 }
 
