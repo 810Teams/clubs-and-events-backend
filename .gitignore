@@ -132,5 +132,9 @@ dmypy.json
 # MacOS
 .DS_Store
 
+# PyCharm IDE
+.idea/
+
 # Project Specific
-.idea
+migrations/
+KEY.txt
