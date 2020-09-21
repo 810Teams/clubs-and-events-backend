@@ -1,5 +1,6 @@
+from django.core.exceptions import ValidationError
 from django.db import models
-
+from django.utils.translation import gettext as _
 
 # Group 1 - User
 #   - Profile
@@ -39,6 +40,15 @@ class StudentCommitteeAuthority(models.Model):
 
     def __str__(self):
         return '{}'.format(self.profile.user.username)
+
+    def clean(self):
+        errors = list()
+
+        if self.start_date > self.end_date:
+            errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
 
 
 # Group 2 - Types
@@ -103,6 +113,24 @@ class Club(Community):
     is_official = models.BooleanField(default=False)
     status = models.CharField(max_length=1, choices=STATUS, default='R')
 
+    def clean(self):
+        errors = list()
+
+        if not self.is_official:
+            if self.room != None or len(self.room) > 0:
+                errors.append(ValidationError(
+                    _('Unofficial clubs are not able to occupy a room.'),
+                    code='unofficial_club_limitations'
+                ))
+            if self.url_id != None or len(self.url_id) > 0:
+                errors.append(ValidationError(
+                    _('Unofficial clubs are not able to set custom URL ID.'),
+                    code='unofficial_club_limitations'
+                ))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
 
 class Event(Community):
     STATUS = (
@@ -120,10 +148,62 @@ class Event(Community):
     end_time = models.TimeField()
     status = models.CharField(max_length=1, choices=STATUS, default='W')
 
+    def clean(self):
+        errors = list()
+
+        if self.start_date > self.end_date:
+            errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
 
 class CommunityEvent(Event):
     created_under = models.ForeignKey(Community, on_delete=models.PROTECT)
     allows_outside_participators = models.BooleanField(default=False)
+
+    def __init__(self, *args, **kwargs):
+        super(Event, self).__init__(*args, **kwargs)
+        self._meta.get_field('status').default = 'A'
+
+    def clean(self):
+        errors = list()
+
+        if self.id == self.created_under.id:
+            errors.append(ValidationError(
+                _('Community events are not able to be created under its parent self.'),
+                code='hierarchy_error'
+            ))
+
+        try:
+            if Event.objects.get(pk=self.created_under.id) != None:
+                errors.append(ValidationError(
+                    _('Community events are not able to be created under events.'),
+                    code='hierarchy_error'
+                ))
+        except Event.DoesNotExist:
+            pass
+
+        try:
+            if Club.objects.get(pk=self.created_under.id) and not Club.objects.get(pk=self.created_under.id).is_official:
+                errors.append(ValidationError(
+                    _('Community events are not able to be created under unofficial clubs.'),
+                    code='unofficial_club_limitations'
+                ))
+        except Club.DoesNotExist:
+            pass
+
+        if self.status == 'W':
+            errors.append(ValidationError(
+                _('Community events are not able to have waiting as status.'),
+                code='status_error'
+            ))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        return '{}\'s {}'.format(self.created_under.name_en, self.name_en)
 
 
 class Lab(Community):
@@ -158,6 +238,36 @@ class Album(models.Model):
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='created_in')
     community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_to')
     creator = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def clean(self):
+        errors = list()
+
+        try:
+            if CommunityEvent.objects.get(pk=self.community.id):
+                errors.append(ValidationError(
+                    _('Albums are not able to be created under community events.'),
+                    code='hierarchy_error'
+                ))
+        except CommunityEvent.DoesNotExist:
+            pass
+
+        try:
+            if Event.objects.get(pk=self.community.id) and self.community_event:
+                errors.append(ValidationError(
+                    _('Albums are not able to be linked to community events if created under an event.'),
+                    code='hierarchy_error'
+                ))
+        except Event.DoesNotExist:
+            pass
+
+        if self.community_event and (self.community.id != self.community_event.created_under.id):
+            errors.append(ValidationError(
+                _('Albums are not able to be linked to community events created under other communities.'),
+                code='hierarchy_error'
+            ))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
 
 
 class AlbumImage(models.Model):
@@ -212,6 +322,15 @@ class Advisory(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
 
+    def clean(self):
+        errors = list()
+
+        if self.start_date > self.end_date:
+            errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
 
 class Membership(models.Model):
     ENDED_REASON = (
@@ -232,6 +351,25 @@ class Membership(models.Model):
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     ended_reason = models.CharField(max_length=1, choices=ENDED_REASON, null=True, blank=True)
+
+    def clean(self):
+        errors = list()
+        print(self.end_date, self.ended_reason)
+
+        if self.position not in (0, 1, 2, 3):
+            errors.append(ValidationError(_('Position must be a number from 0 to 3.'), code='position_out_of_range'))
+
+        if self.end_date and (self.start_date > self.end_date):
+            errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
+
+        if not self.end_date and self.ended_reason or self.end_date and not self.ended_reason:
+            errors.append(ValidationError(
+                _('Ended date and ended reason must both present or be both null.'),
+                code='mismatch_status'
+            ))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
 
 
 class CustomMembershipLabel(models.Model):

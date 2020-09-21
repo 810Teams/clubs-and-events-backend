@@ -87,6 +87,9 @@ class CommunityEventAdmin(admin.ModelAdmin):
                     'event_type', 'event_series', 'start_date', 'end_date', 'status',
                     'created_under', 'allows_outside_participators']
 
+    # def get_readonly_fields(self, request, obj=None):
+    #     return ['status']
+
 
 class LabAdmin(admin.ModelAdmin):
     list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible',
