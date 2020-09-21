@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from community.models import EmailPreferences
+from community.models import EmailPreference
 from community.models import Profile
 
 from community.models import Club
@@ -17,12 +17,10 @@ from community.models import Comment
 
 from community.models import CustomMembershipLabel
 
-import profanity_check
 
-
-class EmailPreferencesForm(forms.ModelForm):
+class EmailPreferenceForm(forms.ModelForm):
     class Meta:
-        model = EmailPreferences
+        model = EmailPreference
         exclude = []
         widgets = {}
 
@@ -62,6 +60,22 @@ class ClubForm(forms.ModelForm):
 class EventForm(forms.ModelForm):
     class Meta:
         model = Event
+        exclude = ['status']
+        widgets = {}
+
+    def clean(self):
+        data = super().clean()
+        errors = list()
+
+        # TODO: Validates Data
+
+        if len(errors) > 0:
+            raise errors
+
+
+class CommunityEventForm(forms.ModelForm):
+    class Meta:
+        model = CommunityEvent
         exclude = ['status']
         widgets = {}
 
@@ -160,5 +174,5 @@ class CustomMembershipLabelForm(forms.ModelForm):
 
 
 class LoginForm(forms.Form):
-    user_id = forms.CharField(max_length=32, required=True)
+    username = forms.CharField(max_length=32, required=True)
     password = forms.CharField(max_length=256, required=True, widget=forms.PasswordInput())
