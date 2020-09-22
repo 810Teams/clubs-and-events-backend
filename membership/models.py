@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
-from community.models import Community
+from community.models import Community, Lab, CommunityEvent
 from user.models import Profile
 
 
@@ -44,6 +44,21 @@ class Advisory(models.Model):
 
         if self.start_date > self.end_date:
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
+
+        try:
+            if CommunityEvent.objects.get(pk=self.community):
+                errors.append(ValidationError(
+                    _('Advisories are not applicable on community events.'),
+                    code='advisory_feature'
+                ))
+        except CommunityEvent.DoesNotExist:
+            pass
+
+        try:
+            if Lab.objects.get(pk=self.community):
+                errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))
+        except Lab.DoesNotExist:
+            pass
 
         if len(errors) > 0:
             raise ValidationError(errors)
