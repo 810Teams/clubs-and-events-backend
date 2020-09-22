@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from type.models import ClubType, EventType, EventSeries
+from category.models import ClubType, EventType, EventSeries
 
 
 class ClubTypeAdmin(admin.ModelAdmin):

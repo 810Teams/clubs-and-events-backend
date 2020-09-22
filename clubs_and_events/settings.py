@@ -39,9 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'asset',
+    'category',
     'community',
     'membership',
-    'type',
     'user',
 ]
 
