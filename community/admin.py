@@ -122,8 +122,11 @@ class AlbumImageInline(admin.StackedInline):
 
 
 class AlbumAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'created_datetime', 'community', 'community_event', 'creator']
+    list_display = ['id', 'name', 'photos', 'created_datetime', 'community', 'community_event', 'creator']
     inlines = [AlbumImageInline]
+
+    def photos(self, obj):
+        return len(AlbumImage.objects.filter(album=obj.id))
 
 
 class CommentAdmin(admin.ModelAdmin):
