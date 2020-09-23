@@ -1,39 +1,82 @@
-from django.shortcuts import render
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 
 from community.models import Club
+from community.permissions import IsStudent
 from community.serializers import ClubSerializer
 from membership.models import Membership
-from user.models import User
 
 
-class OwnClubsView(generics.ListAPIView, generics.CreateAPIView):
-    ''' Club view '''
+class AllClubsView(generics.ListAPIView):
+    ''' All clubs view '''
     queryset = Club.objects.all()
     serializer_class = ClubSerializer
-    permission_classes = (permissions.IsAuthenticated,)
 
-    def list(self, request, *args, **kwargs):
-        memberships = Membership.objects.filter(user=request.user.id)
-        queryset = self.get_queryset().filter(pk__in=[i.community for i in memberships])
+    def get(self, request, *args, **kwargs):
+        ''' Get all clubs '''
+        queryset = self.get_queryset()
+
+        if not request.user.is_authenticated:
+            queryset = queryset.filter(is_publicly_visible=True)
+
         serializer = ClubSerializer(queryset, many=True)
-
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
+
+class CreateClubView(generics.CreateAPIView):
+    ''' Own clubs view '''
+    queryset = Club.objects.all()
+    serializer_class = ClubSerializer
+    permission_classes = [permissions.IsAuthenticated, IsStudent]
+
+    def post(self, request, *args, **kwargs):
+        ''' Create a club '''
         data = request.data
         user = request.user
 
-        if User.objects.get(user=user.id).is_lecturer:
+        serializer = ClubSerializer(data=data, many=False)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class ClubView(generics.RetrieveAPIView, generics.UpdateAPIView):
+    ''' Club view '''
+    queryset = Club.objects.all()
+    serializer_class = ClubSerializer
+
+    def get(self, request, *args, **kwargs):
+        ''' Get club '''
+        user = request.user
+
+        club = Club.objects.get(pk=kwargs.get('pk'))
+
+        if not club.is_publicly_visible and not user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
+        serializer = ClubSerializer(club, many=False)
+
+        return Response(serializer.data)
+
+
+    def patch(self, request, *args, **kwargs):
+        ''' Update the club '''
+        data = request.data
+        user = request.user
+
         try:
-            serializer = ClubSerializer(data=data)
+            membership = Membership.objects.get(user=user.id, community=kwargs.get('pk'), end_date=None)
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            if membership.position not in [2, 3]:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        except Membership.DoesNotExist:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
+        serializer = ClubSerializer(data=data, many=False)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.utils.translation import gettext as _
 
 from user.models import EmailPreference, User, StudentCommitteeAuthority
 
@@ -16,15 +17,15 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = (
         (None, {'fields': ('username', 'name', 'email', 'password')}),
-        ('Profile', {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
-        ('Timestamps', {'fields': ('created_at', 'updated_at', 'last_login')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
+        (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
+        (_('Timestamps'), {'fields': ('created_at', 'updated_at', 'last_login')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
     )
 
     add_fieldsets = (
         (None, {'fields': ('username', 'name', 'email', 'password1', 'password2')}),
-        ('Profile', {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
+        (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
     )
 
     def get_readonly_fields(self, request, obj=None):

@@ -12,7 +12,8 @@ class ClubTypeView(generics.RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         ''' Retrieve club type by primary key '''
-        serializer = ClubTypeSerializer(self.get_object(), many=False)
+        queryset = self.get_object()
+        serializer = ClubTypeSerializer(queryset, many=False)
         return Response(serializer.data)
 
 
@@ -23,7 +24,8 @@ class AllClubTypesView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         ''' List all club types '''
-        serializer = ClubTypeSerializer(self.get_queryset(), many=True)
+        queryset = self.get_object()
+        serializer = ClubTypeSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
@@ -34,7 +36,8 @@ class EventTypeView(generics.RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         ''' Retrieve event type by primary key '''
-        serializer = EventTypeSerializer(self.get_object(), many=False)
+        queryset = self.get_object()
+        serializer = ClubTypeSerializer(queryset, many=False)
         return Response(serializer.data)
 
 
@@ -45,7 +48,8 @@ class AllEventTypesView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         ''' List all event types '''
-        serializer = EventTypeSerializer(self.get_queryset(), many=True)
+        queryset = self.get_object()
+        serializer = ClubTypeSerializer(queryset, many=True)
         return Response(serializer.data)
 
 
@@ -56,7 +60,8 @@ class EventSeriesView(generics.RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         ''' Retrieve event series by primary key '''
-        serializer = EventSeriesSerializer(self.get_object(), many=False)
+        queryset = self.get_object()
+        serializer = ClubTypeSerializer(queryset, many=False)
         return Response(serializer.data)
 
 
@@ -67,5 +72,6 @@ class AllEventSeriesView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         ''' Retrieve all event series '''
-        serializer = EventSeriesSerializer(self.get_queryset(), many=True)
+        queryset = self.get_object()
+        serializer = ClubTypeSerializer(queryset, many=True)
         return Response(serializer.data)
