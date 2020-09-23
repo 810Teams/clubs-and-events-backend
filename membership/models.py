@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from community.models import Community, Lab, CommunityEvent
-from user.models import Profile
+from user.models import User
 
 
 class Request(models.Model):
@@ -13,10 +13,10 @@ class Request(models.Model):
         ('D', 'Declined')
     )
 
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='requested_by')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='requested_by')
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     status = models.CharField(max_length=1, choices=STATUS, default='W')
-    updated_by = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_by')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_by')
 
 
 class Invitation(models.Model):
@@ -27,14 +27,14 @@ class Invitation(models.Model):
     )
 
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    invitor = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True, related_name='invitor')
-    invitee = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='invitee')
+    invitor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='invitor')
+    invitee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitee')
     invited_datetime = models.DateTimeField()
     status = models.CharField(max_length=1, choices=STATUS, default='W')
 
 
 class Advisory(models.Model):
-    advisor = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    advisor = models.ForeignKey(User, on_delete=models.CASCADE)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -77,7 +77,7 @@ class Membership(models.Model):
         (0, 'Club Member/Participator/Lab Member')
     )
 
-    user = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     position = models.IntegerField()
     start_date = models.DateField()

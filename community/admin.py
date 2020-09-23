@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.contrib.auth.models import Permission
 
 from community.models import Club, Event, CommunityEvent, Lab
 from membership.models import Membership, Advisory, Invitation, Request
@@ -55,7 +54,6 @@ class LabAdmin(admin.ModelAdmin):
     inlines = [MembershipInline, InvitationInline, RequestInline]
 
 
-admin.site.register(Permission)
 admin.site.register(Club, ClubAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(CommunityEvent, CommunityEventAdmin)

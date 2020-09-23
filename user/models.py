@@ -1,41 +1,71 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 
-class Profile(models.Model):
-    user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
-    name = models.CharField(max_length=128)
+class UserManager(BaseUserManager):
+    def create_user(self, username, password=None, **kwargs):
+        user = self.model(username=username, **kwargs)
+        user.set_password(password)
+        user.save()
+
+        return user
+
+    def create_superuser(self, username, password):
+        if password is None:
+            raise TypeError('Superusers must have a password.')
+
+        user = self.create_user(username, password=password)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+
+        return user
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    username = models.CharField(max_length=32, unique=True)
+    name = models.CharField(max_length=128, null=True, blank=True)
+    email = models.CharField(max_length=64, unique=True, null=True, blank=True)
+
     nickname = models.CharField(max_length=32, null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     profile_picture = models.ImageField(null=True, blank=True)
     cover_photo = models.ImageField(null=True, blank=True)
     birthdate = models.DateField(null=True, blank=True)
-    last_online = models.DateTimeField(null=True, blank=True)
-    is_lecturer = models.BooleanField()
+
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    USERNAME_FIELD = 'username'
+
+    objects = UserManager()
+
+    def __str__(self):
+        return '{}'.format(self.username)
+
+
+class EmailPreference(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    receive_own_club = models.BooleanField(default=True)
+    receive_own_event = models.BooleanField(default=True)
+    receive_own_lab = models.BooleanField(default=True)
+    receive_other_events = models.BooleanField(default=True)
 
     def __str__(self):
         return '{}'.format(self.user.username)
 
 
-class EmailPreference(models.Model):
-    receive_own_club = models.BooleanField(default=True)
-    receive_own_event = models.BooleanField(default=True)
-    receive_own_lab = models.BooleanField(default=True)
-    receive_other_events = models.BooleanField(default=True)
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return '{}'.format(self.profile.user.username)
-
-
 class StudentCommitteeAuthority(models.Model):
-    profile = models.OneToOneField(Profile, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
 
     def __str__(self):
-        return '{}'.format(self.profile.user.username)
+        return '{}'.format(self.user.username)
 
     def clean(self):
         errors = list()

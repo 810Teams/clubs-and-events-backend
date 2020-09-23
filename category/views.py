@@ -1,5 +1,4 @@
-from django.shortcuts import render
-from rest_framework import generics, status, permissions
+from rest_framework import generics
 from rest_framework.response import Response
 
 from category.models import ClubType, EventType, EventSeries
@@ -17,7 +16,7 @@ class ClubTypeView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
-class AllClubTypeView(generics.ListAPIView):
+class AllClubTypesView(generics.ListAPIView):
     ''' All Club types view '''
     queryset = ClubType.objects.all()
     serializer_class = ClubTypeSerializer
@@ -39,7 +38,7 @@ class EventTypeView(generics.RetrieveAPIView):
         return Response(serializer.data)
 
 
-class AllEventTypeView(generics.ListAPIView):
+class AllEventTypesView(generics.ListAPIView):
     ''' All event types view '''
     queryset = EventType.objects.all()
     serializer_class = EventTypeSerializer

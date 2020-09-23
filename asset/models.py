@@ -3,7 +3,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from community.models import Community, CommunityEvent, Event
-from user.models import Profile
+from user.models import User
 
 
 class Announcement(models.Model):
@@ -11,7 +11,7 @@ class Announcement(models.Model):
     image = models.ImageField(null=True, blank=True)
     created_datetime = models.DateTimeField()
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    creator = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True)
+    creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
 
 class Album(models.Model):
@@ -19,7 +19,7 @@ class Album(models.Model):
     created_datetime = models.DateTimeField()
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='created_in')
     community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_to')
-    creator = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True)
+    creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def clean(self):
         errors = list()
@@ -60,5 +60,5 @@ class AlbumImage(models.Model):
 class Comment(models.Model):
     text = models.TextField()
     written_by = models.CharField(max_length=128)
-    created_by = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)

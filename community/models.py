@@ -27,7 +27,7 @@ class Club(Community):
 
     club_type = models.ForeignKey(ClubType, on_delete=models.SET_NULL, null=True, blank=True)
     room = models.CharField(max_length=32, null=True, blank=True)
-    founded_date = models.DateField()
+    founded_date = models.DateField(null=True, blank=True)
     is_official = models.BooleanField(default=False)
     status = models.CharField(max_length=1, choices=STATUS, default='R')
 
@@ -35,12 +35,12 @@ class Club(Community):
         errors = list()
 
         if not self.is_official:
-            if self.room != None or len(self.room) > 0:
+            if self.room != None:
                 errors.append(ValidationError(
                     _('Unofficial clubs are not able to occupy a room.'),
                     code='unofficial_club_limitations'
                 ))
-            if self.url_id != None or len(self.url_id) > 0:
+            if self.url_id != None:
                 errors.append(ValidationError(
                     _('Unofficial clubs are not able to set custom URL ID.'),
                     code='unofficial_club_limitations'
@@ -132,6 +132,6 @@ class Lab(Community):
     )
 
     room = models.CharField(max_length=16, null=True, blank=True)
-    founded_date = models.DateField()
-    tags = models.CharField(max_length=64)
+    founded_date = models.DateField(null=True, blank=True)
+    tags = models.CharField(max_length=64, null=True, blank=True)
     status = models.CharField(max_length=1, choices=STATUS, default='R')

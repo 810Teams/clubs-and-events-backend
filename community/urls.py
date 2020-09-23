@@ -1,8 +1,9 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
 from community import views
+from community.views import OwnClubsView
 
 urlpatterns = [
-    path('', views.api_overview, name='api_overview'),
-    path('clubs/', views.get_clubs, name='get_clubs'),
+    path('club/', OwnClubsView.as_view(), name='clubs')
 ]
