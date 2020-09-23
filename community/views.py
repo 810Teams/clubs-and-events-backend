@@ -1,9 +1,9 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 
-from community.models import Club
-from community.permissions import IsStudent
-from community.serializers import ClubSerializer
+from community.models import Club, Lab
+from community.permissions import IsStudent, IsLecturer
+from community.serializers import ClubSerializer, LabSerializer
 from membership.models import Membership
 
 
@@ -32,14 +32,13 @@ class CreateClubView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         ''' Create a club '''
         data = request.data
-        user = request.user
 
         serializer = ClubSerializer(data=data, many=False)
 
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ClubView(generics.RetrieveAPIView, generics.UpdateAPIView):
@@ -51,7 +50,10 @@ class ClubView(generics.RetrieveAPIView, generics.UpdateAPIView):
         ''' Get club '''
         user = request.user
 
-        club = Club.objects.get(pk=kwargs.get('pk'))
+        try:
+            club = Club.objects.get(pk=kwargs.get('pk'))
+        except Club.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         if not club.is_publicly_visible and not user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -79,4 +81,4 @@ class ClubView(generics.RetrieveAPIView, generics.UpdateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
