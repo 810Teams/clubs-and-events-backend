@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'asset',
     'category',
     'community',
+    'core',
     'membership',
     'user',
 ]
