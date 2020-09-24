@@ -1,11 +1,11 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
-from community.views import CreateClubView, RetrieveClubView, ListClubView, UpdateClubView, DeleteClubView
+from community.views import ClubViewSet
+
+router = DefaultRouter()
+router.register('club', ClubViewSet)
 
 urlpatterns = [
-    path('club/create/', CreateClubView.as_view(), name='create_club'),
-    path('club/<int:pk>/', RetrieveClubView.as_view(), name='retrieve_club'),
-    path('club/all/', ListClubView.as_view(), name='list_club'),
-    path('club/<int:pk>/update', UpdateClubView.as_view(), name='update_club'),
-    path('club/<int:pk>/delete', DeleteClubView.as_view(), name='delete_club'),
+    path('', include(router.urls))
 ]

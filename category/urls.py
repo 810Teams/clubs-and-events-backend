@@ -1,13 +1,13 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
-from category.views import AllClubTypesView, ClubTypeView, AllEventTypesView, EventTypeView, AllEventSeriesView, \
-    EventSeriesView
+from category.views import ClubTypeViewSet, EventTypeViewSet, EventSeriesViewSet
+
+router = DefaultRouter()
+router.register('type/club', ClubTypeViewSet)
+router.register('type/event', EventTypeViewSet)
+router.register('series/event', EventSeriesViewSet)
 
 urlpatterns = [
-    path('type/club/', AllClubTypesView.as_view(), name='all_club_types'),
-    path('type/club/<int:pk>/', ClubTypeView.as_view(), name='club_type'),
-    path('type/event/', AllEventTypesView.as_view(), name='all_event_types'),
-    path('type/event/<int:pk>/', EventTypeView.as_view(), name='event_type'),
-    path('series/event', AllEventSeriesView.as_view(), name='all_event_series'),
-    path('series/event/<int:pk>/', EventSeriesView.as_view(), name='event_series'),
+    path('', include(router.urls))
 ]

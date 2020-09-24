@@ -8,7 +8,6 @@ class ClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
         fields = '__all__'
-        read_only_fields = ['is_official']
 
     def validate(self, data):
         errors = list()
@@ -39,13 +38,13 @@ class ClubSerializer(serializers.ModelSerializer):
 
         return data
 
-    def create(self, validated_data):
+    def update(self, instance, validated_data):
         if 'url_id' in validated_data.keys() and validated_data['url_id'] == '':
             validated_data['url_id'] = None
         if 'room' in validated_data.keys() and validated_data['room'] == '':
             validated_data['room'] = None
 
-        return Club.objects.create(**validated_data)
+        return instance.save(**validated_data)
 
 
 class EventSerializer(serializers.ModelSerializer):
