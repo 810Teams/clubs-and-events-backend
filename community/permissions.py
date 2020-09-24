@@ -20,7 +20,7 @@ class IsPubliclyVisible(permissions.BasePermission):
         return True
 
 
-class IsPresidentOfCommunity(permissions.BasePermission):
+class IsLeaderOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         membership = Membership.objects.filter(
             user_id=request.user.id, position=3, community_id=obj.id, end_date=None
@@ -28,7 +28,7 @@ class IsPresidentOfCommunity(permissions.BasePermission):
         return len(membership) == 1
 
 
-class IsVicePresidentOfCommunity(permissions.BasePermission):
+class IsDeputyLeaderOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[2, 3], community_id=obj.id, end_date=None
@@ -39,3 +39,8 @@ class IsVicePresidentOfCommunity(permissions.BasePermission):
 class IsDeletableClub(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return not obj.is_official
+
+
+class IsDeletableLab(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return True

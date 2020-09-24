@@ -8,6 +8,7 @@ class ClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
         fields = '__all__'
+        read_only_fields = ['created_at']
 
     def validate(self, data):
         errors = list()
@@ -62,15 +63,37 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
+        read_only_fields = ['created_at']
 
 
 class CommunityEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityEvent
         fields = '__all__'
+        read_only_fields = ['created_at']
 
 
 class LabSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lab
         fields = '__all__'
+        read_only_fields = ['created_at']
+
+    def create(self, validated_data):
+        if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
+            validated_data['url_id'] = None
+        if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
+            validated_data['room'] = None
+
+        return self.Meta.model.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
+            validated_data['url_id'] = None
+        if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
+            validated_data['room'] = None
+
+        instance.__dict__.update(**validated_data)
+        instance.save()
+
+        return instance

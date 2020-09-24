@@ -13,6 +13,7 @@ class Community(models.Model):
     logo = models.ImageField(null=True, blank=True)
     banner = models.ImageField(null=True, blank=True)
     is_publicly_visible = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return '{}'.format(self.name_en)
