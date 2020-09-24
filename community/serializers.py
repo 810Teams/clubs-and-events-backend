@@ -8,21 +8,26 @@ class ClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
         fields = '__all__'
+        read_only_fields = ['is_official']
 
     def validate(self, data):
         errors = list()
 
-        if not data['is_official']:
+        # If the 'is_official' field is not present or false, validate these.
+        if 'is_official' not in data.keys() or ('is_official' in data.keys() and not data['is_official']):
+            # If present, the 'room' field must be null, but if blank, it will be set to null later.
             if 'room' in data.keys() and data['room'] is not None and data['room'] != '':
                 errors.append(serializers.ValidationError(
                     _('Unofficial clubs are not able to occupy a room.'),
                     code='unofficial_club_limitations'
                 ))
+            # If present, the 'url_id' field must be null, but if blank, it will be set to null later.
             if 'url_id' in data.keys() and data['url_id'] is not None and data['url_id'] != '':
                 errors.append(serializers.ValidationError(
                     _('Unofficial clubs are not able to set custom URL ID.'),
                     code='unofficial_club_limitations'
                 ))
+            # If present, the 'is_publicly_visible' field must be false.
             if 'is_publicly_visible' in data.keys() and data['is_publicly_visible'] == True:
                 errors.append(serializers.ValidationError(
                     _('Unofficial clubs cannot be publicly visible.'),
