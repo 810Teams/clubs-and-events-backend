@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from community.models import Club, Lab, Community
+from community.models import Community
 from membership.models import Membership
 
 
@@ -60,6 +60,7 @@ class IsMemberOfCommunity(permissions.BasePermission):
 
 class IsLeaderOfBaseCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Object class: Community Event
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[3], community_id=base_community.id, end_date=None
@@ -70,6 +71,7 @@ class IsLeaderOfBaseCommunity(permissions.BasePermission):
 
 class IsDeputyLeaderOfBaseCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Object class: Community Event
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[2, 3], community_id=base_community.id, end_date=None
@@ -80,6 +82,7 @@ class IsDeputyLeaderOfBaseCommunity(permissions.BasePermission):
 
 class IsStaffOfBaseCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Object class: Community Event
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[1, 2, 3], community_id=base_community.id, end_date=None
@@ -90,6 +93,7 @@ class IsStaffOfBaseCommunity(permissions.BasePermission):
 
 class IsMemberOfBaseCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Object class: Community Event
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
             user_id=request.user.id, community_id=base_community.id, end_date=None
@@ -98,23 +102,29 @@ class IsMemberOfBaseCommunity(permissions.BasePermission):
         return len(base_membership) == 1
 
 
+# TODO: Implements a better deletable condition
 class IsDeletableClub(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
+        # Object class: Club
         return not obj.is_official
 
 
+# TODO: Implements a better deletable condition
 class IsDeletableEvent(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return not obj.is_approved or obj.is_cancelled
+        # Object class: Event
+        return not obj.is_approved
 
 
+# TODO: Implements a better deletable condition
 class IsDeletableCommunityEvent(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return obj.is_cancelled
+        # Object class: Community Event
+        return True
 
 
-# TODO: Implements lab deletable condition
+# TODO: Implements a better deletable condition
 class IsDeletableLab(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community
+        # Object class: Lab
         return True

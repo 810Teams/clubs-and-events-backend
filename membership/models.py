@@ -86,7 +86,6 @@ class Membership(models.Model):
 
     def clean(self):
         errors = list()
-        print(self.end_date, self.ended_reason)
 
         if self.position not in (0, 1, 2, 3):
             errors.append(ValidationError(_('Position must be a number from 0 to 3.'), code='position_out_of_range'))

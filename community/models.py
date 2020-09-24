@@ -89,7 +89,7 @@ class CommunityEvent(Event):
         errors = list()
 
         try:
-            if Event.objects.get(pk=self.created_under.id) != None:
+            if Event.objects.get(pk=self.created_under.id) is not None:
                 errors.append(ValidationError(
                     _('Community events are not able to be created under events.'),
                     code='hierarchy_error'
@@ -98,7 +98,7 @@ class CommunityEvent(Event):
             pass
 
         try:
-            if Club.objects.get(pk=self.created_under.id) and not Club.objects.get(pk=self.created_under.id).is_official:
+            if not Club.objects.get(pk=self.created_under.id).is_official:
                 errors.append(ValidationError(
                     _('Community events are not able to be created under unofficial clubs.'),
                     code='unofficial_club_limitations'

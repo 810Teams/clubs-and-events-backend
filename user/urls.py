@@ -1,7 +1,6 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
-from user import views
 
 urlpatterns = [
-    # path('', views.api_overview, name='api_overview'),
 ]

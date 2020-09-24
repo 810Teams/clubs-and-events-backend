@@ -8,7 +8,8 @@ from community.permissions import IsStudent, IsLecturer, IsPubliclyVisible, IsLe
     IsDeputyLeaderOfCommunity, IsDeletableClub, IsDeletableLab, IsDeletableEvent, IsDeletableCommunityEvent, \
     IsLeaderOfBaseCommunity, IsStaffOfBaseCommunity, IsDeputyLeaderOfBaseCommunity
 from community.serializers import LabSerializer, UnofficialClubSerializer, OfficialClubSerializer, \
-    UnapprovedEventSerializer, ApprovedEventSerializer, NotExistingCommunityEventSerializer, ExistingCommunityEventSerializer
+    UnapprovedEventSerializer, ApprovedEventSerializer, NotExistingCommunityEventSerializer, \
+    ExistingCommunityEventSerializer
 from membership.models import Membership
 
 

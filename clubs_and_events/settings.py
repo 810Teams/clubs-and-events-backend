@@ -136,6 +136,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Auth User Model
-# Custom user model for authentication
+# Custom user model for authentication, delete to revert back to default.
 
 AUTH_USER_MODEL = 'user.User'
