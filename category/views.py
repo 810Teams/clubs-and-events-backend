@@ -1,5 +1,4 @@
-from rest_framework import generics, viewsets
-from rest_framework.response import Response
+from rest_framework import viewsets
 
 from category.models import ClubType, EventType, EventSeries
 from category.serializers import ClubTypeSerializer, EventTypeSerializer, EventSeriesSerializer

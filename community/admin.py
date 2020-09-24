@@ -37,7 +37,11 @@ class EventAdmin(admin.ModelAdmin):
     inlines = [MembershipInline, InvitationInline, RequestInline, AdvisoryInline]
 
     def is_community_event(self, obj):
-        return CommunityEvent.objects.get(pk=obj.id) != None
+        try:
+            if CommunityEvent.objects.get(pk=obj.id):
+                return True
+        except CommunityEvent.DoesNotExist:
+            return False
 
     is_community_event.boolean = True
 

@@ -83,16 +83,10 @@ class CommunityEvent(Event):
 
     def __init__(self, *args, **kwargs):
         super(Event, self).__init__(*args, **kwargs)
-        self._meta.get_field('status').default = 'A'
+        self._meta.get_field('is_approved').default = True
 
     def clean(self):
         errors = list()
-
-        if self.id == self.created_under.id:
-            errors.append(ValidationError(
-                _('Community events are not able to be created under its parent self.'),
-                code='hierarchy_error'
-            ))
 
         try:
             if Event.objects.get(pk=self.created_under.id) != None:
@@ -112,9 +106,9 @@ class CommunityEvent(Event):
         except Club.DoesNotExist:
             pass
 
-        if self.status == 'W':
+        if not self.is_approved:
             errors.append(ValidationError(
-                _('Community events are not able to have waiting as status.'),
+                _('Community events are not able to be unapproved.'),
                 code='status_error'
             ))
 
