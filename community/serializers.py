@@ -15,13 +15,13 @@ class ClubSerializer(serializers.ModelSerializer):
         # If the 'is_official' field is not present or false, validate these.
         if 'is_official' not in data.keys() or ('is_official' in data.keys() and not data['is_official']):
             # If present, the 'room' field must be null, but if blank, it will be set to null later.
-            if 'room' in data.keys() and data['room'] is not None and data['room'] != '':
+            if 'room' in data.keys() and data['room'] is not None and data['room'].strip() != '':
                 errors.append(serializers.ValidationError(
                     _('Unofficial clubs are not able to occupy a room.'),
                     code='unofficial_club_limitations'
                 ))
             # If present, the 'url_id' field must be null, but if blank, it will be set to null later.
-            if 'url_id' in data.keys() and data['url_id'] is not None and data['url_id'] != '':
+            if 'url_id' in data.keys() and data['url_id'] is not None and data['url_id'].strip() != '':
                 errors.append(serializers.ValidationError(
                     _('Unofficial clubs are not able to set custom URL ID.'),
                     code='unofficial_club_limitations'
@@ -38,13 +38,24 @@ class ClubSerializer(serializers.ModelSerializer):
 
         return data
 
-    def update(self, instance, validated_data):
-        if 'url_id' in validated_data.keys() and validated_data['url_id'] == '':
+    def create(self, validated_data):
+        if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
             validated_data['url_id'] = None
-        if 'room' in validated_data.keys() and validated_data['room'] == '':
+        if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
             validated_data['room'] = None
 
-        return instance.save(**validated_data)
+        return self.Meta.model.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
+            validated_data['url_id'] = None
+        if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
+            validated_data['room'] = None
+
+        instance.__dict__.update(**validated_data)
+        instance.save()
+
+        return instance
 
 
 class EventSerializer(serializers.ModelSerializer):
