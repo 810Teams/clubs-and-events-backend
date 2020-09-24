@@ -41,6 +41,11 @@ class IsDeletableClub(permissions.BasePermission):
         return not obj.is_official
 
 
+class IsDeletableEvent(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return not obj.is_approved or obj.is_cancelled
+
+
 class IsDeletableLab(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return True

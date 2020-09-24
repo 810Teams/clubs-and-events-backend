@@ -32,7 +32,8 @@ class ClubAdmin(admin.ModelAdmin):
 
 class EventAdmin(admin.ModelAdmin):
     list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'created_at',
-                    'event_type', 'event_series', 'start_date', 'end_date', 'status', 'is_community_event']
+                    'event_type', 'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled',
+                    'is_community_event']
     inlines = [MembershipInline, InvitationInline, RequestInline, AdvisoryInline]
 
     def is_community_event(self, obj):
@@ -43,7 +44,7 @@ class EventAdmin(admin.ModelAdmin):
 
 class CommunityEventAdmin(admin.ModelAdmin):
     list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'created_at',
-                    'event_type', 'event_series', 'start_date', 'end_date', 'status',
+                    'event_type', 'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled',
                     'created_under', 'allows_outside_participators']
     inlines = [MembershipInline, InvitationInline, RequestInline]
 

@@ -57,12 +57,6 @@ class Club(Community):
 
 
 class Event(Community):
-    STATUS = (
-        ('W', 'Waiting'),
-        ('A', 'Approved'),
-        ('C', 'Cancelled'),
-    )
-
     event_type = models.ForeignKey(EventType, on_delete=models.SET_NULL, null=True, blank=True)
     event_series = models.ForeignKey(EventSeries, on_delete=models.SET_NULL, null=True, blank=True)
     location = models.CharField(max_length=256)
@@ -70,7 +64,8 @@ class Event(Community):
     end_date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
-    status = models.CharField(max_length=1, choices=STATUS, default='W')
+    is_approved = models.BooleanField(default=False)
+    is_cancelled = models.BooleanField(default=False)
 
     def clean(self):
         errors = list()
