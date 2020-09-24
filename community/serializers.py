@@ -1,10 +1,7 @@
-from rest_framework import serializers
 from django.utils.translation import gettext as _
+from rest_framework import serializers
 
 from community.models import Club, Event, CommunityEvent, Lab
-from membership.models import Membership
-
-import datetime
 
 
 class ClubSerializer(serializers.ModelSerializer):
@@ -16,17 +13,17 @@ class ClubSerializer(serializers.ModelSerializer):
         errors = list()
 
         if not data['is_official']:
-            if data['room'] is not None:
+            if 'room' in data.keys() and data['room'] is not None and data['room'] != '':
                 errors.append(serializers.ValidationError(
                     _('Unofficial clubs are not able to occupy a room.'),
                     code='unofficial_club_limitations'
                 ))
-            if data['url_id'] is not None:
+            if 'url_id' in data.keys() and data['url_id'] is not None and data['url_id'] != '':
                 errors.append(serializers.ValidationError(
                     _('Unofficial clubs are not able to set custom URL ID.'),
                     code='unofficial_club_limitations'
                 ))
-            if data['is_publicly_visible']:
+            if 'is_publicly_visible' in data.keys() and data['is_publicly_visible'] == True:
                 errors.append(serializers.ValidationError(
                     _('Unofficial clubs cannot be publicly visible.'),
                     code='unofficial_club_limitations'
@@ -38,10 +35,12 @@ class ClubSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        club = Club.objects.create(**validated_data)
-        # TODO: CREATE MEMBERSHIP
+        if 'url_id' in validated_data.keys() and validated_data['url_id'] == '':
+            validated_data['url_id'] = None
+        if 'room' in validated_data.keys() and validated_data['room'] == '':
+            validated_data['room'] = None
 
-        return club
+        return Club.objects.create(**validated_data)
 
 
 class EventSerializer(serializers.ModelSerializer):

@@ -1,19 +1,56 @@
+from datetime import datetime
+
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 
-from community.models import Club, Lab
-from community.permissions import IsStudent, IsLecturer
+from community.models import Club, Event, CommunityEvent, Lab
+from community.permissions import IsStudent, IsLecturer, IsPubliclyVisible, IsPresidentOfCommunity, \
+    IsVicePresidentOfCommunity, IsDeletableClub
 from community.serializers import ClubSerializer, LabSerializer
 from membership.models import Membership
 
 
-class AllClubsView(generics.ListAPIView):
-    ''' All clubs view '''
+class CreateClubView(generics.CreateAPIView):
+    queryset = Club.objects.all()
+    serializer_class = ClubSerializer
+    permission_classes = [permissions.IsAuthenticated, IsStudent]
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        user = request.user
+
+        serializer = ClubSerializer(data=data, many=False)
+
+        if serializer.is_valid():
+            club = serializer.save()
+            Membership.objects.create(user=user, position=3, community=club, start_date=str(datetime.now().date()))
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RetrieveClubView(generics.RetrieveAPIView):
+    queryset = Club.objects.all()
+    serializer_class = ClubSerializer
+    permission_classes = [IsPubliclyVisible]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            club = Club.objects.get(pk=kwargs.get('pk'))
+        except Club.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        self.check_object_permissions(request, club)
+
+        serializer = ClubSerializer(club, many=False)
+
+        return Response(serializer.data)
+
+
+class ListClubView(generics.ListAPIView):
     queryset = Club.objects.all()
     serializer_class = ClubSerializer
 
     def get(self, request, *args, **kwargs):
-        ''' Get all clubs '''
         queryset = self.get_queryset()
 
         if not request.user.is_authenticated:
@@ -23,62 +60,30 @@ class AllClubsView(generics.ListAPIView):
         return Response(serializer.data)
 
 
-class CreateClubView(generics.CreateAPIView):
-    ''' Own clubs view '''
+class UpdateClubView(generics.UpdateAPIView):
     queryset = Club.objects.all()
     serializer_class = ClubSerializer
-    permission_classes = [permissions.IsAuthenticated, IsStudent]
+    permission_classes = [IsVicePresidentOfCommunity]
 
-    def post(self, request, *args, **kwargs):
-        ''' Create a club '''
+    def put(self, request, *args, **kwargs):
         data = request.data
+        user = request.user
 
         serializer = ClubSerializer(data=data, many=False)
 
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ClubView(generics.RetrieveAPIView, generics.UpdateAPIView):
-    ''' Club view '''
-    queryset = Club.objects.all()
-    serializer_class = ClubSerializer
-
-    def get(self, request, *args, **kwargs):
-        ''' Get club '''
-        user = request.user
-
-        try:
-            club = Club.objects.get(pk=kwargs.get('pk'))
-        except Club.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        if not club.is_publicly_visible and not user.is_authenticated:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        serializer = ClubSerializer(club, many=False)
-
-        return Response(serializer.data)
-
-
-    def patch(self, request, *args, **kwargs):
-        ''' Update the club '''
-        data = request.data
-        user = request.user
-
-        try:
-            membership = Membership.objects.get(user=user.id, community=kwargs.get('pk'), end_date=None)
-
-            if membership.position not in [2, 3]:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-        except Membership.DoesNotExist:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        serializer = ClubSerializer(data=data, many=False)
-
-        if serializer.is_valid():
-            serializer.save()
+            club = serializer.save()
+            self.check_object_permissions(request, club)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DeleteClubView(generics.DestroyAPIView):
+    queryset = Club.objects.all()
+    serializer_class = ClubSerializer
+    permission_classes = [IsPresidentOfCommunity, IsDeletableClub]
+
+    def delete(self, request, *args, **kwargs):
+        self.check_object_permissions(request, self.get_object())
+        self.destroy(request, *args, **kwargs)
+        return Response({'success': True}, status=200)

@@ -8,7 +8,7 @@ from category.models import ClubType, EventType, EventSeries
 class Community(models.Model):
     name_th = models.CharField(max_length=64, unique=True)
     name_en = models.CharField(max_length=64, unique=True)
-    url_id = models.CharField(max_length=16, null=True, unique=True)
+    url_id = models.CharField(max_length=16, null=True, blank=True, unique=True)
     description = models.TextField(null=True, blank=True)
     logo = models.ImageField(null=True, blank=True)
     banner = models.ImageField(null=True, blank=True)
@@ -26,7 +26,7 @@ class Club(Community):
     )
 
     club_type = models.ForeignKey(ClubType, on_delete=models.SET_NULL, null=True, blank=True)
-    room = models.CharField(max_length=32, null=True)
+    room = models.CharField(max_length=32, null=True, blank=True)
     founded_date = models.DateField(null=True, blank=True)
     is_official = models.BooleanField(default=False)
     status = models.CharField(max_length=1, choices=STATUS, default='R')
