@@ -9,19 +9,21 @@ from user.models import User
 class Announcement(models.Model):
     text = models.TextField()
     image = models.ImageField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='announcement_created_by')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='announcement_updated_by')
 
 
 class Album(models.Model):
     name = models.CharField(max_length=64)
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='created_in')
-    community_event = models.ForeignKey(
-        CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_to'
-    )
+    community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_to')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='album_created_by')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='album_updated_by')
 
     def clean(self):
         errors = list()
@@ -62,6 +64,6 @@ class AlbumImage(models.Model):
 class Comment(models.Model):
     text = models.TextField()
     written_by = models.CharField(max_length=128)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)

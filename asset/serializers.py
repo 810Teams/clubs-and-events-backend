@@ -9,19 +9,22 @@ class ExistingAnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
         fields = '__all__'
-        read_only_fields = ('created_by', 'community')
+        read_only_fields = ('created_by', 'updated_by', 'community')
 
 
 class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
-        exclude = ('created_by',)
+        exclude = ('created_by', 'updated_by')
 
     def validate(self, data):
         errors = list()
 
         membership = Membership.objects.filter(
-            user_id=self.context['request'].user.id, position__in=[1, 2, 3], community_id=data['community'].id, end_date=None
+            user_id=self.context['request'].user.id,
+            position__in=[1, 2, 3],
+            community_id=data['community'].id,
+            end_date=None
         )
 
         if len(membership) == 0:

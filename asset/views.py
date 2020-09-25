@@ -35,12 +35,13 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data
-        user = request.user
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(created_by=request.user, updated_by=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        serializer = self.get_serializer(data=data, many=False)
-
-        if serializer.is_valid():
-            serializer.save(created_by=user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by= request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
