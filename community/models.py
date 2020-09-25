@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from category.models import ClubType, EventType, EventSeries
+from user.models import User
 
 
 class Community(models.Model):
@@ -14,6 +15,7 @@ class Community(models.Model):
     banner = models.ImageField(null=True, blank=True)
     is_publicly_visible = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return '{}'.format(self.name_en)
