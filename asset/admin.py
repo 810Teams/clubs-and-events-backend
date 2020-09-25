@@ -4,7 +4,7 @@ from asset.models import AlbumImage, Announcement, Album, Comment
 
 
 class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ['id', 'partial_text', 'created_datetime', 'community', 'creator']
+    list_display = ['id', 'partial_text', 'created_at', 'created_by', 'community']
 
     def partial_text(self, obj):
         if len(obj.text) <= 64:
@@ -18,7 +18,7 @@ class AlbumImageInline(admin.StackedInline):
 
 
 class AlbumAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'photos', 'created_datetime', 'community', 'community_event', 'creator']
+    list_display = ['id', 'name', 'photos', 'created_at', 'created_by', 'community', 'community_event']
     inlines = [AlbumImageInline]
 
     def photos(self, obj):
@@ -26,7 +26,7 @@ class AlbumAdmin(admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'partial_text', 'written_by', 'created_by', 'event']
+    list_display = ['id', 'partial_text', 'written_by', 'created_at', 'created_by', 'event']
 
     def partial_text(self, obj):
         if len(obj.text) <= 64:

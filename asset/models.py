@@ -9,17 +9,19 @@ from user.models import User
 class Announcement(models.Model):
     text = models.TextField()
     image = models.ImageField(null=True, blank=True)
-    created_datetime = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
 
 class Album(models.Model):
     name = models.CharField(max_length=64)
-    created_datetime = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='created_in')
-    community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_to')
-    creator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    community_event = models.ForeignKey(
+        CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_to'
+    )
 
     def clean(self):
         errors = list()
@@ -60,5 +62,6 @@ class AlbumImage(models.Model):
 class Comment(models.Model):
     text = models.TextField()
     written_by = models.CharField(max_length=128)
+    created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
