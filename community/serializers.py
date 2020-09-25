@@ -14,9 +14,7 @@ class OfficialClubSerializer(serializers.ModelSerializer):
 class UnofficialClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
-        fields = (
-            'name_th', 'name_en', 'description', 'logo', 'banner', 'club_type', 'founded_date', 'is_official', 'status'
-        )
+        exclude = ('url_id', 'is_publicly_visible', 'room')
         read_only_fields = ('is_official',)
 
 
@@ -30,8 +28,7 @@ class ApprovedEventSerializer(serializers.ModelSerializer):
 class UnapprovedEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ('name_th', 'name_en', 'description', 'logo', 'banner', 'event_type', 'event_series', 'location',
-                  'start_date', 'end_date', 'start_time', 'end_time', 'is_approved', 'is_cancelled')
+        exclude = ('url_id', 'is_publicly_visible')
         read_only_fields = ('is_approved',)
 
 
