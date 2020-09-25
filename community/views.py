@@ -47,16 +47,11 @@ class ClubViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data
-        user = request.user
-
-        serializer = self.get_serializer(data=data, many=False)
-
-        if serializer.is_valid():
-            obj = serializer.save()
-            Membership.objects.create(user=user, position=3, community=obj, start_date=str(datetime.now().date()))
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+        Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -92,16 +87,11 @@ class EventViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data
-        user = request.user
-
-        serializer = self.get_serializer(data=data, many=False)
-
-        if serializer.is_valid():
-            obj = serializer.save()
-            Membership.objects.create(user=user, position=3, community=obj, start_date=str(datetime.now().date()))
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+        Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class CommunityEventViewSet(viewsets.ModelViewSet):
@@ -141,16 +131,11 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data
-        user = request.user
-
-        serializer = self.get_serializer(data=data, many=False)
-
-        if serializer.is_valid():
-            obj = serializer.save()
-            Membership.objects.create(user=user, position=3, community=obj, start_date=str(datetime.now().date()))
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+        Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class LabViewSet(viewsets.ModelViewSet):
@@ -179,13 +164,8 @@ class LabViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        data = request.data
-        user = request.user
-
-        serializer = self.get_serializer(data=data, many=False)
-
-        if serializer.is_valid():
-            obj = serializer.save()
-            Membership.objects.create(user=user, position=3, community=obj, start_date=str(datetime.now().date()))
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+        Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
