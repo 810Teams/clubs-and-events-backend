@@ -4,16 +4,6 @@ from community.models import Community
 from membership.models import Membership
 
 
-class IsStudent(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user.groups.filter(name='student').exists()
-
-
-class IsLecturer(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user.groups.filter(name='lecturer').exists()
-
-
 class IsPubliclyVisible(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Community

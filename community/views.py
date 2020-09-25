@@ -4,12 +4,13 @@ from rest_framework import status, permissions, viewsets
 from rest_framework.response import Response
 
 from community.models import Club, Event, CommunityEvent, Lab
-from community.permissions import IsStudent, IsLecturer, IsPubliclyVisible, IsLeaderOfCommunity, \
-    IsDeputyLeaderOfCommunity, IsDeletableClub, IsDeletableLab, IsDeletableEvent, IsDeletableCommunityEvent, \
-    IsLeaderOfBaseCommunity, IsStaffOfBaseCommunity, IsDeputyLeaderOfBaseCommunity
+from community.permissions import IsPubliclyVisible, IsLeaderOfCommunity, IsDeputyLeaderOfCommunity, IsDeletableClub, \
+    IsDeletableLab, IsDeletableEvent, IsDeletableCommunityEvent, IsLeaderOfBaseCommunity, IsStaffOfBaseCommunity, \
+    IsDeputyLeaderOfBaseCommunity
 from community.serializers import LabSerializer, UnofficialClubSerializer, OfficialClubSerializer, \
     UnapprovedEventSerializer, ApprovedEventSerializer, NotExistingCommunityEventSerializer, \
     ExistingCommunityEventSerializer
+from user.permissions import IsStudent, IsLecturer
 from membership.models import Membership
 
 
@@ -22,7 +23,7 @@ class ClubViewSet(viewsets.ModelViewSet):
             return (IsPubliclyVisible(),)
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(), IsStudent())
-        elif self.request.method in ['PUT', 'PATCH']:
+        elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsStudent(), IsDeputyLeaderOfCommunity())
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsStudent(), IsLeaderOfCommunity(), IsDeletableClub())
@@ -67,7 +68,7 @@ class EventViewSet(viewsets.ModelViewSet):
             return (IsPubliclyVisible(),)
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(), IsStudent())
-        elif self.request.method in ['PUT', 'PATCH']:
+        elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsStudent(), IsDeputyLeaderOfCommunity())
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsStudent(), IsLeaderOfCommunity(), IsDeletableEvent())
@@ -112,7 +113,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
             return (IsPubliclyVisible(),)
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(), IsStaffOfBaseCommunity())
-        elif self.request.method in ['PUT', 'PATCH']:
+        elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity(), IsDeputyLeaderOfBaseCommunity())
         elif self.request.method == 'DELETE':
             return (
@@ -162,7 +163,7 @@ class LabViewSet(viewsets.ModelViewSet):
             return (IsPubliclyVisible(),)
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(), IsLecturer())
-        elif self.request.method in ['PUT', 'PATCH']:
+        elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsLecturer(), IsDeputyLeaderOfCommunity())
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsLecturer(), IsLeaderOfCommunity(), IsDeletableLab())
