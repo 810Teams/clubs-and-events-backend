@@ -15,7 +15,8 @@ class ExistingAnnouncementSerializer(serializers.ModelSerializer):
 class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
-        exclude = ('created_by', 'updated_by')
+        fields = '__all__'
+        read_only_fields = ('created_by', 'updated_by')
 
     def validate(self, data):
         errors = list()
