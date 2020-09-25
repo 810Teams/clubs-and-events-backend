@@ -4,14 +4,16 @@ from rest_framework import status, permissions, viewsets
 from rest_framework.response import Response
 
 from community.models import Club, Event, CommunityEvent, Lab
-from community.permissions import IsPubliclyVisible, IsLeaderOfCommunity, IsDeputyLeaderOfCommunity, IsDeletableClub, \
-    IsDeletableLab, IsDeletableEvent, IsDeletableCommunityEvent, IsLeaderOfBaseCommunity, IsStaffOfBaseCommunity, \
-    IsDeputyLeaderOfBaseCommunity
-from community.serializers import LabSerializer, UnofficialClubSerializer, OfficialClubSerializer, \
-    UnapprovedEventSerializer, ApprovedEventSerializer, NotExistingCommunityEventSerializer, \
-    ExistingCommunityEventSerializer
-from user.permissions import IsStudent, IsLecturer
+from community.permissions import IsPubliclyVisible
+from community.permissions import IsLeaderOfCommunity, IsDeputyLeaderOfCommunity
+from community.permissions import IsLeaderOfBaseCommunity, IsDeputyLeaderOfBaseCommunity, IsStaffOfBaseCommunity
+from community.permissions import IsDeletableClub, IsDeletableEvent, IsDeletableCommunityEvent, IsDeletableLab
+from community.serializers import OfficialClubSerializer, UnofficialClubSerializer
+from community.serializers import ApprovedEventSerializer, UnapprovedEventSerializer
+from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
+from community.serializers import LabSerializer
 from membership.models import Membership
+from user.permissions import IsStudent, IsLecturer
 
 
 class ClubViewSet(viewsets.ModelViewSet):
@@ -44,6 +46,7 @@ class ClubViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(is_publicly_visible=True, is_official=True)
 
         serializer = self.get_serializer(queryset, many=True)
+
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
@@ -51,6 +54,7 @@ class ClubViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -84,6 +88,7 @@ class EventViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(is_publicly_visible=True, is_approved=True)
 
         serializer = self.get_serializer(queryset, many=True)
+
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
@@ -91,6 +96,7 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -135,6 +141,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -161,6 +168,7 @@ class LabViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(is_publicly_visible=True)
 
         serializer = self.get_serializer(queryset, many=True)
+
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
@@ -168,4 +176,5 @@ class LabViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
         Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)

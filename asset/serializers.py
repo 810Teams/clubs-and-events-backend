@@ -40,6 +40,7 @@ class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
         return data
 
 
+# TODO: Continue from here on 2020/Sep/26
 class AlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = Album

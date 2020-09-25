@@ -12,18 +12,23 @@ class Announcement(models.Model):
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='announcement_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='announcement_updated_by')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='announcement_created_by')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='announcement_updated_by')
 
 
 class Album(models.Model):
     name = models.CharField(max_length=64)
-    community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='created_in')
-    community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True, related_name='linked_to')
+    community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='album_created_in')
+    community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True,
+                                        related_name='album_linked_to')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='album_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='album_updated_by')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='album_created_by')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='album_updated_by')
 
     def clean(self):
         errors = list()

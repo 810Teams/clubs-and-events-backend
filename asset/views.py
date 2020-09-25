@@ -32,16 +32,19 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(community_id__in=visible_ids)
 
         serializer = self.get_serializer(queryset, many=True)
+
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user, updated_by=request.user)
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         serializer.save(updated_by= request.user)
+
         return Response(serializer.data, status=status.HTTP_200_OK)
