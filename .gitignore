@@ -136,5 +136,7 @@ dmypy.json
 .idea/
 
 # Project Specific
-migrations/
+*/migrations/*
+!*/migrations/__init__.py
+storage/
 KEY.txt
