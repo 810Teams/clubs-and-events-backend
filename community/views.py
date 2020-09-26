@@ -12,6 +12,7 @@ from community.serializers import OfficialClubSerializer, UnofficialClubSerializ
 from community.serializers import ApprovedEventSerializer, UnapprovedEventSerializer
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
+from core.utils import filter_queryset
 from membership.models import Membership
 from user.permissions import IsStudent, IsLecturer
 
@@ -19,6 +20,18 @@ from user.permissions import IsStudent, IsLecturer
 class ClubViewSet(viewsets.ModelViewSet):
     queryset = Club.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        if not self.request.user.is_authenticated:
+            queryset = queryset.filter(is_publicly_visible=True, is_official=True)
+
+        queryset = filter_queryset(queryset, self.request, target_param='club_type', is_foreign_key=True)
+        queryset = filter_queryset(queryset, self.request, target_param='is_official', is_foreign_key=False)
+        queryset = filter_queryset(queryset, self.request, target_param='status', is_foreign_key=False)
+
+        return queryset
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -38,16 +51,6 @@ class ClubViewSet(viewsets.ModelViewSet):
         except AssertionError:
             pass
         return OfficialClubSerializer
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-
-        if not request.user.is_authenticated:
-            queryset = queryset.filter(is_publicly_visible=True, is_official=True)
-
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
@@ -69,6 +72,19 @@ class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
+    def get_queryset(self):
+        queryset = self.queryset
+
+        if not self.request.user.is_authenticated:
+            queryset = queryset.filter(is_publicly_visible=True, is_approved=True)
+
+        queryset = filter_queryset(queryset, self.request, target_param='event_type', is_foreign_key=True)
+        queryset = filter_queryset(queryset, self.request, target_param='event_series', is_foreign_key=True)
+        queryset = filter_queryset(queryset, self.request, target_param='is_approved', is_foreign_key=False)
+        queryset = filter_queryset(queryset, self.request, target_param='is_cancelled', is_foreign_key=False)
+
+        return queryset
+
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsPubliclyVisible(),)
@@ -87,16 +103,6 @@ class EventViewSet(viewsets.ModelViewSet):
         except AssertionError:
             pass
         return ApprovedEventSerializer
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-
-        if not request.user.is_authenticated:
-            queryset = queryset.filter(is_publicly_visible=True, is_approved=True)
-
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
@@ -117,6 +123,22 @@ class EventViewSet(viewsets.ModelViewSet):
 class CommunityEventViewSet(viewsets.ModelViewSet):
     queryset = CommunityEvent.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+
+    def get_queryset(self):
+        queryset = self.queryset
+
+        if not self.request.user.is_authenticated:
+            queryset = queryset.filter(is_publicly_visible=True)
+
+        queryset = filter_queryset(queryset, self.request, target_param='event_type', is_foreign_key=True)
+        queryset = filter_queryset(queryset, self.request, target_param='event_series', is_foreign_key=True)
+        queryset = filter_queryset(queryset, self.request, target_param='is_approved', is_foreign_key=False)
+        queryset = filter_queryset(queryset, self.request, target_param='is_cancelled', is_foreign_key=False)
+        queryset = filter_queryset(queryset, self.request, target_param='created_under', is_foreign_key=True)
+        queryset = filter_queryset(queryset, self.request, target_param='allows_outside_participators',
+                                   is_foreign_key=False)
+
+        return queryset
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -141,15 +163,6 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
             pass
         return ExistingCommunityEventSerializer
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-
-        if not request.user.is_authenticated:
-            queryset = queryset.filter(is_publicly_visible=True)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
@@ -171,6 +184,16 @@ class LabViewSet(viewsets.ModelViewSet):
     serializer_class = LabSerializer
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
+    def get_queryset(self):
+        queryset = self.queryset
+
+        if not self.request.user.is_authenticated:
+            queryset = queryset.filter(is_publicly_visible=True)
+
+        queryset = filter_queryset(queryset, self.request, target_param='status', is_foreign_key=False)
+
+        return queryset
+
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsPubliclyVisible(),)
@@ -181,16 +204,6 @@ class LabViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsLecturer(), IsLeaderOfCommunity(), IsDeletableLab())
         return tuple()
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-
-        if not request.user.is_authenticated:
-            queryset = queryset.filter(is_publicly_visible=True)
-
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
