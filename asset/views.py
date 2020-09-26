@@ -45,6 +45,6 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by= request.user)
+        serializer.save(updated_by=request.user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

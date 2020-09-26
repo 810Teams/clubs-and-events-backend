@@ -52,10 +52,17 @@ class ClubViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
+        obj = serializer.save(created_by=request.user, updated_by=request.user)
         Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -94,10 +101,17 @@ class EventViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
+        obj = serializer.save(created_by=request.user, updated_by=request.user)
         Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommunityEventViewSet(viewsets.ModelViewSet):
@@ -139,10 +153,17 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
+        obj = serializer.save(created_by=request.user, updated_by=request.user)
         Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class LabViewSet(viewsets.ModelViewSet):
@@ -174,7 +195,14 @@ class LabViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
+        obj = serializer.save(created_by=request.user, updated_by=request.user)
         Membership.objects.create(user=request.user, position=3, community=obj, start_date=str(datetime.now().date()))
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

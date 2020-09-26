@@ -8,42 +8,42 @@ class OfficialClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
         fields = '__all__'
-        read_only_fields = ('is_official',)
+        read_only_fields = ('is_official', 'created_by', 'updated_by')
 
 
 class UnofficialClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
         exclude = ('url_id', 'is_publicly_visible', 'room')
-        read_only_fields = ('is_official',)
+        read_only_fields = ('is_official', 'created_by', 'updated_by')
 
 
 class ApprovedEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = '__all__'
-        read_only_fields = ('is_approved',)
+        read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
 
 class UnapprovedEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         exclude = ('url_id', 'is_publicly_visible')
-        read_only_fields = ('is_approved',)
+        read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
 
 class ExistingCommunityEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityEvent
         fields = '__all__'
-        read_only_fields = ('is_approved', 'created_under')
+        read_only_fields = ('is_approved', 'created_under', 'created_by', 'updated_by')
 
 
 class NotExistingCommunityEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityEvent
         fields = '__all__'
-        read_only_fields = ('is_approved',)
+        read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
     def validate(self, data):
         errors = list()
@@ -76,6 +76,7 @@ class LabSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lab
         fields = '__all__'
+        read_only_fields = ('created_by', 'updated_by')
 
     def create(self, validated_data):
         if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':

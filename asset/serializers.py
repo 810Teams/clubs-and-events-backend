@@ -9,7 +9,7 @@ class ExistingAnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
         fields = '__all__'
-        read_only_fields = ('created_by', 'updated_by', 'community')
+        read_only_fields = ('community', 'created_by', 'updated_by')
 
 
 class NotExistingAnnouncementSerializer(serializers.ModelSerializer):

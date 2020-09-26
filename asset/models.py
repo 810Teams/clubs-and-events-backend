@@ -11,7 +11,7 @@ class Announcement(models.Model):
     image = models.ImageField(null=True, blank=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='announcement_created_by')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -24,7 +24,7 @@ class Album(models.Model):
     community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True,
                                         related_name='album_linked_to')
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='album_created_by')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
