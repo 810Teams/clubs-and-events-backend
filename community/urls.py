@@ -6,8 +6,8 @@ from community.views import ClubViewSet, LabViewSet, EventViewSet, CommunityEven
 
 router = DefaultRouter()
 router.register('club', ClubViewSet)
+router.register('event/community', CommunityEventViewSet)
 router.register('event', EventViewSet)
-router.register('community-event', CommunityEventViewSet)
 router.register('lab', LabViewSet)
 
 urlpatterns = [
