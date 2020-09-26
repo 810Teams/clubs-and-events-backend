@@ -1,6 +1,6 @@
 from rest_framework import permissions
 
-from asset.models import Announcement, Album
+from asset.models import Announcement, Album, AlbumImage
 from community.models import Community
 from membership.models import Membership
 
@@ -15,11 +15,13 @@ class IsPubliclyVisible(permissions.BasePermission):
 
 class IsLeaderOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community, Announcement, Album
+        # Object class: Community, Announcement, Album, AlbumImage
         if isinstance(obj, Community):
             ref = obj.id
         elif isinstance(obj, Announcement) or isinstance(obj, Album):
             ref = obj.community.id
+        elif isinstance(obj, AlbumImage):
+            ref = obj.album.community.id
         else:
             return False
 
@@ -31,11 +33,13 @@ class IsLeaderOfCommunity(permissions.BasePermission):
 
 class IsDeputyLeaderOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community, Announcement, Album
+        # Object class: Community, Announcement, Album, AlbumImage
         if isinstance(obj, Community):
             ref = obj.id
         elif isinstance(obj, Announcement) or isinstance(obj, Album):
             ref = obj.community.id
+        elif isinstance(obj, AlbumImage):
+            ref = obj.album.community.id
         else:
             return False
 
@@ -47,11 +51,13 @@ class IsDeputyLeaderOfCommunity(permissions.BasePermission):
 
 class IsStaffOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community, Announcement, Album
+        # Object class: Community, Announcement, Album, AlbumImage
         if isinstance(obj, Community):
             ref = obj.id
         elif isinstance(obj, Announcement) or isinstance(obj, Album):
             ref = obj.community.id
+        elif isinstance(obj, AlbumImage):
+            ref = obj.album.community.id
         else:
             return False
 
@@ -63,11 +69,13 @@ class IsStaffOfCommunity(permissions.BasePermission):
 
 class IsMemberOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community, Announcement, Album
+        # Object class: Community, Announcement, Album, AlbumImage
         if isinstance(obj, Community):
             ref = obj.id
         elif isinstance(obj, Announcement) or isinstance(obj, Album):
             ref = obj.community.id
+        elif isinstance(obj, AlbumImage):
+            ref = obj.album.community.id
         else:
             return False
 
@@ -79,7 +87,7 @@ class IsMemberOfCommunity(permissions.BasePermission):
 
 class IsLeaderOfBaseCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community Event
+        # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[3], community_id=base_community.id, end_date=None
@@ -90,7 +98,7 @@ class IsLeaderOfBaseCommunity(permissions.BasePermission):
 
 class IsDeputyLeaderOfBaseCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community Event
+        # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[2, 3], community_id=base_community.id, end_date=None
@@ -101,7 +109,7 @@ class IsDeputyLeaderOfBaseCommunity(permissions.BasePermission):
 
 class IsStaffOfBaseCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community Event
+        # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[1, 2, 3], community_id=base_community.id, end_date=None
@@ -112,7 +120,7 @@ class IsStaffOfBaseCommunity(permissions.BasePermission):
 
 class IsMemberOfBaseCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community Event
+        # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
             user_id=request.user.id, community_id=base_community.id, end_date=None

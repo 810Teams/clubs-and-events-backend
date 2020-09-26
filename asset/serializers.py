@@ -116,6 +116,7 @@ class AlbumImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlbumImage
         fields = '__all__'
+        read_only_fields = ('created_by',)
 
 
 class CommentSerializer(serializers.ModelSerializer):

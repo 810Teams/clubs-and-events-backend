@@ -1,15 +1,14 @@
 from django.contrib import admin
 
 from asset.models import AlbumImage, Announcement, Album, Comment
+from core.utils import truncate
 
 
 class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ['id', 'partial_text', 'community', 'created_at', 'created_by', 'updated_at', 'updated_by']
 
     def partial_text(self, obj):
-        if len(obj.text) <= 64:
-            return obj.text
-        return obj.text[:64] + '...'
+        return truncate(obj.text)
 
 
 class AlbumImageInline(admin.StackedInline):
@@ -31,9 +30,7 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ['id', 'partial_text', 'written_by', 'event', 'created_at', 'created_by']
 
     def partial_text(self, obj):
-        if len(obj.text) <= 64:
-            return obj.text
-        return obj.text[:64] + '...'
+        return truncate(obj.text)
 
 
 admin.site.register(Announcement, AnnouncementAdmin)

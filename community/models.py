@@ -121,9 +121,6 @@ class CommunityEvent(Event):
         if len(errors) > 0:
             raise ValidationError(errors)
 
-    def __str__(self):
-        return '{}\'s {}'.format(self.created_under.name_en, self.name_en)
-
 
 class Lab(Community):
     STATUS = (
