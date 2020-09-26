@@ -1,5 +1,5 @@
 from django.http import Http404
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 
 from asset.models import Announcement, Album, AlbumImage, Comment
@@ -16,6 +16,8 @@ from user.models import User
 class AnnouncementViewSet(viewsets.ModelViewSet):
     queryset = Announcement.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('text',)
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -58,6 +60,8 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 class AlbumViewSet(viewsets.ModelViewSet):
     queryset = Album.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
     def get_queryset(self):
         queryset = self.queryset
@@ -135,6 +139,8 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     http_method_names = ('get', 'post', 'head', 'options')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('text', 'written_by')
 
     def get_queryset(self):
         queryset = self.queryset

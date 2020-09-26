@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from rest_framework import status, permissions, viewsets
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.response import Response
 
 from community.models import Club, Event, CommunityEvent, Lab
@@ -20,6 +20,8 @@ from user.permissions import IsStudent, IsLecturer
 class ClubViewSet(viewsets.ModelViewSet):
     queryset = Club.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name_th', 'name_en', 'description')
 
     def get_queryset(self):
         queryset = self.queryset
@@ -71,6 +73,8 @@ class ClubViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name_th', 'name_en', 'description', 'location')
 
     def get_queryset(self):
         queryset = self.queryset
@@ -123,6 +127,8 @@ class EventViewSet(viewsets.ModelViewSet):
 class CommunityEventViewSet(viewsets.ModelViewSet):
     queryset = CommunityEvent.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name_th', 'name_en', 'description', 'location')
 
     def get_queryset(self):
         queryset = self.queryset
@@ -183,6 +189,8 @@ class LabViewSet(viewsets.ModelViewSet):
     queryset = Lab.objects.all()
     serializer_class = LabSerializer
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name_th', 'name_en', 'description', 'tags')
 
     def get_queryset(self):
         queryset = self.queryset
