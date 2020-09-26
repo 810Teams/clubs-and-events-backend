@@ -19,6 +19,17 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('text',)
 
+    def get_queryset(self):
+        queryset = self.queryset
+
+        if not self.request.user.is_authenticated:
+            visible_ids = Community.objects.filter(is_publicly_visible=True)
+            queryset = queryset.filter(community_id__in=visible_ids)
+
+        queryset = filter_queryset(queryset, self.request, target_param='community', is_foreign_key=True)
+
+        return queryset
+
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
@@ -30,17 +41,6 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return NotExistingAnnouncementSerializer
         return ExistingAnnouncementSerializer
-
-    def get_queryset(self):
-        queryset = self.queryset
-
-        if not self.request.user.is_authenticated:
-            visible_ids = Community.objects.filter(is_publicly_visible=True)
-            queryset = queryset.filter(community_id__in=visible_ids)
-
-        queryset = filter_queryset(queryset, self.request, target_param='community', is_foreign_key=True)
-
-        return queryset
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
@@ -92,13 +92,6 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
     serializer_class = AlbumImageSerializer
     http_method_names = ('get', 'post', 'delete', 'head', 'options')
 
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
-        elif self.request.method in ('POST', 'DELETE'):
-            return (permissions.IsAuthenticated(), IsStaffOfCommunity())
-        return tuple()
-
     def get_queryset(self):
         queryset = self.queryset
 
@@ -109,6 +102,13 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, self.request, target_param='album', is_foreign_key=True)
 
         return queryset
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (IsInPubliclyVisibleCommunity(),)
+        elif self.request.method in ('POST', 'DELETE'):
+            return (permissions.IsAuthenticated(), IsStaffOfCommunity())
+        return tuple()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)

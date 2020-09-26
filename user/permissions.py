@@ -9,3 +9,9 @@ class IsStudent(permissions.BasePermission):
 class IsLecturer(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.groups.filter(name='lecturer').exists()
+
+
+class IsProfileOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Object class: User
+        return request.user.id == obj.id
