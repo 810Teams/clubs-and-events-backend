@@ -43,7 +43,7 @@ class Album(models.Model):
             pass
 
         try:
-            if Event.objects.get(pk=self.community.id) and self.community_event:
+            if Event.objects.get(pk=self.community.id) is not None and self.community_event is not None:
                 errors.append(ValidationError(
                     _('Albums are not able to be linked to community events if created under an event.'),
                     code='hierarchy_error'
@@ -51,7 +51,7 @@ class Album(models.Model):
         except Event.DoesNotExist:
             pass
 
-        if self.community_event and (self.community.id != self.community_event.created_under.id):
+        if self.community_event is not None and (self.community.id != self.community_event.created_under.id):
             errors.append(ValidationError(
                 _('Albums are not able to be linked to community events created under other communities.'),
                 code='hierarchy_error'
