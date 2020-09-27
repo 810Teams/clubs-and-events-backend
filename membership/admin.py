@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from community.models import Club, Event, Lab
 from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel
 
 import datetime
@@ -27,9 +28,28 @@ class CustomMembershipLabelInline(admin.StackedInline):
 
 
 class MembershipAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'community', 'position', 'is_active', 'status', 'created_at', 'updated_at',
-                    'updated_by']
+    list_display = ['id', 'user', 'community', 'position', 'position_name', 'is_active', 'status', 'created_at',
+                    'created_by', 'updated_at', 'updated_by']
     inlines = [CustomMembershipLabelInline]
+
+    def position_name(self, obj):
+        try:
+            if Club.objects.get(pk=obj.community.id) is not None:
+                return ('Member', 'Staff', 'Vice-President', 'President')[obj.position]
+        except Club.DoesNotExist:
+            pass
+
+        try:
+            if Event.objects.get(pk=obj.community.id) is not None:
+                return ('Participator', 'Staff', 'Vice-President', 'President')[obj.position]
+        except Event.DoesNotExist:
+            pass
+
+        try:
+            if Lab.objects.get(pk=obj.community.id) is not None:
+                return ('Lab Member', 'Lab Helper', 'Lab Co-Supervisor', 'Lab Supervisor')[obj.position]
+        except Lab.DoesNotExist:
+            pass
 
     def is_active(self, obj):
         return obj.status == 'A'
