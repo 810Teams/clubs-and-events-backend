@@ -26,7 +26,7 @@ class IsLeaderOfCommunity(permissions.BasePermission):
             return False
 
         membership = Membership.objects.filter(
-            user_id=request.user.id, position__in=[3], community_id=ref, end_date=None
+            user_id=request.user.id, position__in=[3], community_id=ref, status='A'
         )
         return len(membership) == 1
 
@@ -44,7 +44,7 @@ class IsDeputyLeaderOfCommunity(permissions.BasePermission):
             return False
 
         membership = Membership.objects.filter(
-            user_id=request.user.id, position__in=[2, 3], community_id=ref, end_date=None
+            user_id=request.user.id, position__in=[2, 3], community_id=ref, status='A'
         )
         return len(membership) == 1
 
@@ -62,7 +62,7 @@ class IsStaffOfCommunity(permissions.BasePermission):
             return False
 
         membership = Membership.objects.filter(
-            user_id=request.user.id, position__in=[1, 2, 3], community_id=ref, end_date=None
+            user_id=request.user.id, position__in=[1, 2, 3], community_id=ref, status='A'
         )
         return len(membership) == 1
 
@@ -80,7 +80,7 @@ class IsMemberOfCommunity(permissions.BasePermission):
             return False
 
         membership = Membership.objects.filter(
-            user_id=request.user.id, community_id=ref, end_date=None
+            user_id=request.user.id, community_id=ref, status='A'
         )
         return len(membership) == 1
 
@@ -90,7 +90,7 @@ class IsLeaderOfBaseCommunity(permissions.BasePermission):
         # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
-            user_id=request.user.id, position__in=[3], community_id=base_community.id, end_date=None
+            user_id=request.user.id, position__in=[3], community_id=base_community.id, status='A'
         )
 
         return len(base_membership) == 1
@@ -101,7 +101,7 @@ class IsDeputyLeaderOfBaseCommunity(permissions.BasePermission):
         # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
-            user_id=request.user.id, position__in=[2, 3], community_id=base_community.id, end_date=None
+            user_id=request.user.id, position__in=[2, 3], community_id=base_community.id, status='A'
         )
 
         return len(base_membership) == 1
@@ -112,7 +112,7 @@ class IsStaffOfBaseCommunity(permissions.BasePermission):
         # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
-            user_id=request.user.id, position__in=[1, 2, 3], community_id=base_community.id, end_date=None
+            user_id=request.user.id, position__in=[1, 2, 3], community_id=base_community.id, status='A'
         )
 
         return len(base_membership) == 1
@@ -123,7 +123,7 @@ class IsMemberOfBaseCommunity(permissions.BasePermission):
         # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
-            user_id=request.user.id, community_id=base_community.id, end_date=None
+            user_id=request.user.id, community_id=base_community.id, status='A'
         )
 
         return len(base_membership) == 1
