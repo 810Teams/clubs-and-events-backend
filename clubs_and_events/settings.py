@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = ')+f=4^f^gz%$y77l!#9bz-p9u!qal7wd!=$)gj6tmj+h6n(n%)'
+SECRET_KEY = list(open('KEY_SECRET.txt'))[0].replace('\n', ''),
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'asset',
     'category',
     'community',
@@ -88,10 +89,10 @@ WSGI_APPLICATION = 'clubs_and_events.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': list(open('KEY.txt'))[1].replace('\n', ''),
-        'USER': list(open('KEY.txt'))[2].replace('\n', ''),
-        'PASSWORD': list(open('KEY.txt'))[3].replace('\n', ''),
-        'HOST': list(open('KEY.txt'))[0].replace('\n', ''),
+        'NAME': list(open('KEY_DB.txt'))[0].replace('\n', ''),
+        'USER': list(open('KEY_DB.txt'))[1].replace('\n', ''),
+        'PASSWORD': list(open('KEY_DB.txt'))[2].replace('\n', ''),
+        'HOST': list(open('KEY_DB.txt'))[3].replace('\n', ''),
         'PORT': '3306',
     }
 }

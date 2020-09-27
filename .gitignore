@@ -139,4 +139,5 @@ dmypy.json
 */migrations/*
 !*/migrations/__init__.py
 storage/
-KEY.txt
+KEY_SECRET.txt
+KEY_DB.txt
