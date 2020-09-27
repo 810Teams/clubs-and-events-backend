@@ -1,9 +1,18 @@
 from datetime import datetime
 
+from django.contrib.auth import authenticate
 from django.utils.translation import gettext as _
 from rest_framework import serializers
+from rest_framework.response import Response
 
-from user.models import User
+from user.models import User, EmailPreference
+
+
+class EmailPreferencesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmailPreference
+        fields = '__all__'
+        read_only_fields = ('user',)
 
 
 class UserSerializer(serializers.ModelSerializer):
