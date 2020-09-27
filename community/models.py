@@ -14,6 +14,7 @@ class Community(models.Model):
     logo = models.ImageField(null=True, blank=True)
     banner = models.ImageField(null=True, blank=True)
     is_publicly_visible = models.BooleanField(default=False)
+    is_accepting_requests = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,

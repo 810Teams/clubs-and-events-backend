@@ -25,14 +25,14 @@ class AdvisoryInline(admin.StackedInline):
 
 
 class ClubAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'created_at', 'updated_at',
-                    'club_type', 'room', 'founded_date', 'is_official', 'status']
+    list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'is_accepting_requests', 'created_at',
+                    'updated_at', 'club_type', 'room', 'founded_date', 'is_official', 'status']
     inlines = [MembershipInline, InvitationInline, RequestInline, AdvisoryInline]
 
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'created_at', 'updated_at',
-                    'event_type', 'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled',
+    list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'is_accepting_requests', 'created_at',
+                    'updated_at', 'event_type', 'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled',
                     'is_community_event']
     inlines = [MembershipInline, InvitationInline, RequestInline, AdvisoryInline]
 
@@ -47,15 +47,15 @@ class EventAdmin(admin.ModelAdmin):
 
 
 class CommunityEventAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'created_at', 'updated_at',
-                    'event_type', 'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled',
+    list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'is_accepting_requests', 'created_at',
+                    'updated_at','event_type', 'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled',
                     'created_under', 'allows_outside_participators']
     inlines = [MembershipInline, InvitationInline, RequestInline]
 
 
 class LabAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'created_at', 'updated_at',
-                    'room', 'founded_date', 'tags', 'status']
+    list_display = ['id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'is_accepting_requests', 'created_at',
+                    'updated_at', 'room', 'founded_date', 'tags', 'status']
     inlines = [MembershipInline, InvitationInline, RequestInline]
 
 

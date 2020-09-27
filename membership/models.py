@@ -30,9 +30,9 @@ class Invitation(models.Model):
     )
 
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    invitor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='invitation_invitor')
+    invitor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='invitation_invitor')
     invitee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitation_invitee')
-    invited_datetime = models.DateTimeField()
     status = models.CharField(max_length=1, choices=STATUS, default='W')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -92,8 +92,8 @@ class Membership(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    position = models.IntegerField()
-    status = models.CharField(max_length=1, choices=STATUS)
+    position = models.IntegerField(default=0)
+    status = models.CharField(max_length=1, choices=STATUS, default='A')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,

@@ -11,7 +11,7 @@ class RequestAdmin(admin.ModelAdmin):
 
 
 class InvitationAdmin(admin.ModelAdmin):
-    list_display = ['id', 'community', 'invitor', 'invitee', 'invited_datetime', 'status', 'created_at', 'updated_at']
+    list_display = ['id', 'community', 'invitor', 'invitee', 'status', 'created_at', 'updated_at']
 
 
 class AdvisoryAdmin(admin.ModelAdmin):

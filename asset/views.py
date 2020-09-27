@@ -8,7 +8,7 @@ from asset.serializers import ExistingAnnouncementSerializer, NotExistingAnnounc
 from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerializer
 from asset.serializers import AlbumImageSerializer, CommentSerializer
 from community.models import Community, Event
-from community.permissions import IsStaffOfCommunity
+from core.permissions import IsStaffOfCommunity
 from core.utils import filter_queryset
 from user.models import User
 
@@ -18,17 +18,6 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('text',)
-
-    def get_queryset(self):
-        queryset = self.queryset
-
-        if not self.request.user.is_authenticated:
-            visible_ids = Community.objects.filter(is_publicly_visible=True)
-            queryset = queryset.filter(community_id__in=visible_ids)
-
-        queryset = filter_queryset(queryset, self.request, target_param='community', is_foreign_key=True)
-
-        return queryset
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -41,6 +30,19 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return NotExistingAnnouncementSerializer
         return ExistingAnnouncementSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        if not self.request.user.is_authenticated:
+            visible_ids = Community.objects.filter(is_publicly_visible=True)
+            queryset = queryset.filter(community_id__in=visible_ids)
+
+        queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
@@ -63,17 +65,6 @@ class AlbumViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
-    def get_queryset(self):
-        queryset = self.queryset
-
-        if not self.request.user.is_authenticated:
-            visible_ids = Community.objects.filter(is_publicly_visible=True)
-            queryset = queryset.filter(community_id__in=visible_ids)
-
-        queryset = filter_queryset(queryset, self.request, target_param='community', is_foreign_key=True)
-
-        return queryset
-
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
@@ -86,22 +77,24 @@ class AlbumViewSet(viewsets.ModelViewSet):
             return NotExistingAlbumSerializer
         return ExistingAlbumSerializer
 
-
-class AlbumImageViewSet(viewsets.ModelViewSet):
-    queryset = AlbumImage.objects.all()
-    serializer_class = AlbumImageSerializer
-    http_method_names = ('get', 'post', 'delete', 'head', 'options')
-
-    def get_queryset(self):
-        queryset = self.queryset
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
 
         if not self.request.user.is_authenticated:
             visible_ids = Community.objects.filter(is_publicly_visible=True)
             queryset = queryset.filter(community_id__in=visible_ids)
 
-        queryset = filter_queryset(queryset, self.request, target_param='album', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
 
-        return queryset
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class AlbumImageViewSet(viewsets.ModelViewSet):
+    queryset = AlbumImage.objects.all()
+    serializer_class = AlbumImageSerializer
+    http_method_names = ('get', 'post', 'delete', 'head', 'options')
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -109,6 +102,19 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
         elif self.request.method in ('POST', 'DELETE'):
             return (permissions.IsAuthenticated(), IsStaffOfCommunity())
         return tuple()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        if not self.request.user.is_authenticated:
+            visible_ids = Community.objects.filter(is_publicly_visible=True)
+            queryset = queryset.filter(community_id__in=visible_ids)
+
+        queryset = filter_queryset(queryset, request, target_param='album', is_foreign_key=True)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
@@ -142,21 +148,23 @@ class CommentViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('text', 'written_by')
 
-    def get_queryset(self):
-        queryset = self.queryset
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (IsInPubliclyVisibleCommunity(),)
+        return tuple()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
 
         if not self.request.user.is_authenticated:
             visible_ids = Event.objects.filter(is_publicly_visible=True)
             queryset = queryset.filter(event_id__in=visible_ids)
 
-        queryset = filter_queryset(queryset, self.request, target_param='event', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='event', is_foreign_key=True)
 
-        return queryset
+        serializer = self.get_serializer(queryset, many=True)
 
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
-        return tuple()
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
