@@ -1,7 +1,6 @@
-from rest_framework import views, viewsets, permissions, filters
+from rest_framework import viewsets, filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework import permissions
-from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from core.utils import filter_queryset

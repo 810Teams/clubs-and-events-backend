@@ -1,9 +1,7 @@
 from datetime import datetime
 
-from django.contrib.auth import authenticate
 from django.utils.translation import gettext as _
 from rest_framework import serializers
-from rest_framework.response import Response
 
 from user.models import User, EmailPreference
 
