@@ -46,28 +46,23 @@ class NotExistingCommunityEventSerializer(serializers.ModelSerializer):
         read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
     def validate(self, data):
-        errors = list()
-
         try:
             if not Club.objects.get(pk=data['created_under']).is_official:
-                errors.append(serializers.ValidationError(
+                raise serializers.ValidationError(
                     _('Community events are not able to be created under unofficial clubs.'),
                     code='unofficial_club_limitations'
-                ))
+                )
         except Club.DoesNotExist:
             pass
 
         try:
             Event.objects.get(pk=data['created_under'])
-            errors.append(serializers.ValidationError(
+            raise serializers.ValidationError(
                 _('Community events are not able to be created under events.'),
                 code='hierarchy_error'
-            ))
+            )
         except Event.DoesNotExist:
             pass
-
-        if len(errors) > 0:
-            raise serializers.ValidationError(errors)
 
         return data
 

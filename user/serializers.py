@@ -20,16 +20,11 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ('username', 'name')
 
     def validate(self, data):
-        errors = list()
-
         if data['birthdate'] is not None and data['birthdate'] > datetime.now().date():
-            errors.append(serializers.ValidationError(
+            raise serializers.ValidationError(
                 _('Birthdates are not able to be set as a future date.'),
                 code='date_error'
-            ))
-
-        if len(errors) > 0:
-            raise serializers.ValidationError(errors)
+            )
 
         return data
 
