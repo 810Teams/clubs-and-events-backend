@@ -80,7 +80,7 @@ class Membership(models.Model):
         ('A', 'Active'),
         ('R', 'Retired'),
         ('L', 'Left'),
-        ('K', 'Removed')
+        ('X', 'Removed')
     )
 
     POSITIONS = (
@@ -93,7 +93,7 @@ class Membership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     position = models.IntegerField(default=0)
-    status = models.CharField(max_length=1, choices=STATUS, default='A')
+    status = models.CharField(max_length=7, choices=STATUS, default='A')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,

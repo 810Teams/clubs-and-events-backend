@@ -80,7 +80,9 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
                 code='permission_denied'
             )
 
-        invitee_membership = Membership.objects.filter(community_id=community_id, user_id=invitee_id, status__in=('A', 'R'))
+        invitee_membership = Membership.objects.filter(
+            community_id=community_id, user_id=invitee_id, status__in=('A', 'R')
+        )
         if len(invitee_membership) == 1:
             raise serializers.ValidationError(
                 _('Invitation are not able to be made from the community which the invitee is already a member.'),
@@ -90,7 +92,8 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         invitation = Invitation.objects.filter(community_id=community_id, invitee_id=invitee_id, status='W')
         if len(invitation) == 1:
             raise serializers.ValidationError(
-                _('Invitations are not able to be made from the community if the invitee already has a pending request.'),
+                _('Invitations are not able to be made from the community if the invitee already has a pending ' +
+                  'request.'),
                 code='invitation_already_exists'
             )
 
@@ -109,6 +112,71 @@ class MembershipSerializer(serializers.ModelSerializer):
         model = Membership
         fields = '__all__'
         read_only_fields = ('user', 'community', 'created_by', 'updated_by')
+
+    def validate(self, data):
+        original_membership = Membership.objects.get(pk=self.instance.id)
+
+        user_id = {'new': self.instance.user.id, 'own': self.context['request'].user.id}
+        position = {
+            'old': original_membership.position,
+            'new': data['position'],
+            'own': Membership.objects.get(user_id=user_id['own'], community_id=self.instance.community.id).position
+        }
+        status = {'old': original_membership.status, 'new': data['status']}
+
+        # Case 1: Leaving and Retiring
+        if user_id['new'] == user_id['own']:
+            if position['old'] != position['new']:
+                raise serializers.ValidationError(
+                    _('Membership owners are not able to change their own position.'),
+                    code='membership_error'
+                )
+            elif status['old'] != status['new'] and status['old'] + status['new'] not in ('AR', 'RA', 'AL', 'RL'):
+                raise serializers.ValidationError(
+                    _('Membership owners are only able to switch their own membership status from active and ' +
+                    'retired to left, or between active and retired.'),
+                    code='membership_error'
+                )
+        # Case 2: Member Removal
+        elif position['old'] == position['new'] and status['old'] != status['new']:
+            if not status['old'] in ('A', 'R') or not status['new'] == 'X':
+                raise serializers.ValidationError(
+                    _('Membership statuses are only meant to be updated from active or retired to removed if ' +
+                      'attempted by other members in the community.'),
+                    code='membership_error'
+                )
+            elif position['own'] in (0, 1) or position['own'] <= position['new']:
+                raise serializers.ValidationError(
+                    _('Membership statuses can only be set to removed on memberships with a lower position by the ' +
+                    'leader or the deputy leader of the community.'),
+                    code='membership_error'
+                )
+        # Case 3: Position Assignation
+        elif position['old'] != position['new'] and status['old'] == status['new']:
+            if position['own'] in (0, 1):
+                raise serializers.ValidationError(
+                    _('Membership positions are not able to be updated by a normal member or a staff.'),
+                    code='membership_error'
+                )
+            elif position['own'] == 2 and position['old'] in (2, 3):
+                raise serializers.ValidationError(
+                    _('Membership positions are not able to be updated if the position is already equal to or higher ' +
+                    'than your position.'),
+                    code='membership_error'
+                )
+            elif position['own'] == 2 and position['new'] in (2, 3):
+                raise serializers.ValidationError(
+                    _('Membership positions are not able to be updated to the position equal to or higher than your ' +
+                      'own position.'),
+                    code='membership_error'
+                )
+        # Case 4: Error
+        elif position['old'] != position['new'] and status['old'] != status['new']:
+            raise serializers.ValidationError(
+                _('Memberships are not able to be updated both position and status at the same time.'),
+                code='membership_error'
+            )
+        return data
 
 
 class ExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
