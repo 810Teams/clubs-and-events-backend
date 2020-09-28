@@ -3,12 +3,11 @@ from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 
 from asset.models import Announcement, Album, AlbumImage, Comment
-from asset.permissions import IsInPubliclyVisibleCommunity
 from asset.serializers import ExistingAnnouncementSerializer, NotExistingAnnouncementSerializer
 from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerializer
 from asset.serializers import AlbumImageSerializer, CommentSerializer
 from community.models import Community, Event
-from core.permissions import IsStaffOfCommunity
+from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity
 from core.utils import filter_queryset
 from user.models import User
 

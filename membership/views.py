@@ -1,14 +1,16 @@
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 
-from community.models import CommunityEvent
-from core.permissions import IsStaffOfCommunity
+from community.models import CommunityEvent, Community
+from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel
-from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList
+from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList, \
+    IsApplicableForCustomMembershipLabel
 from membership.permissions import IsInvitationInvitee, IsInvitationInvitor, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership
-from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipSerializer
+from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipSerializer, \
+    NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 
 
@@ -153,14 +155,28 @@ class MembershipViewSet(viewsets.ModelViewSet):
     serializer_class = MembershipSerializer
     http_method_names = ('get', 'put', 'patch', 'head', 'options')
 
-    # TODO: Completes MembershipViewSet for changing position and removing members
-
     def get_permissions(self):
         if self.request.method == 'GET':
-            return tuple()
+            return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsAbleToUpdateMembership())
         return tuple()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        if not self.request.user.is_authenticated:
+            visible_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
+            queryset = queryset.filter(community_id__in=visible_ids)
+
+        queryset = filter_queryset(queryset, request, target_param='user', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         old_position = Membership.objects.get(pk=kwargs['pk']).position
@@ -185,4 +201,46 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
     queryset = CustomMembershipLabel.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
-    # TODO: Completes CustomMembershipLabelViewSet for retrieving, adding, editing, and deleting labels
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (IsInPubliclyVisibleCommunity(),)
+        elif self.request.method == 'POST':
+            # Includes IsDeputyLeaderOfCommunity() in validation ()of the serializer
+            # Includes IsApplicableForCustomMembershipLabel() in validation ()of the serializer
+            return (permissions.IsAuthenticated(),)
+        elif self.request.method in ('PUT', 'PATCH'):
+            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity(), IsApplicableForCustomMembershipLabel())
+        elif self.request.method == 'DELETE':
+            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
+        return tuple()
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return NotExistingCustomMembershipLabelSerializer
+        return ExistingCustomMembershipLabelSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        if not self.request.user.is_authenticated:
+            visible_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
+            visible_ids = [i.id for i in Membership.objects.filter(community_id__in=visible_ids)]
+            queryset = queryset.filter(membership_id__in=visible_ids)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(created_by=request.user, updated_by=request.user)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

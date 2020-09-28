@@ -28,8 +28,8 @@ class CustomMembershipLabelInline(admin.StackedInline):
 
 
 class MembershipAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'community', 'position', 'position_name', 'is_active', 'status', 'created_at',
-                    'created_by', 'updated_at', 'updated_by']
+    list_display = ['id', 'user', 'community', 'position', 'position_name', 'is_active', 'status', 'custom_label',
+                    'created_at', 'created_by', 'updated_at', 'updated_by']
     inlines = [CustomMembershipLabelInline]
 
     def position_name(self, obj):
@@ -55,6 +55,9 @@ class MembershipAdmin(admin.ModelAdmin):
         return obj.status == 'A'
 
     is_active.boolean = True
+
+    def custom_label(self, obj):
+        return CustomMembershipLabel.objects.get(membership_id=obj.id).custom_label
 
 
 admin.site.register(Request, RequestAdmin)

@@ -110,6 +110,9 @@ class Membership(models.Model):
         if len(errors) > 0:
             raise ValidationError(errors)
 
+    def __str__(self):
+        return '{} of {}'.format(self.user.username, self.community.name_en)
+
 
 class CustomMembershipLabel(models.Model):
     membership = models.OneToOneField(Membership, on_delete=models.CASCADE)

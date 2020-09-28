@@ -57,10 +57,10 @@ class IsCancellableInvitation(permissions.BasePermission):
 class IsAbleToViewInvitationList(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Invitation
-        # Condition: If is membership of the community or is the invitor or the invitee of the invitation
+        # Condition: If is membership of the community or is the invitee of the invitation
         membership = Membership.objects.filter(user_id=request.user.id, community_id=obj.community.id, status='A')
 
-        return len(membership) == 1 or request.user.id == obj.invitor.id or request.user.id == obj.invitee.id
+        return len(membership) == 1 or request.user.id == obj.invitee.id
 
 
 class IsAbleToUpdateMembership(permissions.BasePermission):
@@ -79,3 +79,9 @@ class IsAbleToUpdateMembership(permissions.BasePermission):
         object_is_not_leader = obj.position != 3
 
         return (is_membership_owner or is_deputy_leader_of_that_community) and object_is_not_leader
+
+
+class IsApplicableForCustomMembershipLabel(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Object class: CustomMembershipLabel
+        return obj.membership.position in (1, 2)

@@ -191,3 +191,28 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
         model = CustomMembershipLabel
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
+
+    def validate(self, data):
+        membership = Membership.objects.filter(
+            user_id=self.context['request'].user.id,
+            position__in=(2, 3),
+            community_id=Community.objects.get(
+                pk=data['membership'].community.id
+            ),
+            status='A'
+        )
+
+        if len(membership) == 0:
+            raise serializers.ValidationError(
+                _('Custom membership labels are only able to be created, updated, or deleted by deputy leader of ' +
+                  'the community.'),
+                code='permission_denied'
+            )
+
+        if data['membership'].position not in (1, 2):
+            raise serializers.ValidationError(
+                _('Custom membership labels are only applicable on staff and deputy leader.'),
+                code='custom_membership_label_limitations'
+            )
+
+        return data
