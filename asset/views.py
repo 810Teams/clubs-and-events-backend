@@ -23,6 +23,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            # Includes IsStaffOfCommunity() in validation() of the serializer for POST request separately
             return (permissions.IsAuthenticated(), IsStaffOfCommunity())
         return tuple()
 
@@ -69,6 +70,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
+            # Includes IsStaffOfCommunity() in validation() of the serializer for POST request separately
             return (permissions.IsAuthenticated(), IsStaffOfCommunity())
         return tuple()
 
@@ -100,6 +102,7 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method in ('POST', 'DELETE'):
+            # Includes IsStaffOfCommunity() in validation() of the serializer for POST request separately
             return (permissions.IsAuthenticated(), IsStaffOfCommunity())
         return tuple()
 

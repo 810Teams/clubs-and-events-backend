@@ -19,8 +19,11 @@ class IsLeaderOfBaseCommunity(permissions.BasePermission):
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[3], community_id=base_community.id, status='A'
         )
+        membership = Membership.objects.filter(
+            user_id=request.user.id, position__in=[3], community_id=obj.id, status='A'
+        )
 
-        return len(base_membership) == 1
+        return len(base_membership) == 1 or len(membership) == 1
 
 
 class IsDeputyLeaderOfBaseCommunity(permissions.BasePermission):
@@ -30,8 +33,11 @@ class IsDeputyLeaderOfBaseCommunity(permissions.BasePermission):
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[2, 3], community_id=base_community.id, status='A'
         )
+        membership = Membership.objects.filter(
+            user_id=request.user.id, position__in=[2, 3], community_id=obj.id, status='A'
+        )
 
-        return len(base_membership) == 1
+        return len(base_membership) == 1 or len(membership) == 1
 
 
 class IsStaffOfBaseCommunity(permissions.BasePermission):
@@ -41,8 +47,11 @@ class IsStaffOfBaseCommunity(permissions.BasePermission):
         base_membership = Membership.objects.filter(
             user_id=request.user.id, position__in=[1, 2, 3], community_id=base_community.id, status='A'
         )
+        membership = Membership.objects.filter(
+            user_id=request.user.id, position__in=[1, 2, 3], community_id=obj.id, status='A'
+        )
 
-        return len(base_membership) == 1
+        return len(base_membership) == 1 or len(membership) == 1
 
 
 class IsMemberOfBaseCommunity(permissions.BasePermission):
@@ -52,8 +61,11 @@ class IsMemberOfBaseCommunity(permissions.BasePermission):
         base_membership = Membership.objects.filter(
             user_id=request.user.id, community_id=base_community.id, status='A'
         )
+        membership = Membership.objects.filter(
+            user_id=request.user.id, community_id=obj.id, status='A'
+        )
 
-        return len(base_membership) == 1
+        return len(base_membership) == 1 or len(membership) == 1
 
 
 # TODO: Implements a better deletable condition

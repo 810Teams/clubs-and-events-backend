@@ -77,6 +77,12 @@ class EventViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description', 'location')
 
+    def get_queryset(self):
+        community_event_list = [i.id for i in CommunityEvent.objects.all()]
+        event_list = [i.id for i in Event.objects.all() if i.id not in community_event_list]
+
+        return self.queryset.filter(pk__in=event_list)
+
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
@@ -140,13 +146,9 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(), IsStaffOfBaseCommunity())
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity(), IsDeputyLeaderOfBaseCommunity())
+            return (permissions.IsAuthenticated(), IsDeputyLeaderOfBaseCommunity())
         elif self.request.method == 'DELETE':
-            return (
-                permissions.IsAuthenticated(),
-                IsLeaderOfCommunity() or IsLeaderOfBaseCommunity(),
-                IsDeletableCommunityEvent()
-            )
+            return (permissions.IsAuthenticated(), IsLeaderOfBaseCommunity(), IsDeletableCommunityEvent())
         return tuple()
 
     def get_serializer_class(self):
