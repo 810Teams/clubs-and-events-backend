@@ -6,13 +6,6 @@ from rest_framework import serializers
 from user.models import User, EmailPreference
 
 
-class EmailPreferencesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EmailPreference
-        fields = '__all__'
-        read_only_fields = ('user',)
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -34,3 +27,10 @@ class LimitedUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'name', 'nickname', 'profile_picture')
         read_only_fields = ('username', 'name', 'nickname', 'profile_picture')
+
+
+class EmailPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmailPreference
+        fields = '__all__'
+        read_only_fields = ('user',)

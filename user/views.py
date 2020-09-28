@@ -1,13 +1,13 @@
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from core.utils import filter_queryset
-from user.models import User
+from user.models import User, EmailPreference
 from user.permissions import IsProfileOwner
-from user.serializers import UserSerializer, LimitedUserSerializer
+from user.serializers import UserSerializer, LimitedUserSerializer, EmailPreferenceSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -41,3 +41,16 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class LoginAPIView(ObtainAuthToken):
    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+
+class EmailPreferenceViewSet(viewsets.ModelViewSet):
+    queryset = EmailPreference.objects.all()
+    permission_classes = (permissions.IsAuthenticated, IsProfileOwner)
+    serializer_class = EmailPreferenceSerializer
+    http_method_names = ('get', 'put', 'patch', 'head', 'options')
+
+    def list(self, request, *args, **kwargs):
+        return Response(
+            {'detail': 'You do not have permission to perform this action.'},
+            status=status.HTTP_403_FORBIDDEN
+        )

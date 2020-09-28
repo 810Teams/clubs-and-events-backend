@@ -15,3 +15,9 @@ class IsProfileOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: User
         return request.user.id == obj.id
+
+
+class IsEmailPreferenceOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Object class: Email Preference
+        return request.user.id == obj.user.id
