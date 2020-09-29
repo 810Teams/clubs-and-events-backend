@@ -7,13 +7,21 @@ from user.models import User
 
 
 class Community(models.Model):
+    def get_logo_path(self, file_name):
+        file_extension = file_name.split('.')[1]
+        return 'storage/community/{}/logo.{}'.format(self.id, file_extension)
+
+    def get_banner_path(self, file_name):
+        file_extension = file_name.split('.')[1]
+        return 'storage/community/{}/banner.{}'.format(self.id, file_extension)
+
     name_th = models.CharField(max_length=128, unique=True)
     name_en = models.CharField(max_length=128, unique=True)
     url_id = models.CharField(max_length=32, null=True, blank=True, unique=True, default=None)
     description = models.TextField(null=True, blank=True)
     external_links = models.TextField(null=True, blank=True)
-    logo = models.ImageField(null=True, blank=True)
-    banner = models.ImageField(null=True, blank=True)
+    logo = models.ImageField(null=True, blank=True, upload_to=get_logo_path)
+    banner = models.ImageField(null=True, blank=True, upload_to=get_banner_path)
     is_publicly_visible = models.BooleanField(default=False)
     is_accepting_requests = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

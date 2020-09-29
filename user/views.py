@@ -1,4 +1,4 @@
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters, status, generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -35,6 +35,18 @@ class UserViewSet(viewsets.ModelViewSet):
             queryset = filter_queryset(queryset, request, target_param='is_superuser', is_foreign_key=False)
 
         serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class MyUserViewSet(generics.ListAPIView):
+    queryset = User.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = UserSerializer
+
+    def list(self, request, *args, **kwargs):
+        user = User.objects.get(pk=request.user.id)
+        serializer = self.get_serializer(user, many=False)
 
         return Response(serializer.data)
 

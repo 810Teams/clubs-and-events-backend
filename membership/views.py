@@ -5,13 +5,14 @@ from community.models import CommunityEvent, Community
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory
-from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList, \
-    IsApplicableForCustomMembershipLabel
+from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList
+from membership.permissions import IsApplicableForCustomMembershipLabel
 from membership.permissions import IsInvitationInvitee, IsInvitationInvitor, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership
-from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipSerializer, \
-    NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer, AdvisorySerializer
+from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
+from membership.serializers import MembershipSerializer, AdvisorySerializer
+from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
 
 
 class RequestViewSet(viewsets.ModelViewSet):
@@ -193,7 +194,8 @@ class MembershipViewSet(viewsets.ModelViewSet):
                 community_id=Membership.objects.get(pk=kwargs['pk']).community.id
             )
             membership.position = 2
-            membership.save(updated_by=request.user)
+            membership.updated_by = request.user
+            membership.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

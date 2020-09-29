@@ -22,14 +22,22 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    def get_profile_picture_path(self, file_name):
+        file_extension = file_name.split('.')[1]
+        return 'storage/user/{}/profile_picture.{}'.format(self.username, file_extension)
+
+    def get_cover_photo_path(self, file_name):
+        file_extension = file_name.split('.')[1]
+        return 'storage/user/{}/cover_photo.{}'.format(self.username, file_extension)
+
     username = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
     email = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
     nickname = models.CharField(max_length=32, null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
-    profile_picture = models.ImageField(null=True, blank=True)
-    cover_photo = models.ImageField(null=True, blank=True)
+    profile_picture = models.ImageField(null=True, blank=True, upload_to=get_profile_picture_path)
+    cover_photo = models.ImageField(null=True, blank=True, upload_to=get_cover_photo_path)
     birthdate = models.DateField(null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
