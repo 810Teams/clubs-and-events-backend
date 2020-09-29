@@ -4,13 +4,13 @@ from rest_framework.response import Response
 from community.models import CommunityEvent, Community
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
-from membership.models import Request, Membership, Invitation, CustomMembershipLabel
+from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory
 from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList, \
     IsApplicableForCustomMembershipLabel
 from membership.permissions import IsInvitationInvitee, IsInvitationInvitor, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership
 from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipSerializer, \
-    NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
+    NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer, AdvisorySerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 
 
@@ -245,3 +245,10 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
         serializer.save(updated_by=request.user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AdvisoryViewSet(viewsets.ModelViewSet):
+    queryset = Advisory.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = AdvisorySerializer
+    http_method_names = ('get', 'head', 'options')

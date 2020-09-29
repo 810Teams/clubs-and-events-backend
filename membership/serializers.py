@@ -2,7 +2,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from community.models import Community, CommunityEvent
-from membership.models import Request, Invitation, Membership, CustomMembershipLabel
+from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
@@ -263,3 +263,10 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
             )
 
         return data
+
+
+class AdvisorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Advisory
+        fields = '__all__'
+        read_only_fields = ('created_by', 'updated_by')
