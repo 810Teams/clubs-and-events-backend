@@ -39,7 +39,7 @@ class IsInvitationInvitor(permissions.BasePermission):
 class IsInvitationInvitee(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Invitation
-        return request.user.id == obj.invitor.id
+        return request.user.id == obj.invitee.id
 
 
 class IsEditableInvitation(permissions.BasePermission):

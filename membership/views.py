@@ -140,7 +140,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         obj = serializer.save()
 
         if obj.status == 'A':
-            Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
+            Membership.objects.create(user_id=obj.invitee.id, position=0, community_id=obj.community.id,
                                       created_by_id=request.user.id, updated_by_id=request.user.id)
         elif obj.status == 'W':
             return Response(
@@ -184,7 +184,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
+        obj = serializer.save(updated_by=request.user)
 
         # If the membership position is updated to 3, demote own position to 2.
         if old_position != obj.position and obj.position == 3:
@@ -193,7 +193,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
                 community_id=Membership.objects.get(pk=kwargs['pk']).community.id
             )
             membership.position = 2
-            membership.save()
+            membership.save(updated_by=request.user)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
