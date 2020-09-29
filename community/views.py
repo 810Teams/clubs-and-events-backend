@@ -144,7 +144,8 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
-            return (permissions.IsAuthenticated(), IsStaffOfBaseCommunity())
+            # Includes IsStaffOfBaseCommunity() in validation() of the serializer
+            return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfBaseCommunity())
         elif self.request.method == 'DELETE':

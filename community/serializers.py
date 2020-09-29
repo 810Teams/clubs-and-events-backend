@@ -1,7 +1,8 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from community.models import Club, Event, CommunityEvent, Lab
+from community.models import Club, Event, CommunityEvent, Lab, Community
+from membership.models import Membership
 
 
 class OfficialClubSerializer(serializers.ModelSerializer):
@@ -46,6 +47,17 @@ class NotExistingCommunityEventSerializer(serializers.ModelSerializer):
         read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
     def validate(self, data):
+        base_community = Community.objects.get(pk=data['created_under'].id)
+        base_membership = Membership.objects.filter(
+            user_id=self.context['request'].user.id, position__in=[1, 2, 3], community_id=base_community.id, status='A'
+        )
+
+        if len(base_membership) != 1:
+            raise serializers.ValidationError(
+                _('Community events are not able to be created under communities you are not a staff.'),
+                code='permission_denied'
+            )
+
         try:
             if not Club.objects.get(pk=data['created_under']).is_official:
                 raise serializers.ValidationError(

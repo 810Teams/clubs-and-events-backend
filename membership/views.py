@@ -93,7 +93,8 @@ class InvitationViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (permissions.IsAuthenticated(), IsAbleToViewInvitationList())
         elif self.request.method == 'POST':
-            return (permissions.IsAuthenticated(),) # Includes IsStaffOfCommunity() in validation() of the serializer
+            # Includes IsStaffOfCommunity() in validation() of the serializer
+            return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsInvitationInvitee())
         elif self.request.method == 'DELETE':

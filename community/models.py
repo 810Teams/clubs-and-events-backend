@@ -7,10 +7,11 @@ from user.models import User
 
 
 class Community(models.Model):
-    name_th = models.CharField(max_length=64, unique=True)
-    name_en = models.CharField(max_length=64, unique=True)
-    url_id = models.CharField(max_length=16, null=True, blank=True, unique=True, default=None)
+    name_th = models.CharField(max_length=128, unique=True)
+    name_en = models.CharField(max_length=128, unique=True)
+    url_id = models.CharField(max_length=32, null=True, blank=True, unique=True, default=None)
     description = models.TextField(null=True, blank=True)
+    external_links = models.TextField(null=True, blank=True)
     logo = models.ImageField(null=True, blank=True)
     banner = models.ImageField(null=True, blank=True)
     is_publicly_visible = models.BooleanField(default=False)
@@ -66,7 +67,7 @@ class Club(Community):
 class Event(Community):
     event_type = models.ForeignKey(EventType, on_delete=models.SET_NULL, null=True, blank=True)
     event_series = models.ForeignKey(EventSeries, on_delete=models.SET_NULL, null=True, blank=True)
-    location = models.CharField(max_length=256)
+    location = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField()
     start_time = models.TimeField()
@@ -130,7 +131,7 @@ class Lab(Community):
         ('D', 'Disbanded'),
     )
 
-    room = models.CharField(max_length=16, null=True, blank=True)
+    room = models.CharField(max_length=32, null=True, blank=True)
     founded_date = models.DateField(null=True, blank=True)
-    tags = models.CharField(max_length=64, null=True, blank=True)
+    tags = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=1, choices=STATUS, default='R')

@@ -26,7 +26,7 @@ class Announcement(models.Model):
 
 
 class Album(models.Model):
-    name = models.CharField(max_length=64)
+    name = models.CharField(max_length=128)
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='album_created_in')
     community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True,
                                         related_name='album_linked_to')
@@ -84,7 +84,7 @@ class AlbumImage(models.Model):
 
 class Comment(models.Model):
     text = models.TextField()
-    written_by = models.CharField(max_length=128)
+    written_by = models.CharField(max_length=255)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)

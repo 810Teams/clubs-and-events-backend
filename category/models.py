@@ -2,8 +2,8 @@ from django.db import models
 
 
 class ClubType(models.Model):
-    title_th = models.CharField(max_length=32)
-    title_en = models.CharField(max_length=32)
+    title_th = models.CharField(max_length=64)
+    title_en = models.CharField(max_length=64)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -12,8 +12,8 @@ class ClubType(models.Model):
 
 
 class EventType(models.Model):
-    title_th = models.CharField(max_length=32)
-    title_en = models.CharField(max_length=32)
+    title_th = models.CharField(max_length=64)
+    title_en = models.CharField(max_length=64)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -22,8 +22,8 @@ class EventType(models.Model):
 
 
 class EventSeries(models.Model):
-    title_th = models.CharField(max_length=32)
-    title_en = models.CharField(max_length=32)
+    title_th = models.CharField(max_length=64)
+    title_en = models.CharField(max_length=64)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

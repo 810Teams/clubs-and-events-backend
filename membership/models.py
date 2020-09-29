@@ -84,16 +84,16 @@ class Membership(models.Model):
     )
 
     POSITIONS = (
-        (3, 'Club President/President/Lab Supervisor'),
-        (2, 'Club Vice-President/Vice-President/Lab Deputy Supervisor'),
-        (1, 'Club Staff/Staff/Lab Helper'),
-        (0, 'Club Member/Participator/Lab Member')
+        (3, 'Leader'),
+        (2, 'Deputy Leader'),
+        (1, 'Staff'),
+        (0, 'Member')
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     position = models.IntegerField(default=0)
-    status = models.CharField(max_length=7, choices=STATUS, default='A')
+    status = models.CharField(max_length=1, choices=STATUS, default='A')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -123,4 +123,3 @@ class CustomMembershipLabel(models.Model):
                                    related_name='custom_membership_label_created_by')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='custom_membership_label_updated_by')
-
