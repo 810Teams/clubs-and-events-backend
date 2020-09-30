@@ -13,29 +13,29 @@ Use `POST api/user/login` to request a token.
 
 ## User
 
-### List All Users 🗝️
+### List All Users
 
-Use `GET api/user/user` to list all users. This does not require a token, but with a token will show more detailed user information.
+Use `GET api/user/user` 🗝️ to list all users. This does not require a token, but with a token will show more detailed user information.
 
 `search={string}` to search for username, name, or nickname.
 
-`is_active={boolean}` to filter for active users. 🔑
+`is_active={boolean}` 🔑 to filter for active users.
 
-`is_staff={boolean}` to filter for staff. 🔑
+`is_staff={boolean}` 🔑 to filter for staff.
 
-`is_superuser={boolean}` to filter for superusers. 🔑
+`is_superuser={boolean}` 🔑 to filter for superusers.
 
-### Retrieve User 🗝️
+### Retrieve User
 
-Use `GET api/user/user/{int}` to retrieve a user by its primary key. This does not require a token, but with a token will show more detailed user information.
+Use `GET api/user/user/{int}` 🗝️ to retrieve a user by its primary key. This does not require a token, but with a token will show more detailed user information.
 
-### Retrieve Current User 🔑
+### Retrieve Current User
 
-Use `GET api/user/user/me` to retrieve a current user.
+Use `GET api/user/user/me` 🔑 to retrieve a current user.
 
-### Update User 🔑
+### Update User
 
-Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user.
+Use `PUT api/user/user/{int}` 🔑 or `PATCH api/user/user/{int}` 🔑 to update a user.
 
 ```json
 {
