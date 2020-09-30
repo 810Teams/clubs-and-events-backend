@@ -2,7 +2,7 @@
 
 ## Login
 
-Use `POST api/user/login` to request a token.
+`POST api/user/login`
 
 ```json
 {
@@ -11,33 +11,41 @@ Use `POST api/user/login` to request a token.
 }
 ```
 
+- Returns a token
+
 ## User
 
 ### List All Users
 
-Use `GET api/user/user` to list all users. **Token is optional,** if presents, more detailed user data will be shown.
+`GET api/user/user`
+
+- Token is optional, if presents, more detailed user data will be shown.
 
 #### URL Parameters
 
-Add `search={string}` to search for username, name, or nickname.
+`search={string}`
 
-Add `is_active={boolean}` to filter for active users. **Token is required.**
+`is_active={boolean}`
 
-Add `is_staff={boolean}` to filter for staff. **Token is required.**
+`is_staff={boolean}`
 
-Add `is_superuser={boolean}` to filter for superusers. **Token is required.**
+`is_superuser={boolean}`
 
 ### Retrieve User
 
-Use `GET api/user/user/{int}` to retrieve a user by its primary key. **Token is optional,** if presents, more detailed user data will be shown.
+`GET api/user/user/{int}`
+
+- Token is optional, if presents, more detailed user data will be shown.
 
 ### Retrieve Current User 
 
-Use `GET api/user/user/me` to retrieve a current user. **Token is required.**
+`GET api/user/user/me`
 
 ### Update User
 
-Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user. **Token is required.**
+`PUT api/user/user/{int}`
+
+`PATCH api/user/user/{int}`
 
 ```json
 {
@@ -50,19 +58,28 @@ Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user. *
 }
 ```
 
+- Token is required, and must be the owner.
+
 ## Email Preference
 
 ### Retrieve Email Preference
 
-Use `GET api/user/email-preference/{int}` to retrieve an email preference by its primary key. **Token is required** and **must be owner.**
+`GET api/user/email-preference/{int}`
+
+
+- Token is required, and must be the owner.
 
 ### Retrieve Own Email Preference
 
-Use `GET api/user/email-preference/me` to retrieve an email preference of the current user. **Token is required.**
+Use `GET api/user/email-preference/me`
+
+- Token is required
 
 ### Update Email Preference
 
-Use `PUT api/user/email-preference/{int}` or `PATCH api/user/email-preference/{int}` to update an email preference. **Token is required** and **must be owner.**
+`PUT api/user/email-preference/{int}`
+
+`PATCH api/user/email-preference/{int}`
 
 ```json
 {
@@ -72,3 +89,5 @@ Use `PUT api/user/email-preference/{int}` or `PATCH api/user/email-preference/{i
     "receive_other_events": "boolean",
 }
 ```
+
+- Token is required, and must be the owner.
