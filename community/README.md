@@ -259,6 +259,7 @@ In case of approved events, 2 additional fields can be used in `PUT` and `PATCH`
 
 - Token is required.
 - Must be a member with a position of 1, 2, or 3 in the community created under as described in the field `created_under`, otherwise, a status code of `400` will be returned.
+- If attempted to create under other events, a status code of `400` will be returned.
 
 ### Update Community Event
 
