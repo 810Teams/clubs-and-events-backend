@@ -39,13 +39,13 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class MyUserViewSet(generics.ListAPIView):
+class MyUserView(generics.ListAPIView):
     queryset = User.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
 
     def list(self, request, *args, **kwargs):
-        user = User.objects.get(pk=request.user.id)
+        user = self.get_queryset().get(pk=request.user.id)
         serializer = self.get_serializer(user, many=False)
 
         return Response(serializer.data)
@@ -66,3 +66,15 @@ class EmailPreferenceViewSet(viewsets.ModelViewSet):
             {'detail': 'You do not have permission to perform this action.'},
             status=status.HTTP_403_FORBIDDEN
         )
+
+
+class MyEmailPreferenceView(generics.ListAPIView):
+    queryset = EmailPreference.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = EmailPreferenceSerializer
+
+    def list(self, request, *args, **kwargs):
+        email_preference = self.get_queryset().get(user_id=request.user.id)
+        serializer = self.get_serializer(email_preference, many=False)
+
+        return Response(serializer.data)

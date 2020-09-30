@@ -41,14 +41,34 @@ Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user. *
 
 ```json
 {
-    "id": "int",
-    "username": "string",
-    "name": "string",
     "email": "string",
     "nickname": "string",
     "bio": "string",
     "profile_picture": "image",
     "cover_photo": "image",
     "birthdate": "date",
+}
+```
+
+## Email Preference
+
+### Retrieve email preference
+
+Use `GET api/user/email-preference/{int}` to retrieve an email preference by its primary key. **Token is required** and **must be owner.**
+
+### Retrieve own email preference
+
+Use `GET api/user/email-preference/me` to retrieve an email preference of the current user. **Token is required.**
+
+### Update email preference
+
+Use `PUT api/user/email-preference/{int}` or `PATCH api/user/email-preference/{int}` to update an email preference. **Token is required** and **must be owner.**
+
+```json
+{
+    "receive_own_club": "boolean",
+    "receive_own_event": "boolean",
+    "receive_own_lab": "boolean",
+    "receive_other_events": "boolean",
 }
 ```
