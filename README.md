@@ -11,9 +11,9 @@ IT KMITL Clubs and Events Web Application's Backend, Project in Software Enginee
 ## API Endpoints
 Documentation on API Endpoints can be viewed in each separated Django application folders.
 
-[Asset Application](asset/README.md) *(In progress)*
+[Asset Application](asset/README.md)
 
-[Category Application](category/README.md) *(In progress)*
+[Category Application](category/README.md)
 
 [Community Application](community/README.md)
 
