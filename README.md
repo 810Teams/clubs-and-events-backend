@@ -15,7 +15,7 @@ Documentation on API Endpoints can be viewed in each separated Django applicatio
 
 [Category Application](category/README.md) *(In progress)*
 
-[Community Application](community/README.md) *(In progress)*
+[Community Application](community/README.md)
 
 [Membership Application](membership/README.md)
 

@@ -11,11 +11,13 @@
 
 #### URL Parameters
 
+`search={string}` to search for Thai name, English name, and description.
+
 `club_type={int}`
 
 `is_official={boolean}`
 
-`status={character}`
+`status={string}`
 
 ### Retrieve Club
 
@@ -102,6 +104,8 @@ In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` 
 - If a token is present, non-publicly visible events will also be shown.
 
 #### URL Parameters
+
+`search={string}` to search for Thai name, English name, description, and location.
 
 `event_type={int}`
 
@@ -194,3 +198,182 @@ In case of approved events, 2 additional fields can be used in `PUT` and `PATCH`
 - Must be a student.
 - Must have a membership with a position of 3.
 - Must not be an approved event.
+
+## Community Event
+
+### List Community Events
+
+`GET api/community/event/community`
+
+- Token is optional.
+- If a token is present, non-publicly visible events will also be shown.
+
+#### URL Parameters
+
+`search={string}` to search for Thai name, English name, description, and location.
+
+`event_type={int}`
+
+`event_series={int}`
+
+`is_approved={boolean}`
+
+`is_cancelled={boolean}`
+
+`created_under={int}`
+
+`allows_outside_participators={boolean}`
+
+### Retrieve Community Event
+
+`GET api/community/event/community/{int}`
+
+- Token is optional.
+- If a token is present, non-publicly visible events will also be retrievable.
+
+### Create Community Event
+
+`POST api/community/event/community`
+
+```json
+{
+    "name_th": "string",
+    "name_en": "string",
+    "description": "string",
+    "external_links": "string",
+    "logo": "image",
+    "banner": "image",
+    "is_accepting_requests": "boolean",
+    "location": "string",
+    "start_date": "date",
+    "end_date": "date",
+    "start_time": "time",
+    "end_time": "time",
+    "is_cancelled": "boolean",
+    "allows_outside_participator": "boolean",
+    "event_type": "int",
+    "event_series": "int",
+    "created_under": "int"
+}
+```
+
+- Token is required.
+- Must be a member with a position of 1, 2, or 3 in the community created under as described in the field `created_under`, otherwise, a status code of `400` will be returned.
+
+### Update Community Event
+
+`PUT api/community/event/community/{int}`
+
+`PATCH api/community/event/community/{int}`
+
+```json
+{
+    "name_th": "string",
+    "name_en": "string",
+    "description": "string",
+    "external_links": "string",
+    "logo": "image",
+    "banner": "image",
+    "is_accepting_requests": "boolean",
+    "location": "string",
+    "start_date": "date",
+    "end_date": "date",
+    "start_time": "time",
+    "end_time": "time",
+    "is_cancelled": "boolean",
+    "allows_outside_participator": "boolean",
+    "event_type": "int",
+    "event_series": "int",
+}
+```
+
+- Token is required.
+- Must be a member with a position of 2 or 3 in the community created under as described in the field `created_under`, or a member with a position of 2 or 3 of the community event.
+
+### Delete Community Event
+
+`DELETE api/community/event/community/{int}`
+
+- Token is required.
+- Must be a member with a position of 3 in the community created under as described in the field `created_under`, or a member with a position of 3 of the community event.
+
+## Lab
+
+### List Labs
+
+`GET api/community/lab`
+
+- Token is optional.
+- If a token is present, non-publicly visible labs will also be shown.
+
+#### URL Parameters
+
+`search={string}` to search for Thai name, English name, description, and tags.
+
+`status={string}`
+
+### Retrieve Lab
+
+`GET api/community/lab/{int}`
+
+- Token is optional.
+- If a token is present, non-publicly visible labs will also be retrievable.
+
+### Create Lab
+
+`POST api/community/lab`
+
+```json
+{
+    "name_th": "string",
+    "name_en": "string",
+    "url_id": "string",
+    "description": "string",
+    "external_links": "string",
+    "logo": "image",
+    "banner": "image",
+    "is_accepting_requests": "boolean",
+    "room": "string",
+    "founded_date": "date",
+    "tags": "string",
+    "status": "string (R, C, D)",
+}
+```
+
+- Token is required.
+- Must be a lecturer.
+
+### Update Lab
+
+`PUT api/community/lab/{int}`
+
+`PATCH api/community/lab/{int}`
+
+```json
+{
+    "name_th": "string",
+    "name_en": "string",
+    "url_id": "string",
+    "description": "string",
+    "external_links": "string",
+    "logo": "image",
+    "banner": "image",
+    "is_accepting_requests": "boolean",
+    "room": "string",
+    "founded_date": "date",
+    "tags": "string",
+    "status": "string (R, C, D)",
+}
+```
+
+- Token is required.
+- Must be a lecturer.
+- Must have a membership with a position of 2 or 3.
+
+### Delete Lab
+
+`DELETE api/community/lab/{int}`
+
+- Token is required.
+- Must be a lecturer.
+- Must have a membership with a position of 3.
