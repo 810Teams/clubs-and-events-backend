@@ -201,12 +201,6 @@ class MembershipSerializer(serializers.ModelSerializer):
                     _('Membership positions are not able to be updated by a normal member or a staff.'),
                     code='membership_error'
                 )
-            elif position['own'] == 2 and position['old'] in (2, 3):
-                raise serializers.ValidationError(
-                    _('Membership positions are not able to be updated if the position is already equal to or higher ' +
-                    'than your position.'),
-                    code='membership_error'
-                )
             elif position['own'] == 2 and position['new'] in (2, 3):
                 raise serializers.ValidationError(
                     _('Membership positions are not able to be updated to the position equal to or higher than your ' +
