@@ -15,7 +15,7 @@ Use `POST api/user/login` to request a token.
 
 ### List All Users
 
-Use `GET api/user/user` to list all users. **Token is optional.**
+Use `GET api/user/user` to list all users. **Token is optional,** if presents, more detailed user data will be shown.
 
 #### URL Parameters
 
@@ -29,7 +29,7 @@ Add `is_superuser={boolean}` to filter for superusers. **Token is required.**
 
 ### Retrieve User
 
-Use `GET api/user/user/{int}` to retrieve a user by its primary key. **Token is optional.**
+Use `GET api/user/user/{int}` to retrieve a user by its primary key. **Token is optional,** if presents, more detailed user data will be shown.
 
 ### Retrieve Current User 
 
@@ -52,15 +52,15 @@ Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user. *
 
 ## Email Preference
 
-### Retrieve email preference
+### Retrieve Email Preference
 
 Use `GET api/user/email-preference/{int}` to retrieve an email preference by its primary key. **Token is required** and **must be owner.**
 
-### Retrieve own email preference
+### Retrieve Own Email Preference
 
 Use `GET api/user/email-preference/me` to retrieve an email preference of the current user. **Token is required.**
 
-### Update email preference
+### Update Email Preference
 
 Use `PUT api/user/email-preference/{int}` or `PATCH api/user/email-preference/{int}` to update an email preference. **Token is required** and **must be owner.**
 
