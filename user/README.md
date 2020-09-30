@@ -13,29 +13,28 @@ Use `POST api/user/login` to request a token.
 
 ## User
 
-### List All Users ![](https://img.shields.io/badge/Optional-Token-blue)
-
-Use `GET api/user/user` to list all users. This does not require a token, but with a token will show more detailed user information.
+### List All Users
+Use `GET api/user/user` to list all users. **Token is optional.**
 
 `search={string}` to search for username, name, or nickname.
 
-`is_active={boolean}` to filter for active users. ![](https://img.shields.io/badge/Requires-Token-orange)
+`is_active={boolean}` to filter for active users. **Token is required.**
 
-`is_staff={boolean}` to filter for staff. ![](https://img.shields.io/badge/Requires-Token-orange)
+`is_staff={boolean}` to filter for staff. **Token is required.**
 
-`is_superuser={boolean}` to filter for superusers. ![](https://img.shields.io/badge/Requires-Token-orange)
+`is_superuser={boolean}` to filter for superusers. **Token is required.**
 
-### Retrieve User ![](https://img.shields.io/badge/Optional-Token-blue)
+### Retrieve User
 
-Use `GET api/user/user/{int}` to retrieve a user by its primary key. This does not require a token, but with a token will show more detailed user information.
+Use `GET api/user/user/{int}` to retrieve a user by its primary key. **Token is optional.**
 
-### Retrieve Current User ![](https://img.shields.io/badge/Requires-Token-orange)
+### Retrieve Current User 
 
-Use `GET api/user/user/me` to retrieve a current user.
+Use `GET api/user/user/me` to retrieve a current user. **Token is required.**
 
-### Update User ![](https://img.shields.io/badge/Requires-Token-orange)
+### Update User
 
-Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user.
+Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user. **Token is required.**
 
 ```json
 {
