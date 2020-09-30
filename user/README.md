@@ -11,15 +11,16 @@
 }
 ```
 
-- Returns a token
+- Returns a token if the credentials are valid.
 
 ## User
 
-### List All Users
+### List Users
 
 `GET api/user/user`
 
-- Token is optional, if presents, more detailed user data will be shown.
+- Token is optional.
+- If the token is present, more detailed user data will be shown.
 
 #### URL Parameters
 
@@ -35,7 +36,8 @@
 
 `GET api/user/user/{int}`
 
-- Token is optional, if presents, more detailed user data will be shown.
+- Token is optional.
+- If the token is present, more detailed user data will be shown.
 
 ### Retrieve Current User 
 
@@ -58,7 +60,8 @@
 }
 ```
 
-- Token is required, and must be the owner.
+- Token is required.
+- Must be the owner.
 
 ## Email Preference
 
@@ -67,13 +70,14 @@
 `GET api/user/email-preference/{int}`
 
 
-- Token is required, and must be the owner.
+- Token is required
+- Must be the owner.
 
 ### Retrieve Own Email Preference
 
-Use `GET api/user/email-preference/me`
+`GET api/user/email-preference/me`
 
-- Token is required
+- Token is required.
 
 ### Update Email Preference
 
@@ -90,4 +94,5 @@ Use `GET api/user/email-preference/me`
 }
 ```
 
-- Token is required, and must be the owner.
+- Token is required
+- Must be the owner.
