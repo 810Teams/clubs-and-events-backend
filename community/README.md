@@ -19,7 +19,7 @@
 
 ### Retrieve Club
 
-`GET api/community/club/{id}`
+`GET api/community/club/{int}`
 
 - Token is optional.
 - If a token is present, non-publicly visible clubs will also be retrievable.
@@ -48,9 +48,9 @@
 
 ### Update Club
 
-`PUT api/community/club/{id}`
+`PUT api/community/club/{int}`
 
-`PATCH api/community/club/{id}`
+`PATCH api/community/club/{int}`
 
 ```json
 {
@@ -85,7 +85,7 @@ In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` 
 
 ### Delete Club
 
-`DELETE api/community/club/{id}`
+`DELETE api/community/club/{int}`
 
 - Token is required.
 - Must be a student.
@@ -113,7 +113,7 @@ In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` 
 
 ### Retrieve Event
 
-`GET api/community/event/{id}`
+`GET api/community/event/{int}`
 
 - Token is optional.
 - If a token is present, non-publicly visible events will also be retrievable.
@@ -147,9 +147,9 @@ In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` 
 
 ### Update Event
 
-`PUT api/community/event/{id}`
+`PUT api/community/event/{int}`
 
-`PATCH api/community/event/{id}`
+`PATCH api/community/event/{int}`
 
 ```json
 {
@@ -188,7 +188,7 @@ In case of approved events, 2 additional fields can be used in `PUT` and `PATCH`
 
 ### Delete Event
 
-`DELETE api/community/event/{id}`
+`DELETE api/community/event/{int}`
 
 - Token is required.
 - Must be a student.
