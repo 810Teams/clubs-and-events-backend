@@ -29,15 +29,15 @@ Add `is_superuser={boolean}` to filter for superusers. **Token is required.**
 
 ### Retrieve User
 
-Use `GET api/user/user/{int}` to retrieve a user by its primary key. This does not require a token, but with a token will show more detailed user information.
+Use `GET api/user/user/{int}` to retrieve a user by its primary key. **Token is optional.**
 
 ### Retrieve Current User 
 
-Use `GET api/user/user/me` to retrieve a current user.
+Use `GET api/user/user/me` to retrieve a current user. **Token is required.**
 
 ### Update User
 
-Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user.
+Use `PUT api/user/user/{int}` or `PATCH api/user/user/{int}` to update a user. **Token is required.**
 
 ```json
 {
