@@ -5,7 +5,8 @@ from community.models import CommunityEvent, Community
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory
-from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList
+from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList, \
+    IsCancellableInvitation, IsEditableInvitation
 from membership.permissions import IsApplicableForCustomMembershipLabel
 from membership.permissions import IsInvitationInvitee, IsInvitationInvitor, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership
@@ -97,9 +98,9 @@ class InvitationViewSet(viewsets.ModelViewSet):
             # Includes IsStaffOfCommunity() in validation() of the serializer
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsInvitationInvitee())
+            return (permissions.IsAuthenticated(), IsInvitationInvitee(), IsEditableInvitation())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsInvitationInvitor())
+            return (permissions.IsAuthenticated(), IsInvitationInvitor(), IsCancellableInvitation())
         return tuple()
 
     def get_serializer_class(self):
@@ -114,7 +115,6 @@ class InvitationViewSet(viewsets.ModelViewSet):
         communities = [i.community.id for i in memberships]
 
         id_set = [i.id for i in queryset.filter(community_id__in=communities)]
-        id_set += [i.id for i in queryset.filter(invitor_id=request.user.id)]
         id_set += [i.id for i in queryset.filter(invitee_id=request.user.id)]
 
         queryset = queryset.filter(pk__in=id_set)
@@ -208,8 +208,8 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
-            # Includes IsDeputyLeaderOfCommunity() in validation ()of the serializer
-            # Includes IsApplicableForCustomMembershipLabel() in validation ()of the serializer
+            # Includes IsDeputyLeaderOfCommunity() in validate() of the serializer
+            # Includes IsApplicableForCustomMembershipLabel() in validate() of the serializer
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity(), IsApplicableForCustomMembershipLabel())

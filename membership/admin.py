@@ -57,7 +57,7 @@ class MembershipAdmin(admin.ModelAdmin):
     is_active.boolean = True
 
     def custom_label(self, obj):
-        return CustomMembershipLabel.objects.get(membership_id=obj.id).custom_label
+        return CustomMembershipLabel.objects.get(membership_id=obj.id).label
 
 
 admin.site.register(Request, RequestAdmin)

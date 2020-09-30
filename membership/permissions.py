@@ -69,11 +69,12 @@ class IsAbleToUpdateMembership(permissions.BasePermission):
         # Case 1: Leaving and Retiring, must be the membership owner.
         is_membership_owner = request.user.id == obj.user.id and obj.position not in ('L', 'X')
 
-        # Case 2: Member Removal and Position Assignation, must be an active deputy leader of the community.
-        membership = Membership.objects.filter(
+        # Case 2: Member Removal and Position Assignation, must be done by an active deputy leader of the community,
+        #         and not be done on memberships with position equal to yourself.
+        own_membership = Membership.objects.filter(
             user_id=request.user.id, community_id=obj.community.id, position__in=(2, 3), status='A'
         )
-        is_deputy_leader_of_that_community = len(membership) == 1
+        is_deputy_leader_of_that_community = len(own_membership) == 1 and own_membership[0].position > obj.position
 
         # Both Cases: Leader memberships are not able to be updated by anyone.
         object_is_not_leader = obj.position != 3
