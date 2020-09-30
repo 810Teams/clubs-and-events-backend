@@ -9,6 +9,14 @@
 - Token is required.
 - Only shows requests that the current user is the requestor or to members of the community that is being requested to join.
 
+#### URL Parameters
+
+`user={int}`
+
+`community={int}`
+
+`status={string}`
+
 ### Retrieve Request
 
 `GET api/membership/request/{int}`
@@ -68,6 +76,16 @@
 - Token is required.
 - Only shows invitations that the current user is the invitee or the member of the community.
 
+#### URL Parameters
+
+`invitor={int}`
+
+`invitee={int}`
+
+`community={int}`
+
+`status={string}`
+
 ### Retrieve Invitation
 
 `GET api/membership/invitation/{int}`
@@ -125,14 +143,24 @@
 `GET api/membership/membership`
 
 - Token is optional.
-- If the token is present, memberships in non-publicly visible communities will also be shown.
+- If a token is present, memberships in non-publicly visible communities will also be shown.
+
+#### URL Parameters
+
+`user={int}`
+
+`community={int}`
+
+`position={int}`
+
+`status={string}`
 
 ### Retrieve Membership
 
 `GET api/membership/membership/{int}`
 
 - Token is optional.
-- If the token is present, memberships in non-publicly visible communities will also be retrievable.
+- If a token is present, memberships in non-publicly visible communities will also be retrievable.
 
 ### Update Membership
 
@@ -186,14 +214,14 @@
 `GET api/membership/custom-label`
 
 - Token is optional.
-- If the token is present, custom membership labels of memberships in non-publicly visible communities will also be shown.
+- If a token is present, custom membership labels of memberships in non-publicly visible communities will also be shown.
 
 ### Retrieve Custom Membership Label
 
 `GET api/membership/custom-label/{int}`
 
 - Token is optional.
-- If the token is present, custom membership labels of memberships in non-publicly visible communities will also be retrievable.
+- If a token is present, custom membership labels of memberships in non-publicly visible communities will also be retrievable.
 
 ### Create Custom Membership Label
 
