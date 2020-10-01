@@ -1,7 +1,7 @@
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 
-from community.models import CommunityEvent, Community
+from community.models import CommunityEvent, Community, Club, Event, Lab
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory
@@ -186,6 +186,25 @@ class MembershipViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+
+        try:
+            query = request.query_params.get('community-type')
+            if query == 'club':
+                club_ids = [i.id for i in Club.objects.all()]
+                print(club_ids)
+                queryset = queryset.filter(community__in=club_ids)
+            elif query == 'event':
+                community_event_ids = [i.id for i in CommunityEvent.objects.all()]
+                event_ids = [i.id for i in Event.objects.all() if i not in community_event_ids]
+                queryset = queryset.filter(community__in=event_ids)
+            elif query == 'community-event':
+                community_event_ids = [i.id for i in CommunityEvent.objects.all()]
+                queryset = queryset.filter(community__in=community_event_ids)
+            elif query == 'lab':
+                lab_ids = [i.id for i in Lab.objects.all()]
+                queryset = queryset.filter(community__in=lab_ids)
+        except ValueError:
+            pass
 
         serializer = self.get_serializer(queryset, many=True)
 
