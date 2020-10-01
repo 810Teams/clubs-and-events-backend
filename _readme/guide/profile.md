@@ -8,6 +8,9 @@ However, wherever this page is accessed from, the specific ID of the user is rec
 
 ### Retrieve User
 
+Call this API to retrieve the user by ID in order to display the profile page.
+If the user is not authenticated, only a few fields of information will be shown.
+
 `GET api/user/user/{int}`
 
 ### Rendering Edit Profile Button
@@ -34,3 +37,25 @@ After clicking the edit profile button, the user will be redirected to the edit 
     "birthdate": "date",
 }
 ```
+
+## Profile Feed
+
+By visiting anyone's profile, the visitor can see any user's past activities. If the user is not authenticated, activities involving the non-publicly visible communities will be filtered out automatically.
+
+Call these APIs to complete the feed. Display all memberships to complete the profile, separated in 3 sections.
+
+> To be re-designed later.
+
+### Club Memberships
+
+`GET api/membership/membership?user={int}&community-type=club`
+
+### Event Memberships
+
+`GET api/membership/membership?user={int}&community-type=event`
+
+`GET api/membership/membership?user={int}&community-type=community-event`
+
+### Lab Memberships
+
+`GET api/membership/membership?user={int}&community-type=lab`

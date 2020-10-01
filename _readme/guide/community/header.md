@@ -50,7 +50,7 @@ By clicking the request button, this API endpoint must be called.
 
 ```json
 {
-    "community": "int" // Must be auto
+    "community": "int"
 }
 ```
 

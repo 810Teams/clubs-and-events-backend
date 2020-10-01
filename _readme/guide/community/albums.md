@@ -91,7 +91,7 @@ Make sure to pass the current community's ID automatically in to this request.
 ```json
 {
     "name": "string",
-    "community": "int", /* Must be auto*/
+    "community": "int",
     "community_event": "int"
 }
 ```

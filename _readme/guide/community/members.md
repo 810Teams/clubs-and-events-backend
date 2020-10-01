@@ -32,7 +32,7 @@ For example, this means the current user can demote this member to the normal me
 
 #### Membership Position Names
 
-||0|1|2|3
+||0|1|2|3|
 :-:|:-:|:-:|:-:|:-:
 Club|Member|Staff|Vice President|President
 Event|Participator|Staff|Vice President|President

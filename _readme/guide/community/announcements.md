@@ -47,7 +47,7 @@ Make sure to pass the current community's ID automatically in to this request.
 {
     "text": "string",
     "image": "image",
-    "community": "int" // Must be auto
+    "community": "int"
 }
 ```
 
