@@ -7,10 +7,22 @@ from membership.models import Membership
 
 
 class ExistingAnnouncementSerializer(serializers.ModelSerializer):
+    is_able_to_edit = serializers.SerializerMethodField()
+
     class Meta:
         model = Announcement
         fields = '__all__'
         read_only_fields = ('community', 'created_by', 'updated_by')
+
+    def get_is_able_to_edit(self, obj):
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id,
+                position__in=(1, 2, 3), community_id=obj.community.id, status='A'
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
 
 
 class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
@@ -37,6 +49,8 @@ class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
 
 
 class ExistingAlbumSerializer(serializers.ModelSerializer):
+    is_able_to_edit = serializers.SerializerMethodField()
+
     class Meta:
         model = Album
         fields = '__all__'
@@ -59,8 +73,17 @@ class ExistingAlbumSerializer(serializers.ModelSerializer):
                     code='hierarchy_error'
                 )
 
-
         return data
+
+    def get_is_able_to_edit(self, obj):
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id,
+                position__in=(1, 2, 3), community_id=obj.community.id, status='A'
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
 
 
 class NotExistingAlbumSerializer(serializers.ModelSerializer):

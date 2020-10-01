@@ -6,38 +6,248 @@ from membership.models import Membership
 
 
 class OfficialClubSerializer(serializers.ModelSerializer):
+    own_membership_id = serializers.SerializerMethodField()
+    is_able_to_manage = serializers.SerializerMethodField()
+    is_able_to_request_to = serializers.SerializerMethodField()
+    is_able_to_leave = serializers.SerializerMethodField()
+
     class Meta:
         model = Club
         fields = '__all__'
         read_only_fields = ('is_official', 'created_by', 'updated_by')
 
+    def get_own_membership_id(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.id
+        except Membership.DoesNotExist:
+            return None
+
+    def get_is_able_to_manage(self, obj):
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id, position__in=(1, 2, 3), community_id=obj.id, status='A'
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
+
+    def get_is_able_to_request_to(self, obj):
+        if not obj.is_accepting_requests or self.context['request'].user.groups.filter(name='lecturer').exists():
+            return False
+
+        try:
+            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
+            return False
+        except Membership.DoesNotExist:
+            return True
+
+    def get_is_able_to_leave(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.position != 3
+        except Membership.DoesNotExist:
+            return None
+
 
 class UnofficialClubSerializer(serializers.ModelSerializer):
+    own_membership_id = serializers.SerializerMethodField()
+    is_able_to_manage = serializers.SerializerMethodField()
+    is_able_to_request_to = serializers.SerializerMethodField()
+    is_able_to_leave = serializers.SerializerMethodField()
+
     class Meta:
         model = Club
         exclude = ('url_id', 'is_publicly_visible', 'room')
         read_only_fields = ('is_official', 'created_by', 'updated_by')
 
+    def get_own_membership_id(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.id
+        except Membership.DoesNotExist:
+            return None
+
+    def get_is_able_to_manage(self, obj):
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id, position__in=(1, 2, 3), community_id=obj.id, status='A'
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
+
+    def get_is_able_to_request_to(self, obj):
+        if not obj.is_accepting_requests or self.context['request'].user.groups.filter(name='lecturer').exists():
+            return False
+
+        try:
+            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
+            return False
+        except Membership.DoesNotExist:
+            return True
+
+    def get_is_able_to_leave(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.position != 3
+        except Membership.DoesNotExist:
+            return None
+
 
 class ApprovedEventSerializer(serializers.ModelSerializer):
+    own_membership_id = serializers.SerializerMethodField()
+    is_able_to_manage = serializers.SerializerMethodField()
+    is_able_to_request_to = serializers.SerializerMethodField()
+    is_able_to_leave = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
         fields = '__all__'
         read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
+    def get_own_membership_id(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.id
+        except Membership.DoesNotExist:
+            return None
+
+    def get_is_able_to_manage(self, obj):
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id, position__in=(1, 2, 3), community_id=obj.id, status='A'
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
+
+    def get_is_able_to_request_to(self, obj):
+        if not obj.is_accepting_requests:
+            return False
+
+        try:
+            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
+            return False
+        except Membership.DoesNotExist:
+            return True
+
+    def get_is_able_to_leave(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.position != 3
+        except Membership.DoesNotExist:
+            return None
+
 
 class UnapprovedEventSerializer(serializers.ModelSerializer):
+    own_membership_id = serializers.SerializerMethodField()
+    is_able_to_manage = serializers.SerializerMethodField()
+    is_able_to_request_to = serializers.SerializerMethodField()
+    is_able_to_leave = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
         exclude = ('url_id', 'is_publicly_visible')
         read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
+    def get_own_membership_id(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.id
+        except Membership.DoesNotExist:
+            return None
+
+    def get_is_able_to_manage(self, obj):
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id, position__in=(1, 2, 3), community_id=obj.id, status='A'
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
+
+    def get_is_able_to_request_to(self, obj):
+        if not obj.is_accepting_requests:
+            return False
+
+        try:
+            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
+            return False
+        except Membership.DoesNotExist:
+            return True
+
+    def get_is_able_to_leave(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.position != 3
+        except Membership.DoesNotExist:
+            return None
+
 
 class ExistingCommunityEventSerializer(serializers.ModelSerializer):
+    own_membership_id = serializers.SerializerMethodField()
+    is_able_to_manage = serializers.SerializerMethodField()
+    is_able_to_request_to = serializers.SerializerMethodField()
+    is_able_to_leave = serializers.SerializerMethodField()
+
     class Meta:
         model = CommunityEvent
         fields = '__all__'
         read_only_fields = ('is_approved', 'created_under', 'created_by', 'updated_by')
+
+    def get_own_membership_id(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.id
+        except Membership.DoesNotExist:
+            return None
+
+    def get_is_able_to_manage(self, obj):
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id, position__in=(1, 2, 3), community_id=obj.id, status='A'
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
+
+    def get_is_able_to_request_to(self, obj):
+        if not obj.is_accepting_requests:
+            return False
+
+        try:
+            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
+            return False
+        except Membership.DoesNotExist:
+            return True
+
+    def get_is_able_to_leave(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.position != 3
+        except Membership.DoesNotExist:
+            return None
 
 
 class NotExistingCommunityEventSerializer(serializers.ModelSerializer):
@@ -80,6 +290,11 @@ class NotExistingCommunityEventSerializer(serializers.ModelSerializer):
 
 
 class LabSerializer(serializers.ModelSerializer):
+    own_membership_id = serializers.SerializerMethodField()
+    is_able_to_manage = serializers.SerializerMethodField()
+    is_able_to_request_to = serializers.SerializerMethodField()
+    is_able_to_leave = serializers.SerializerMethodField()
+
     class Meta:
         model = Lab
         fields = '__all__'
@@ -103,3 +318,40 @@ class LabSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+    def get_own_membership_id(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.id
+        except Membership.DoesNotExist:
+            return None
+
+    def get_is_able_to_manage(self, obj):
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id, position__in=(1, 2, 3), community_id=obj.id, status='A'
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
+
+    def get_is_able_to_request_to(self, obj):
+        if not obj.is_accepting_requests:
+            return False
+
+        try:
+            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
+            return False
+        except Membership.DoesNotExist:
+            return True
+
+    def get_is_able_to_leave(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
+            )
+            return membership.position != 3
+        except Membership.DoesNotExist:
+            return None
