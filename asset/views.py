@@ -8,7 +8,7 @@ from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerialize
 from asset.serializers import AlbumImageSerializer, CommentSerializer
 from community.models import Community, Event
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity
-from core.utils import filter_queryset
+from core.utils import filter_queryset, limit_queryset
 from user.models import User
 
 
@@ -113,6 +113,7 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(community_id__in=visible_ids)
 
         queryset = filter_queryset(queryset, request, target_param='album', is_foreign_key=True)
+        queryset = limit_queryset(queryset, request)
 
         serializer = self.get_serializer(queryset, many=True)
 

@@ -8,8 +8,7 @@ from membership.models import Membership
 class OfficialClubSerializer(serializers.ModelSerializer):
     own_membership_id = serializers.SerializerMethodField()
     is_able_to_manage = serializers.SerializerMethodField()
-    is_able_to_request_to = serializers.SerializerMethodField()
-    is_able_to_leave = serializers.SerializerMethodField()
+    available_actions = serializers.SerializerMethodField()
 
     class Meta:
         model = Club
@@ -34,31 +33,25 @@ class OfficialClubSerializer(serializers.ModelSerializer):
         except Membership.DoesNotExist:
             return False
 
-    def get_is_able_to_request_to(self, obj):
-        if not obj.is_accepting_requests or self.context['request'].user.groups.filter(name='lecturer').exists():
-            return False
-
-        try:
-            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
-            return False
-        except Membership.DoesNotExist:
-            return True
-
-    def get_is_able_to_leave(self, obj):
+    def get_available_actions(self, obj):
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
-            return membership.position != 3
+            if membership.position == 3:
+                return list()
+            if membership.status == 'A':
+                return ['R', 'L']
+            if membership.status == 'R':
+                return ['A', 'L']
         except Membership.DoesNotExist:
-            return None
+            return list()
 
 
 class UnofficialClubSerializer(serializers.ModelSerializer):
     own_membership_id = serializers.SerializerMethodField()
     is_able_to_manage = serializers.SerializerMethodField()
-    is_able_to_request_to = serializers.SerializerMethodField()
-    is_able_to_leave = serializers.SerializerMethodField()
+    available_actions = serializers.SerializerMethodField()
 
     class Meta:
         model = Club
@@ -83,31 +76,25 @@ class UnofficialClubSerializer(serializers.ModelSerializer):
         except Membership.DoesNotExist:
             return False
 
-    def get_is_able_to_request_to(self, obj):
-        if not obj.is_accepting_requests or self.context['request'].user.groups.filter(name='lecturer').exists():
-            return False
-
-        try:
-            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
-            return False
-        except Membership.DoesNotExist:
-            return True
-
-    def get_is_able_to_leave(self, obj):
+    def get_available_actions(self, obj):
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
-            return membership.position != 3
+            if membership.position == 3:
+                return list()
+            if membership.status == 'A':
+                return ['R', 'L']
+            if membership.status == 'R':
+                return ['A', 'L']
         except Membership.DoesNotExist:
-            return None
+            return list()
 
 
 class ApprovedEventSerializer(serializers.ModelSerializer):
     own_membership_id = serializers.SerializerMethodField()
     is_able_to_manage = serializers.SerializerMethodField()
-    is_able_to_request_to = serializers.SerializerMethodField()
-    is_able_to_leave = serializers.SerializerMethodField()
+    available_actions = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -132,31 +119,25 @@ class ApprovedEventSerializer(serializers.ModelSerializer):
         except Membership.DoesNotExist:
             return False
 
-    def get_is_able_to_request_to(self, obj):
-        if not obj.is_accepting_requests:
-            return False
-
-        try:
-            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
-            return False
-        except Membership.DoesNotExist:
-            return True
-
-    def get_is_able_to_leave(self, obj):
+    def get_available_actions(self, obj):
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
-            return membership.position != 3
+            if membership.position == 3:
+                return list()
+            if membership.status == 'A':
+                return ['R', 'L']
+            if membership.status == 'R':
+                return ['A', 'L']
         except Membership.DoesNotExist:
-            return None
+            return list()
 
 
 class UnapprovedEventSerializer(serializers.ModelSerializer):
     own_membership_id = serializers.SerializerMethodField()
     is_able_to_manage = serializers.SerializerMethodField()
-    is_able_to_request_to = serializers.SerializerMethodField()
-    is_able_to_leave = serializers.SerializerMethodField()
+    available_actions = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -181,31 +162,25 @@ class UnapprovedEventSerializer(serializers.ModelSerializer):
         except Membership.DoesNotExist:
             return False
 
-    def get_is_able_to_request_to(self, obj):
-        if not obj.is_accepting_requests:
-            return False
-
-        try:
-            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
-            return False
-        except Membership.DoesNotExist:
-            return True
-
-    def get_is_able_to_leave(self, obj):
+    def get_available_actions(self, obj):
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
-            return membership.position != 3
+            if membership.position == 3:
+                return list()
+            if membership.status == 'A':
+                return ['R', 'L']
+            if membership.status == 'R':
+                return ['A', 'L']
         except Membership.DoesNotExist:
-            return None
+            return list()
 
 
 class ExistingCommunityEventSerializer(serializers.ModelSerializer):
     own_membership_id = serializers.SerializerMethodField()
     is_able_to_manage = serializers.SerializerMethodField()
-    is_able_to_request_to = serializers.SerializerMethodField()
-    is_able_to_leave = serializers.SerializerMethodField()
+    available_actions = serializers.SerializerMethodField()
 
     class Meta:
         model = CommunityEvent
@@ -230,24 +205,19 @@ class ExistingCommunityEventSerializer(serializers.ModelSerializer):
         except Membership.DoesNotExist:
             return False
 
-    def get_is_able_to_request_to(self, obj):
-        if not obj.is_accepting_requests:
-            return False
-
-        try:
-            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
-            return False
-        except Membership.DoesNotExist:
-            return True
-
-    def get_is_able_to_leave(self, obj):
+    def get_available_actions(self, obj):
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
-            return membership.position != 3
+            if membership.position == 3:
+                return list()
+            if membership.status == 'A':
+                return ['R', 'L']
+            if membership.status == 'R':
+                return ['A', 'L']
         except Membership.DoesNotExist:
-            return None
+            return list()
 
 
 class NotExistingCommunityEventSerializer(serializers.ModelSerializer):
@@ -292,8 +262,7 @@ class NotExistingCommunityEventSerializer(serializers.ModelSerializer):
 class LabSerializer(serializers.ModelSerializer):
     own_membership_id = serializers.SerializerMethodField()
     is_able_to_manage = serializers.SerializerMethodField()
-    is_able_to_request_to = serializers.SerializerMethodField()
-    is_able_to_leave = serializers.SerializerMethodField()
+    available_actions = serializers.SerializerMethodField()
 
     class Meta:
         model = Lab
@@ -337,21 +306,16 @@ class LabSerializer(serializers.ModelSerializer):
         except Membership.DoesNotExist:
             return False
 
-    def get_is_able_to_request_to(self, obj):
-        if not obj.is_accepting_requests:
-            return False
-
-        try:
-            Membership.objects.get(user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R'))
-            return False
-        except Membership.DoesNotExist:
-            return True
-
-    def get_is_able_to_leave(self, obj):
+    def get_available_actions(self, obj):
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
-            return membership.position != 3
+            if membership.position == 3:
+                return list()
+            if membership.status == 'A':
+                return ['R', 'L']
+            if membership.status == 'R':
+                return ['A', 'L']
         except Membership.DoesNotExist:
-            return None
+            return list()

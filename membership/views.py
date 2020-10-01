@@ -5,11 +5,10 @@ from community.models import CommunityEvent, Community
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory
-from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList, \
-    IsCancellableInvitation, IsEditableInvitation
-from membership.permissions import IsApplicableForCustomMembershipLabel
+from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList
+from membership.permissions import IsCancellableInvitation, IsEditableInvitation
 from membership.permissions import IsInvitationInvitee, IsInvitationInvitor, IsAbleToViewInvitationList
-from membership.permissions import IsAbleToUpdateMembership
+from membership.permissions import IsAbleToUpdateMembership, IsApplicableForCustomMembershipLabel
 from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
