@@ -179,7 +179,7 @@ In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` 
 - Must be a student.
 - Must have a membership with a position of 2 or 3.
 
-#### Official Event
+#### Approved Event
 
 In case of approved events, 2 additional fields can be used in `PUT` and `PATCH` requests.
 

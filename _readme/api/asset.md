@@ -138,6 +138,8 @@
 
 `album={int}`
 
+`limit={int}`
+
 ### Retrieve Album Image
 
 `GET api/asset/album/{int}`
