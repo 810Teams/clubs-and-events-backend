@@ -149,6 +149,10 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
 
 
 class MembershipSerializer(serializers.ModelSerializer):
+    is_able_to_assign = serializers.SerializerMethodField()
+    is_able_to_remove = serializers.SerializerMethodField()
+    is_able_to_leave = serializers.SerializerMethodField()
+
     class Meta:
         model = Membership
         fields = '__all__'
@@ -164,6 +168,13 @@ class MembershipSerializer(serializers.ModelSerializer):
             'own': Membership.objects.get(user_id=user_id['own'], community_id=self.instance.community.id).position
         }
         status = {'old': original_membership.status, 'new': data['status']}
+
+        # Validation
+        if position['new'] not in (0, 1, 2, 3):
+            raise serializers.ValidationError(
+                _('Membership position must be a number from 0 to 3.'),
+                code='membership_error'
+            )
 
         # Case 1: Leaving and Retiring
         if user_id['new'] == user_id['own']:
@@ -216,6 +227,36 @@ class MembershipSerializer(serializers.ModelSerializer):
             )
 
         return data
+
+    def get_is_able_to_assign(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.community.id, status='A'
+            )
+
+            if membership.id == obj.id or obj.status not in ('A', 'R'):
+                return list()
+
+            return [i for i in range(0, membership.position + (membership.position == 3)) if i != obj.position]
+        except Membership.DoesNotExist:
+            return list()
+
+    def get_is_able_to_remove(self, obj):
+        try:
+            membership = Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.community.id, status='A'
+            )
+
+            if membership.id == obj.id:
+                return False
+            elif membership.position >= 2 and membership.position > obj.position and obj.status in ('A', 'R'):
+                return True
+            return False
+        except Membership.DoesNotExist:
+            return False
+
+    def get_is_able_to_leave(self, obj):
+        return obj.user.id == self.context['request'].user.id and obj.position != 3 and obj.status in ('A', 'R')
 
 
 class ExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):

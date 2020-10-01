@@ -76,8 +76,14 @@ class RequestViewSet(viewsets.ModelViewSet):
         obj = serializer.save(updated_by=request.user)
 
         if obj.status == 'A':
-            Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
-                                      created_by_id=request.user.id, updated_by_id=request.user.id)
+            try:
+                membership = Membership.objects.get(user_id=obj.invitee.id, community_id=obj.community.id)
+                membership.position = 0
+                membership.status = 'A'
+                membership.save()
+            except Membership.DoesNotExist:
+                Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
+                                          created_by_id=request.user.id, updated_by_id=request.user.id)
         elif obj.status == 'W':
             return Response(
                 {'error': 'Request statuses are not able to be updated to waiting.'},
@@ -141,8 +147,14 @@ class InvitationViewSet(viewsets.ModelViewSet):
         obj = serializer.save()
 
         if obj.status == 'A':
-            Membership.objects.create(user_id=obj.invitee.id, position=0, community_id=obj.community.id,
-                                      created_by_id=request.user.id, updated_by_id=request.user.id)
+            try:
+                membership = Membership.objects.get(user_id=obj.invitee.id, community_id=obj.community.id)
+                membership.position = 0
+                membership.status = 'A'
+                membership.save()
+            except Membership.DoesNotExist:
+                Membership.objects.create(user_id=obj.invitee.id, position=0, community_id=obj.community.id,
+                                          created_by_id=request.user.id, updated_by_id=request.user.id)
         elif obj.status == 'W':
             return Response(
                 {'error': 'Invitation statuses are not able to be updated to waiting.'},

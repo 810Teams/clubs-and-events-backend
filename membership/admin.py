@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from community.models import Club, Event, Lab
+from community.models import Club, Event, Lab, CommunityEvent
 from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel
 
 import datetime
@@ -36,19 +36,25 @@ class MembershipAdmin(admin.ModelAdmin):
         try:
             if Club.objects.get(pk=obj.community.id) is not None:
                 return ('Member', 'Staff', 'Vice-President', 'President')[obj.position]
-        except Club.DoesNotExist:
+        except (Club.DoesNotExist, IndexError):
+            pass
+
+        try:
+            if CommunityEvent.objects.get(pk=obj.community.id) is not None:
+                return ('Participator', 'Staff', 'Event Co-Creator', 'Event Creator')[obj.position]
+        except (CommunityEvent.DoesNotExist, IndexError):
             pass
 
         try:
             if Event.objects.get(pk=obj.community.id) is not None:
                 return ('Participator', 'Staff', 'Vice-President', 'President')[obj.position]
-        except Event.DoesNotExist:
+        except (Event.DoesNotExist, IndexError):
             pass
 
         try:
             if Lab.objects.get(pk=obj.community.id) is not None:
                 return ('Lab Member', 'Lab Helper', 'Lab Co-Supervisor', 'Lab Supervisor')[obj.position]
-        except Lab.DoesNotExist:
+        except (Lab.DoesNotExist, IndexError):
             pass
 
     def is_active(self, obj):

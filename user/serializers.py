@@ -7,6 +7,8 @@ from user.models import User, EmailPreference
 
 
 class UserSerializer(serializers.ModelSerializer):
+    is_lecturer = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         exclude = ('password', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'groups', 'user_permissions')
@@ -20,6 +22,9 @@ class UserSerializer(serializers.ModelSerializer):
             )
 
         return data
+
+    def get_is_lecturer(self, obj):
+        return obj.groups.filter(name='lecturer').exists()
 
 
 class LimitedUserSerializer(serializers.ModelSerializer):
