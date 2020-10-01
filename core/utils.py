@@ -16,3 +16,14 @@ def filter_queryset(queryset, request, target_param=None, is_foreign_key=False):
         queryset = None
 
     return queryset
+
+
+def limit_queryset(queryset, request, target_param='limit'):
+    try:
+        limit = request.query_params.get(target_param)
+        if limit is not None:
+            queryset = queryset[:min(int(limit), len(queryset))]
+    except ValueError:
+        pass
+
+    return queryset

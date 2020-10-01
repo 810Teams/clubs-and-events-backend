@@ -30,8 +30,8 @@ class UserSerializer(serializers.ModelSerializer):
 class LimitedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'name', 'nickname', 'profile_picture')
-        read_only_fields = ('username', 'name', 'nickname', 'profile_picture')
+        fields = ('username', 'name', 'profile_picture', 'cover_photo')
+        read_only_fields = ('username', 'name', 'profile_picture', 'cover_photo')
 
 
 class EmailPreferenceSerializer(serializers.ModelSerializer):

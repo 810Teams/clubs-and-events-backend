@@ -114,6 +114,7 @@
 ### Update Invitation
 
 `PUT api/membership/invitation/{int}`
+
 `PATCH api/membership/invitation/{int}`
 
 ```json
