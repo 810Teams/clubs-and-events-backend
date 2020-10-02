@@ -35,15 +35,22 @@ class OfficialClubSerializer(serializers.ModelSerializer):
 
     def get_available_actions(self, obj):
         try:
+            actions = list()
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
+
+            if membership.position in (2, 3):
+                actions.append('E')
+            if membership.position != 3:
+                actions.append('L')
+                if membership.status == 'A':
+                    actions.append('R')
+                if membership.status == 'R':
+                    actions.append('A')
             if membership.position == 3:
-                return list()
-            if membership.status == 'A':
-                return ['R', 'L']
-            if membership.status == 'R':
-                return ['A', 'L']
+                actions.append('D')
+            return actions
         except Membership.DoesNotExist:
             return list()
 
@@ -78,15 +85,22 @@ class UnofficialClubSerializer(serializers.ModelSerializer):
 
     def get_available_actions(self, obj):
         try:
+            actions = list()
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
+
+            if membership.position in (2, 3):
+                actions.append('E')
+            if membership.position != 3:
+                actions.append('L')
+                if membership.status == 'A':
+                    actions.append('R')
+                if membership.status == 'R':
+                    actions.append('A')
             if membership.position == 3:
-                return list()
-            if membership.status == 'A':
-                return ['R', 'L']
-            if membership.status == 'R':
-                return ['A', 'L']
+                actions.append('D')
+            return actions
         except Membership.DoesNotExist:
             return list()
 
@@ -121,15 +135,22 @@ class ApprovedEventSerializer(serializers.ModelSerializer):
 
     def get_available_actions(self, obj):
         try:
+            actions = list()
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
+
+            if membership.position in (2, 3):
+                actions.append('E')
+            if membership.position != 3:
+                actions.append('L')
+                if membership.status == 'A':
+                    actions.append('R')
+                if membership.status == 'R':
+                    actions.append('A')
             if membership.position == 3:
-                return list()
-            if membership.status == 'A':
-                return ['R', 'L']
-            if membership.status == 'R':
-                return ['A', 'L']
+                actions.append('D')
+            return actions
         except Membership.DoesNotExist:
             return list()
 
@@ -164,15 +185,22 @@ class UnapprovedEventSerializer(serializers.ModelSerializer):
 
     def get_available_actions(self, obj):
         try:
+            actions = list()
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
+
+            if membership.position in (2, 3):
+                actions.append('E')
+            if membership.position != 3:
+                actions.append('L')
+                if membership.status == 'A':
+                    actions.append('R')
+                if membership.status == 'R':
+                    actions.append('A')
             if membership.position == 3:
-                return list()
-            if membership.status == 'A':
-                return ['R', 'L']
-            if membership.status == 'R':
-                return ['A', 'L']
+                actions.append('D')
+            return actions
         except Membership.DoesNotExist:
             return list()
 
@@ -207,15 +235,22 @@ class ExistingCommunityEventSerializer(serializers.ModelSerializer):
 
     def get_available_actions(self, obj):
         try:
+            actions = list()
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
+
+            if membership.position in (2, 3):
+                actions.append('E')
+            if membership.position != 3:
+                actions.append('L')
+                if membership.status == 'A':
+                    actions.append('R')
+                if membership.status == 'R':
+                    actions.append('A')
             if membership.position == 3:
-                return list()
-            if membership.status == 'A':
-                return ['R', 'L']
-            if membership.status == 'R':
-                return ['A', 'L']
+                actions.append('D')
+            return actions
         except Membership.DoesNotExist:
             return list()
 
@@ -308,14 +343,21 @@ class LabSerializer(serializers.ModelSerializer):
 
     def get_available_actions(self, obj):
         try:
+            actions = list()
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
             )
+
+            if membership.position in (2, 3):
+                actions.append('E')
+            if membership.position != 3:
+                actions.append('L')
+                if membership.status == 'A':
+                    actions.append('R')
+                if membership.status == 'R':
+                    actions.append('A')
             if membership.position == 3:
-                return list()
-            if membership.status == 'A':
-                return ['R', 'L']
-            if membership.status == 'R':
-                return ['A', 'L']
+                actions.append('D')
+            return actions
         except Membership.DoesNotExist:
             return list()

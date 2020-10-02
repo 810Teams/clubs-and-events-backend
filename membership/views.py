@@ -38,7 +38,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        memberships = Membership.objects.filter(user_id=request.user.id, status='A')
+        memberships = Membership.objects.filter(user_id=request.user.id, status__in=('A', 'R'))
         communities = [i.community.id for i in memberships]
 
         id_set = [i.id for i in queryset.filter(community_id__in=communities)]
@@ -116,7 +116,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        memberships = Membership.objects.filter(user_id=request.user.id, status='A')
+        memberships = Membership.objects.filter(user_id=request.user.id, status__in=('A', 'R'))
         communities = [i.community.id for i in memberships]
 
         id_set = [i.id for i in queryset.filter(community_id__in=communities)]
@@ -212,6 +212,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         old_position = Membership.objects.get(pk=kwargs['pk']).position
+        old_status = Membership.objects.get(pk=kwargs['pk']).status
 
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
@@ -224,6 +225,16 @@ class MembershipViewSet(viewsets.ModelViewSet):
                 community_id=Membership.objects.get(pk=kwargs['pk']).community.id
             )
             membership.position = 2
+            membership.updated_by = request.user
+            membership.save()
+
+        # If the status is set to retired, get demoted to a normal member.
+        if old_status != obj.status and obj.status == 'R':
+            membership = Membership.objects.get(
+                user_id=request.user.id,
+                community_id=Membership.objects.get(pk=kwargs['pk']).community.id
+            )
+            membership.position = 0
             membership.updated_by = request.user
             membership.save()
 
