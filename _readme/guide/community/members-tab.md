@@ -1,3 +1,5 @@
+# Design Guide - Community Page (Members Tab)
+
 ## Members Tab
 
 Members tab is the 4th tab next to the events tab, or being the 3rd if present in the event or the community event page.
@@ -78,3 +80,35 @@ Members can be removed from the community by calling one of these two API endpoi
     "status": "X"
 }
 ```
+
+### Render Invite Button
+
+Depends on the community type, call this API to see if the current logged-in user has permissions to manage the community or not.
+
+`GET api/community/club/{int}`
+
+`GET api/community/event/{int}`
+
+`GET api/community/event/community/{int}`
+
+`GET api/community/lab/{int}`
+
+The field `is_able_to_manage` is expected. If is `true`, it means that the current logged-in member has permissions to manage the community, so render the invite button.
+
+### Invite
+
+The invite panel is the popup, like Facebook, the person doing the invitation can click which user to send the invitation.
+
+Before that, a list of applicable users is required, so that errors will not occur. Call this API to list all users that are applciable for the community.
+
+`GET api/user/user?is_applicable_for={int}`
+
+The `{int}` is the ID of the community.
+
+### Searching for Users
+
+In the invite panel, the person doing the invitation can search for users to invite. Add the `search={string}` parameter to the API URL.
+
+`GET api/user/user?is_applicable_for={int}&search={string}`
+
+The `{string}` is the search query, can be used to search for the username, name, and nickname of users.

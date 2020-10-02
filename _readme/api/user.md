@@ -32,6 +32,8 @@
 
 `is_superuser={boolean}`
 
+`is_applicable_for={int}` when `{int}` is the community ID.
+
 ### Retrieve User
 
 `GET api/user/user/{int}`

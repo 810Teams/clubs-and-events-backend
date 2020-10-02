@@ -1,3 +1,5 @@
+# Design Guide - Community Page (Announcements Tab)
+
 ## Announcements Tab
 
 By visiting any community page, the announcements tab is the first tab to be shown, simply the default tab.

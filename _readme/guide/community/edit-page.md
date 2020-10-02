@@ -1,3 +1,5 @@
+# Design Guide - Community Page (Edit Page)
+
 ## Edit Page
 
 The edit page is the page where the user can edit the community. Depending on the type of the community, API endpoints will be different.

@@ -1,3 +1,5 @@
+# Design Guide - Community Page (Albums Tab)
+
 ## Albums Tab
 
 The albums tab is the 2nd tab next to the announcement tab. This tab works differently in the community events, so read carefully.
