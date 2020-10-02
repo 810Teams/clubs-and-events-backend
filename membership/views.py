@@ -204,7 +204,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
                 lab_ids = [i.id for i in Lab.objects.all()]
                 queryset = queryset.filter(community__in=lab_ids)
         except ValueError:
-            pass
+            queryset = None
 
         serializer = self.get_serializer(queryset, many=True)
 

@@ -1,3 +1,5 @@
+# Design Guide - Community Page (Header)
+
 ## Heading
 
 By visiting any community page, simply it means that the client must call one of these 4 API endpoints to retrieve the community's data. Make sure to display all important information.
