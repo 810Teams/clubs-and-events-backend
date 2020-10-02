@@ -20,7 +20,7 @@ class EmailPreferenceInline(admin.StackedInline):
 
 
 class UserAdmin(BaseUserAdmin):
-    list_display = ['id', 'username', 'name', 'email', 'is_active', 'is_staff', 'is_superuser']
+    list_display = ['id', 'username', 'name', 'email', 'is_lecturer', 'is_active', 'is_staff', 'is_superuser']
     inlines = [EmailPreferenceInline]
 
     fieldsets = (
@@ -38,6 +38,11 @@ class UserAdmin(BaseUserAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         return ['created_at', 'updated_at', 'last_login']
+
+    def is_lecturer(self, obj):
+        return obj.groups.filter(name='lecturer').exists()
+
+    is_lecturer.boolean = True
 
 
 class EmailPreferenceAdmin(admin.ModelAdmin):

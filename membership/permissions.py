@@ -25,8 +25,9 @@ class IsAbleToViewRequestList(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Request
         # Condition: If is membership of the community or is the sender of the request
-        membership = Membership.objects.filter(user_id=request.user.id, community_id=obj.community.id, status='A')
-
+        membership = Membership.objects.filter(
+            user_id=request.user.id, community_id=obj.community.id, status__in=('A', 'R')
+        )
         return len(membership) == 1 or request.user.id == obj.user.id
 
 
@@ -58,8 +59,9 @@ class IsAbleToViewInvitationList(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Invitation
         # Condition: If is membership of the community or is the invitee of the invitation
-        membership = Membership.objects.filter(user_id=request.user.id, community_id=obj.community.id, status='A')
-
+        membership = Membership.objects.filter(
+            user_id=request.user.id, community_id=obj.community.id, status__in=('A', 'R')
+        )
         return len(membership) == 1 or request.user.id == obj.invitee.id
 
 

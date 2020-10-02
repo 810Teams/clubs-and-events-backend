@@ -87,11 +87,11 @@ class EventViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
-            return (permissions.IsAuthenticated(), IsStudent())
+            return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsStudent(), IsDeputyLeaderOfCommunity())
+            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsStudent(), IsLeaderOfCommunity(), IsDeletableEvent())
+            return (permissions.IsAuthenticated(), IsLeaderOfCommunity(), IsDeletableEvent())
         return tuple()
 
     def get_serializer_class(self):
