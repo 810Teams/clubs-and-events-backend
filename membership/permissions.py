@@ -31,10 +31,21 @@ class IsAbleToViewRequestList(permissions.BasePermission):
         return len(membership) == 1 or request.user.id == obj.user.id
 
 
-class IsInvitationInvitor(permissions.BasePermission):
+class IsAbleToCancelInvitation(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Invitation
-        return request.user.id == obj.invitor.id
+        if obj.status != 'W':
+            return False
+        if request.user.id == obj.invitor:
+            return True
+
+        try:
+            Membership.objects.get(
+                user=request.user.id, community_id=obj.community.id, status='A', position__in=(2, 3)
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
 
 
 class IsInvitationInvitee(permissions.BasePermission):
@@ -44,12 +55,6 @@ class IsInvitationInvitee(permissions.BasePermission):
 
 
 class IsEditableInvitation(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        # Object class: Invitation
-        return obj.status == 'W'
-
-
-class IsCancellableInvitation(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Invitation
         return obj.status == 'W'

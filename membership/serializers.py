@@ -87,10 +87,26 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
 
 
 class ExistingInvitationSerializer(serializers.ModelSerializer):
+    is_able_to_cancel = serializers.SerializerMethodField()
+
     class Meta:
         model = Invitation
         fields = '__all__'
         read_only_fields = ('community', 'invitor', 'invitee')
+
+    def get_is_able_to_cancel(self, obj):
+        if obj.status != 'W':
+            return False
+        if self.context['request'].user.id == obj.invitor:
+            return True
+
+        try:
+            Membership.objects.get(
+                user=self.context['request'].user.id, community_id=obj.community.id, status='A', position__in=(2, 3)
+            )
+            return True
+        except Membership.DoesNotExist:
+            return False
 
 
 class NotExistingInvitationSerializer(serializers.ModelSerializer):

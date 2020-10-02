@@ -2,7 +2,7 @@
 
 ## Requests Tab
 
-Requests tab is the 5th tab next to the members tab, or being the 4rd if present in the event or the community event page.
+Requests tab is the 5th tab next to the members tab. This tab displays all the pending requests to the community and all invitations made by members.
 
 ### Rendering the Tab
 
@@ -59,3 +59,21 @@ Declining the request is equivalent to updating the request, which can be done b
 ```
 
 No need to worry about the membership, which will be automatically created upon the request is accepted.
+
+### List Invitations
+
+After rendering all the requests, place a separator, then render all the outgoing pending invitations. Use this API to retrieve all invitations related to the community.
+
+`GET api/membership/invitation?community={id}&status=W`
+
+### Render Cancel Invitation Button
+
+Being the invitor means you can cancel the invitations you made, but that is not it. Invitations you made can also be cancelled by other members in the community with a position of 2 or 3.
+
+To render the cancel button, look for the field `is_able_to_cancel` from calling the API above in the [list invitations](#list-invitations) section. If is `true`, then render the cancel button.
+
+### Cancel Invitation
+
+Cancelling the invitation is equivalent to deleting the invitation itself. Call this API to cancel the invitation.
+
+`DELETE api/membership/invitation/{id}`
