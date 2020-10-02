@@ -31,21 +31,21 @@ Documentation on designing guides can be viewed in each markdown file below.
 
 2. [Profile Page](_readme/guide/profile-page.md)
 
-3. [Community Page](_readme/guide/community-page.md)
+3. Community Page
 
-    - [Header](community/header.md)
+    - [Header](_readme/guide/community/header.md)
 
-    - [Edit Page](community/edit-page.md)
+    - [Edit Page](_readme/guide/community/edit-page.md)
 
-    - [Announcements Tab](community/announcements-tab.md)
+    - [Announcements Tab](_readme/guide/community/announcements-tab.md)
 
-    - [Albums Tab](community/albums-tab.md)
+    - [Albums Tab](_readme/guide/community/albums-tab.md)
 
-    - [Events Tab](community/events-tab.md)
+    - [Events Tab](_readme/guide/community/events-tab.md)
 
-    - [Members Tab](community/members-tab.md)
+    - [Members Tab](_readme/guide/community/members-tab.md)
 
-    - [Requests Tab](community/requests-tab.md)
+    - [Requests Tab](_readme/guide/community/requests-tab.md)
 
 4. [Invitations Bar](_readme/guide/invitations-bar.md)
 
