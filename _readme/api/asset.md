@@ -186,10 +186,12 @@
 
 ### Create Comment
 
+`POST api/asset/comment`
+
 ```json
 {
     "text": "string",
-    "writted_by": "string",
+    "written_by": "string",
     "event": "int"
 }
 ```

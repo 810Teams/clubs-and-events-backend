@@ -2,7 +2,7 @@
 
 ## Members Tab
 
-Members tab is the 4th tab next to the events tab, or being the 3rd if present in the event or the community event page.
+Members tab is the 4th tab next to the events tab. This tab displays all members of the community.
 
 ### List Memberships
 
