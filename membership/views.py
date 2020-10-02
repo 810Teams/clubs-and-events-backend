@@ -6,8 +6,8 @@ from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, I
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory
 from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList
-from membership.permissions import IsCancellableInvitation, IsEditableInvitation
-from membership.permissions import IsInvitationInvitee, IsInvitationInvitor, IsAbleToViewInvitationList
+from membership.permissions import IsEditableInvitation
+from membership.permissions import IsInvitationInvitee, IsAbleToCancelInvitation, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership, IsApplicableForCustomMembershipLabel
 from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
@@ -105,7 +105,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsInvitationInvitee(), IsEditableInvitation())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsInvitationInvitor(), IsCancellableInvitation())
+            return (permissions.IsAuthenticated(), IsAbleToCancelInvitation())
         return tuple()
 
     def get_serializer_class(self):
