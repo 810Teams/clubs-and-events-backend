@@ -96,13 +96,17 @@ If the user clicked the decline invitation button, use one of these two API endp
 
 Upon calling one of the API endpoints above in the [heading](#heading) section, a field `available_actions` is expected, then check if the list contains these values.
 
-||Action|
-|:-:|:-:|
+|Code|Action|
+|:-:|:-|
+|"E"|Renders a button that let the current user edit the community.|
+|"D"|Renders a button that let the current user delete the community separately in the [edit page](edit-page.md).|
 |"A"|Renders a button that revert user from being retired to active.|
 |"R"|Renders a button that set the current user's membership status to retired.|
 |"L"|Renders a button that let the current user leaves the community.|
 
 These are actions, all should be placed in the same pop-up menu button, unlike request button which is an individual button. This is to prevent accidental action performings.
+
+For the action code `E` and `D`, render the edit community button, and visit the [edit page](edit-page.md) for the further guide.
 
 ### Retiring from Community
 
