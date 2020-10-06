@@ -3,17 +3,18 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from category.models import ClubType, EventType, EventSeries
+from clubs_and_events.settings import STORAGE_BASE_DIR
 from user.models import User
 
 
 class Community(models.Model):
     def get_logo_path(self, file_name):
         file_extension = file_name.split('.')[1]
-        return 'storage/community/{}/logo.{}'.format(self.id, file_extension)
+        return '{}/community/{}/logo.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
 
     def get_banner_path(self, file_name):
         file_extension = file_name.split('.')[1]
-        return 'storage/community/{}/banner.{}'.format(self.id, file_extension)
+        return '{}/community/{}/banner.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
 
     name_th = models.CharField(max_length=128, unique=True)
     name_en = models.CharField(max_length=128, unique=True)

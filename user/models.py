@@ -3,6 +3,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
+from clubs_and_events.settings import STORAGE_BASE_DIR
+
 
 class UserManager(BaseUserManager):
     def create_user(self, username, password=None, **kwargs):
@@ -24,11 +26,11 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     def get_profile_picture_path(self, file_name):
         file_extension = file_name.split('.')[1]
-        return 'storage/user/{}/profile_picture.{}'.format(self.username, file_extension)
+        return '{}/user/{}/profile_picture.{}'.format(STORAGE_BASE_DIR, self.username, file_extension)
 
     def get_cover_photo_path(self, file_name):
         file_extension = file_name.split('.')[1]
-        return 'storage/user/{}/cover_photo.{}'.format(self.username, file_extension)
+        return '{}/user/{}/cover_photo.{}'.format(STORAGE_BASE_DIR, self.username, file_extension)
 
     username = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)

@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
+from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, CommunityEvent, Event
 from core.utils import truncate
 from user.models import User
@@ -9,7 +10,7 @@ from user.models import User
 
 class Announcement(models.Model):
     def get_image_path(self, file_name):
-        return 'storage/announcement/{}/{}'.format(self.id, file_name)
+        return '{}/announcement/{}/{}'.format(STORAGE_BASE_DIR, self.id, file_name)
 
     text = models.TextField()
     image = models.ImageField(null=True, blank=True, upload_to=get_image_path)
@@ -73,7 +74,7 @@ class Album(models.Model):
 
 class AlbumImage(models.Model):
     def get_image_path(self, file_name):
-        return 'storage/album/{}/{}'.format(self.album.id, file_name)
+        return '{}/album/{}/{}'.format(STORAGE_BASE_DIR, self.album.id, file_name)
 
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=get_image_path)
