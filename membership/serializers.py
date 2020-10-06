@@ -3,7 +3,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club
-from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory
+from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
@@ -191,6 +191,7 @@ class MembershipSerializer(serializers.ModelSerializer):
     is_able_to_assign = serializers.SerializerMethodField()
     is_able_to_remove = serializers.SerializerMethodField()
     is_able_to_leave = serializers.SerializerMethodField()
+    custom_membership_label = serializers.SerializerMethodField()
 
     class Meta:
         model = Membership
@@ -273,7 +274,7 @@ class MembershipSerializer(serializers.ModelSerializer):
                 user_id=self.context['request'].user.id, community_id=obj.community.id, status='A'
             )
 
-            if membership.id == obj.id or obj.status not in ('A', 'R'):
+            if membership.id == obj.id or obj.status not in ('A', 'R') or membership.position <= obj.position:
                 return list()
 
             return [i for i in range(0, membership.position + (membership.position == 3)) if i != obj.position]
@@ -296,6 +297,12 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     def get_is_able_to_leave(self, obj):
         return obj.user.id == self.context['request'].user.id and obj.position != 3 and obj.status in ('A', 'R')
+
+    def get_custom_membership_label(self, obj):
+        try:
+            return CustomMembershipLabel.objects.get(membership_id=obj.id).label
+        except CustomMembershipLabel.DoesNotExist:
+            return None
 
 
 class ExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
@@ -344,3 +351,10 @@ class AdvisorySerializer(serializers.ModelSerializer):
         model = Advisory
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
+
+
+class MembershipLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MembershipLog
+        fields = '__all__'
+        read_only_fields = ('membership', 'position', 'status', 'start_date', 'end_date')

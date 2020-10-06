@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from community.models import Club, Event, Lab, CommunityEvent
-from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel
+from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel, MembershipLog
 
 import datetime
 
@@ -66,7 +66,12 @@ class MembershipAdmin(admin.ModelAdmin):
         return CustomMembershipLabel.objects.get(membership_id=obj.id).label
 
 
+class MembershipLogAdmin(admin.ModelAdmin):
+    list_display = ['id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime']
+
+
 admin.site.register(Request, RequestAdmin)
 admin.site.register(Invitation, InvitationAdmin)
 admin.site.register(Advisory, AdvisoryAdmin)
 admin.site.register(Membership, MembershipAdmin)
+admin.site.register(MembershipLog, MembershipLogAdmin)

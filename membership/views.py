@@ -4,12 +4,12 @@ from rest_framework.response import Response
 from community.models import CommunityEvent, Community, Club, Event, Lab
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
-from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory
+from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList
 from membership.permissions import IsEditableInvitation
 from membership.permissions import IsInvitationInvitee, IsAbleToCancelInvitation, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership, IsApplicableForCustomMembershipLabel
-from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer
+from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipLogSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
@@ -191,7 +191,6 @@ class MembershipViewSet(viewsets.ModelViewSet):
             query = request.query_params.get('community-type')
             if query == 'club':
                 club_ids = [i.id for i in Club.objects.all()]
-                print(club_ids)
                 queryset = queryset.filter(community__in=club_ids)
             elif query == 'event':
                 community_event_ids = [i.id for i in CommunityEvent.objects.all()]
@@ -295,3 +294,14 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = AdvisorySerializer
     http_method_names = ('get', 'head', 'options')
+
+
+class MembershipLogViewSet(viewsets.ModelViewSet):
+    queryset = MembershipLog.objects.all()
+    serializer_class = MembershipLogSerializer
+    http_method_names = ('get', 'head', 'options')
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (IsInPubliclyVisibleCommunity(),)
+        return tuple()
