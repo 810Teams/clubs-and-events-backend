@@ -182,7 +182,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
 
         try:
-            query = request.query_params.get('community-type')
+            query = request.query_params.get('community_type')
             if query == 'club':
                 club_ids = [i.id for i in Club.objects.all()]
                 queryset = queryset.filter(community__in=club_ids)
@@ -190,7 +190,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
                 community_event_ids = [i.id for i in CommunityEvent.objects.all()]
                 event_ids = [i.id for i in Event.objects.all() if i not in community_event_ids]
                 queryset = queryset.filter(community__in=event_ids)
-            elif query == 'community-event':
+            elif query == 'community_event':
                 community_event_ids = [i.id for i in CommunityEvent.objects.all()]
                 queryset = queryset.filter(community__in=community_event_ids)
             elif query == 'lab':
@@ -317,6 +317,11 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
             if query is not None:
                 membership_ids = [i.id for i in Membership.objects.filter(community_id=query)]
                 queryset = queryset.filter(membership_id__in=membership_ids)
+
+            query = request.query_params.get('exclude_current_memberships')
+            if query is not None:
+                if eval(query):
+                    queryset = queryset.exclude(end_datetime=None)
         except ValueError:
             queryset = None
 
