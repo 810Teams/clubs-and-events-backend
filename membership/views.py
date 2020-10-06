@@ -59,6 +59,8 @@ class RequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save(user=request.user, updated_by=request.user)
 
+        # In case of requesting to join the community event, if already a member of the base community,
+        # you can join without waiting to be approved.
         community_event = CommunityEvent.objects.filter(pk=obj.community.id)
         if len(community_event) == 1:
             request_obj = Request.objects.get(pk=obj.id)
@@ -74,6 +76,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save(updated_by=request.user)
 
+        # If the request is accepted, check for past membership to renew it. Otherwise, create a new one.
         if obj.status == 'A':
             try:
                 membership = Membership.objects.get(user_id=obj.invitee.id, community_id=obj.community.id)
@@ -83,11 +86,6 @@ class RequestViewSet(viewsets.ModelViewSet):
             except Membership.DoesNotExist:
                 Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
                                           created_by_id=request.user.id, updated_by_id=request.user.id)
-        elif obj.status == 'W':
-            return Response(
-                {'error': 'Request statuses are not able to be updated to waiting.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -145,6 +143,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
+        # If the invitation is accepted, check for past membership to renew it. Otherwise, create a new one.
         if obj.status == 'A':
             try:
                 membership = Membership.objects.get(user_id=obj.invitee.id, community_id=obj.community.id)
@@ -154,11 +153,6 @@ class InvitationViewSet(viewsets.ModelViewSet):
             except Membership.DoesNotExist:
                 Membership.objects.create(user_id=obj.invitee.id, position=0, community_id=obj.community.id,
                                           created_by_id=request.user.id, updated_by_id=request.user.id)
-        elif obj.status == 'W':
-            return Response(
-                {'error': 'Invitation statuses are not able to be updated to waiting.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -305,3 +299,28 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         return tuple()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        if not self.request.user.is_authenticated:
+            visible_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
+            queryset = queryset.filter(community_id__in=visible_ids)
+
+        # TODO: Implements filtering by membership user and community
+        try:
+            query = request.query_params.get('user')
+            if query is not None:
+                membership_ids = [i.id for i in Membership.objects.filter(user_id=query)]
+                queryset = queryset.filter(membership_id__in=membership_ids)
+
+            query = request.query_params.get('community')
+            if query is not None:
+                membership_ids = [i.id for i in Membership.objects.filter(community_id=query)]
+                queryset = queryset.filter(membership_id__in=membership_ids)
+        except ValueError:
+            queryset = None
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)

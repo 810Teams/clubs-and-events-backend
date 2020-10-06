@@ -354,7 +354,16 @@ class AdvisorySerializer(serializers.ModelSerializer):
 
 
 class MembershipLogSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    community = serializers.SerializerMethodField()
+
     class Meta:
         model = MembershipLog
         fields = '__all__'
         read_only_fields = ('membership', 'position', 'status', 'start_date', 'end_date')
+
+    def get_user(self, obj):
+        return obj.user.id
+
+    def get_community(self, obj):
+        return obj.community.id
