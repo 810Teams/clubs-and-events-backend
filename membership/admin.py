@@ -7,15 +7,33 @@ import datetime
 
 
 class RequestAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'community', 'status', 'created_at', 'updated_at', 'updated_by']
+    list_display = ('id', 'user', 'community', 'status', 'created_at', 'updated_at', 'updated_by')
+    readonly_fields = ('updated_by',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return ('user', 'community') + self.readonly_fields
+        return self.readonly_fields
 
 
 class InvitationAdmin(admin.ModelAdmin):
-    list_display = ['id', 'community', 'invitor', 'invitee', 'status', 'created_at', 'updated_at']
+    list_display = ('id', 'community', 'invitor', 'invitee', 'status', 'created_at', 'updated_at')
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return ('community', 'invitor', 'invitee') + self.readonly_fields
+        return self.readonly_fields
 
 
 class AdvisoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'advisor', 'community', 'start_date', 'end_date', 'is_active', 'created_at', 'updated_at']
+    list_display = ('id', 'advisor', 'community', 'start_date', 'end_date', 'is_active', 'created_at', 'created_by',
+                    'updated_at', 'updated_by')
+    readonly_fields = ('created_by', 'updated_by',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return ('advisor', 'community') + self.readonly_fields
+        return self.readonly_fields
 
     def is_active(self, obj):
         return obj.start_date <= datetime.datetime.now().date() <= obj.end_date
@@ -25,12 +43,19 @@ class AdvisoryAdmin(admin.ModelAdmin):
 
 class CustomMembershipLabelInline(admin.StackedInline):
     model = CustomMembershipLabel
+    readonly_fields = ('created_by', 'updated_by',)
 
 
 class MembershipAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'community', 'position', 'position_name', 'is_active', 'status', 'custom_label',
-                    'created_at', 'created_by', 'updated_at', 'updated_by']
-    inlines = [CustomMembershipLabelInline]
+    list_display = ('id', 'user', 'community', 'position', 'position_name', 'is_active', 'status', 'custom_label',
+                    'created_at', 'created_by', 'updated_at', 'updated_by')
+    readonly_fields = ('created_by', 'updated_by',)
+    inlines = (CustomMembershipLabelInline,)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return ('user', 'community') + self.readonly_fields
+        return self.readonly_fields
 
     def position_name(self, obj):
         try:
@@ -67,7 +92,7 @@ class MembershipAdmin(admin.ModelAdmin):
 
 
 class MembershipLogAdmin(admin.ModelAdmin):
-    list_display = ['id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime']
+    list_display = ('id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime')
 
 
 admin.site.register(Request, RequestAdmin)
