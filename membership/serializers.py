@@ -356,6 +356,8 @@ class AdvisorySerializer(serializers.ModelSerializer):
 class MembershipLogSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     community = serializers.SerializerMethodField()
+    community_name_th = serializers.SerializerMethodField()
+    community_name_en = serializers.SerializerMethodField()
 
     class Meta:
         model = MembershipLog
@@ -367,3 +369,9 @@ class MembershipLogSerializer(serializers.ModelSerializer):
 
     def get_community(self, obj):
         return obj.membership.community.id
+
+    def get_community_name_th(self, obj):
+        return obj.membership.community.name_th
+
+    def get_community_name_en(self, obj):
+        return obj.membership.community.name_en
