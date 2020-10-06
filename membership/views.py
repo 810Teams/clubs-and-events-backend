@@ -4,12 +4,12 @@ from rest_framework.response import Response
 from community.models import CommunityEvent, Community, Club, Event, Lab
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
-from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory
+from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList
 from membership.permissions import IsEditableInvitation
 from membership.permissions import IsInvitationInvitee, IsAbleToCancelInvitation, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership, IsApplicableForCustomMembershipLabel
-from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer
+from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipLogSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
@@ -59,6 +59,8 @@ class RequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save(user=request.user, updated_by=request.user)
 
+        # In case of requesting to join the community event, if already a member of the base community,
+        # you can join without waiting to be approved.
         community_event = CommunityEvent.objects.filter(pk=obj.community.id)
         if len(community_event) == 1:
             request_obj = Request.objects.get(pk=obj.id)
@@ -74,6 +76,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save(updated_by=request.user)
 
+        # If the request is accepted, check for past membership to renew it. Otherwise, create a new one.
         if obj.status == 'A':
             try:
                 membership = Membership.objects.get(user_id=obj.invitee.id, community_id=obj.community.id)
@@ -83,11 +86,6 @@ class RequestViewSet(viewsets.ModelViewSet):
             except Membership.DoesNotExist:
                 Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
                                           created_by_id=request.user.id, updated_by_id=request.user.id)
-        elif obj.status == 'W':
-            return Response(
-                {'error': 'Request statuses are not able to be updated to waiting.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -145,6 +143,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
+        # If the invitation is accepted, check for past membership to renew it. Otherwise, create a new one.
         if obj.status == 'A':
             try:
                 membership = Membership.objects.get(user_id=obj.invitee.id, community_id=obj.community.id)
@@ -154,11 +153,6 @@ class InvitationViewSet(viewsets.ModelViewSet):
             except Membership.DoesNotExist:
                 Membership.objects.create(user_id=obj.invitee.id, position=0, community_id=obj.community.id,
                                           created_by_id=request.user.id, updated_by_id=request.user.id)
-        elif obj.status == 'W':
-            return Response(
-                {'error': 'Invitation statuses are not able to be updated to waiting.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -188,16 +182,15 @@ class MembershipViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
 
         try:
-            query = request.query_params.get('community-type')
+            query = request.query_params.get('community_type')
             if query == 'club':
                 club_ids = [i.id for i in Club.objects.all()]
-                print(club_ids)
                 queryset = queryset.filter(community__in=club_ids)
             elif query == 'event':
                 community_event_ids = [i.id for i in CommunityEvent.objects.all()]
                 event_ids = [i.id for i in Event.objects.all() if i not in community_event_ids]
                 queryset = queryset.filter(community__in=event_ids)
-            elif query == 'community-event':
+            elif query == 'community_event':
                 community_event_ids = [i.id for i in CommunityEvent.objects.all()]
                 queryset = queryset.filter(community__in=community_event_ids)
             elif query == 'lab':
@@ -295,3 +288,46 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = AdvisorySerializer
     http_method_names = ('get', 'head', 'options')
+
+
+class MembershipLogViewSet(viewsets.ModelViewSet):
+    queryset = MembershipLog.objects.all()
+    serializer_class = MembershipLogSerializer
+    http_method_names = ('get', 'head', 'options')
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (IsInPubliclyVisibleCommunity(),)
+        return tuple()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        if not self.request.user.is_authenticated:
+            visible_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
+            queryset = queryset.filter(community_id__in=visible_ids)
+
+        try:
+            query = request.query_params.get('user')
+            if query is not None:
+                membership_ids = [i.id for i in Membership.objects.filter(user_id=query)]
+                queryset = queryset.filter(membership_id__in=membership_ids)
+
+            query = request.query_params.get('community')
+            if query is not None:
+                membership_ids = [i.id for i in Membership.objects.filter(community_id=query)]
+                queryset = queryset.filter(membership_id__in=membership_ids)
+
+            query = request.query_params.get('exclude_current_memberships')
+            if query is not None:
+                if eval(query):
+                    queryset = queryset.exclude(end_datetime=None)
+        except ValueError:
+            queryset = None
+
+        queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)

@@ -156,6 +156,8 @@
 
 `status={string}`
 
+`community_type={string:club|event|community_event|lab}`
+
 ### Retrieve Membership
 
 `GET api/membership/membership/{int}`
@@ -275,3 +277,31 @@
 `GET api/membership/advisory/{int}`
 
 - Token is required.
+
+## Membership Log
+
+### List Membership Logs
+
+`GET api/membership/membership/log`
+
+- Token is optional.
+- If a token is present, membership logs of memberships in non-publicly visible communities will also be shown.
+
+#### URL Parameters
+
+`user={int}`
+
+`community={int}`
+
+`exclude_current_memberships={boolean}`
+
+`position={int}`
+
+`status={string:A|R|L|X}`
+
+### Retrieve Membership Log
+
+`GET api/membership/membership/log/{int}`
+
+- Token is optional.
+- If a token is present, membership logs of memberships in non-publicly visible communities will also be retrievable.

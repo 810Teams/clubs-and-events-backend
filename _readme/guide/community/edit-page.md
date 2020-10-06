@@ -2,7 +2,7 @@
 
 ## Edit Page
 
-The edit page is the page where the user can edit the community. Depending on the type of the community, API endpoints will be different.
+The edit page is the page where the user can edit the community. Depending on the type of the community, APIs will be different.
 
 This page can be access from the button in the header of the community page, read the [header guide](header.md#get-available-actions) for the guide in rendering the buttons.
 

@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from community.models import Community, Lab, CommunityEvent
+from community.models import Community, Lab, CommunityEvent, Club
 from user.models import User
 
 
@@ -83,13 +86,6 @@ class Membership(models.Model):
         ('X', 'Removed')
     )
 
-    POSITIONS = (
-        (3, 'Leader'),
-        (2, 'Deputy Leader'),
-        (1, 'Staff'),
-        (0, 'Member')
-    )
-
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     position = models.IntegerField(default=0)
@@ -101,6 +97,21 @@ class Membership(models.Model):
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='membership_updated_by')
 
+    def save(self, *args, **kwargs):
+        logs = MembershipLog.objects.filter(membership_id=self.id)
+
+        if len(logs) > 0:
+            log = logs[len(logs) - 1]
+            if log.position != self.position or log.status != self.status:
+                log.end_datetime = timezone.now()
+                log.save()
+                MembershipLog.objects.create(membership_id=self.id, position=self.position, status=self.status)
+        else:
+            MembershipLog.objects.create(membership_id=self.id, position=self.position, status=self.status)
+
+        super(Membership, self).save(*args, **kwargs)
+
+
     def clean(self):
         errors = list()
 
@@ -111,7 +122,7 @@ class Membership(models.Model):
             raise ValidationError(errors)
 
     def __str__(self):
-        return '{} of {}'.format(self.user.username, self.community.name_en)
+        return '{} - {}'.format(self.user.username, self.community.name_en)
 
 
 class CustomMembershipLabel(models.Model):
@@ -123,3 +134,18 @@ class CustomMembershipLabel(models.Model):
                                    related_name='custom_membership_label_created_by')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='custom_membership_label_updated_by')
+
+
+class MembershipLog(models.Model):
+    STATUS = (
+        ('A', 'Active'),
+        ('R', 'Retired'),
+        ('L', 'Left'),
+        ('X', 'Removed')
+    )
+
+    membership = models.ForeignKey(Membership, on_delete=models.CASCADE)
+    position = models.IntegerField(default=0)
+    status = models.CharField(max_length=1, choices=STATUS, default='A')
+    start_datetime = models.DateTimeField(auto_now_add=True)
+    end_datetime = models.DateTimeField(null=True, blank=True)

@@ -77,12 +77,6 @@ class EventViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description', 'location')
 
-    def get_queryset(self):
-        community_event_list = [i.id for i in CommunityEvent.objects.all()]
-        event_list = [i.id for i in Event.objects.all() if i.id not in community_event_list]
-
-        return self.queryset.filter(pk__in=event_list)
-
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
@@ -107,6 +101,15 @@ class EventViewSet(viewsets.ModelViewSet):
 
         if not self.request.user.is_authenticated:
             queryset = queryset.filter(is_publicly_visible=True, is_approved=True)
+
+        try:
+            query = request.query_params.get('exclude_community_events')
+            if query is not None:
+                if eval(query):
+                    community_event_list = [i.id for i in CommunityEvent.objects.all()]
+                    queryset = queryset.exclude(pk__in=community_event_list)
+        except ValueError:
+            queryset = None
 
         queryset = filter_queryset(queryset, request, target_param='event_type', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='event_series', is_foreign_key=True)

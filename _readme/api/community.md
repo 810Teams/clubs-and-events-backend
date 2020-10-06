@@ -115,6 +115,8 @@ In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` 
 
 `is_cancelled={boolean}`
 
+`exclude_community_events={boolean}`
+
 ### Retrieve Event
 
 `GET api/community/event/{int}`

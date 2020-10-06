@@ -20,7 +20,7 @@ The `{int}` is the ID of the community, used to filter only community events cre
 
 `GET api/commununity/lab/{int}`
 
-After retrieving the community data by one of these API endpoints, a field `is_able_to_manage` is expected. If is `true`, then render the create community event button, meaning the current user is able to create community events in the certain community.
+After retrieving the community data by one of these APIs, a field `is_able_to_manage` is expected. If is `true`, then render the create community event button, meaning the current user is able to create community events in the certain community.
 
 ### Create Community Event
 
