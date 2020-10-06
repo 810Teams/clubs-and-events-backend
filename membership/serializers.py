@@ -363,7 +363,7 @@ class MembershipLogSerializer(serializers.ModelSerializer):
         read_only_fields = ('membership', 'position', 'status', 'start_date', 'end_date')
 
     def get_user(self, obj):
-        return obj.user.id
+        return obj.membership.user.id
 
     def get_community(self, obj):
-        return obj.community.id
+        return obj.membership.community.id

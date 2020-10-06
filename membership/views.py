@@ -307,7 +307,6 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
             visible_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
             queryset = queryset.filter(community_id__in=visible_ids)
 
-        # TODO: Implements filtering by membership user and community
         try:
             query = request.query_params.get('user')
             if query is not None:
