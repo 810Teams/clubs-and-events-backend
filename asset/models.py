@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
@@ -5,7 +6,6 @@ from django.utils.translation import gettext as _
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, CommunityEvent, Event
 from core.utils import truncate
-from user.models import User
 
 
 class Announcement(models.Model):
@@ -17,9 +17,9 @@ class Announcement(models.Model):
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='announcement_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='announcement_updated_by')
 
     def __str__(self):
@@ -33,9 +33,9 @@ class Album(models.Model):
                                         related_name='album_linked_to')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='album_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='album_updated_by')
 
     def clean(self):
@@ -79,7 +79,7 @@ class AlbumImage(models.Model):
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=get_image_path)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='album_image_created_by')
 
 
@@ -88,7 +88,7 @@ class Comment(models.Model):
     written_by = models.CharField(max_length=255)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return '"{}" - {}'.format(truncate(self.text, max_length=32), self.written_by)

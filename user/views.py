@@ -8,13 +8,13 @@ from rest_framework.settings import api_settings
 from community.models import Club, CommunityEvent, Community
 from core.utils import filter_queryset
 from membership.models import Membership, Invitation, Request
-from user.models import User, EmailPreference
+from user.models import EmailPreference
 from user.permissions import IsProfileOwner
 from user.serializers import UserSerializer, LimitedUserSerializer, EmailPreferenceSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = get_user_model().objects.all()
     http_method_names = ('get', 'put', 'patch', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username', 'name', 'nickname')
@@ -84,7 +84,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class MyUserView(generics.ListAPIView):
-    queryset = User.objects.all()
+    queryset = get_user_model().objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
 

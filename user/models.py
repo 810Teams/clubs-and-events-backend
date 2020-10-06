@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -56,7 +57,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class EmailPreference(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     receive_own_club = models.BooleanField(default=True)
     receive_own_event = models.BooleanField(default=True)
     receive_own_lab = models.BooleanField(default=True)
@@ -67,7 +68,7 @@ class EmailPreference(models.Model):
 
 
 class StudentCommitteeAuthority(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
 

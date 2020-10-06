@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.http import Http404
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
@@ -9,7 +10,6 @@ from asset.serializers import AlbumImageSerializer, CommentSerializer
 from community.models import Community, Event
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity
 from core.utils import filter_queryset, limit_queryset
-from user.models import User
 
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
@@ -173,7 +173,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
 
-        if isinstance(request.user, User):
+        if isinstance(request.user, get_user_model()):
             serializer.save(created_by=request.user)
         else:
             serializer.save()

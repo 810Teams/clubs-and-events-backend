@@ -1,12 +1,10 @@
-from datetime import datetime
-
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from community.models import Community, Lab, CommunityEvent, Club
-from user.models import User
 
 
 class Request(models.Model):
@@ -16,12 +14,12 @@ class Request(models.Model):
         ('D', 'Declined')
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='request_user')
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='request_user')
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     status = models.CharField(max_length=1, choices=STATUS, default='W')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='request_updated_by')
 
 
@@ -33,24 +31,24 @@ class Invitation(models.Model):
     )
 
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    invitor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    invitor = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                 related_name='invitation_invitor')
-    invitee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='invitation_invitee')
+    invitee = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='invitation_invitee')
     status = models.CharField(max_length=1, choices=STATUS, default='W')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class Advisory(models.Model):
-    advisor = models.ForeignKey(User, on_delete=models.CASCADE)
+    advisor = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='advisory_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='advisory_updated_by')
 
     def clean(self):
@@ -86,15 +84,15 @@ class Membership(models.Model):
         ('X', 'Removed')
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='membership_user')
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     position = models.IntegerField(default=0)
     status = models.CharField(max_length=1, choices=STATUS, default='A')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='membership_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='membership_updated_by')
 
     def save(self, *args, **kwargs):
@@ -130,9 +128,9 @@ class CustomMembershipLabel(models.Model):
     label = models.CharField(max_length=64)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='custom_membership_label_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='custom_membership_label_updated_by')
 
 

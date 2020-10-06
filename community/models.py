@@ -1,10 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
 from category.models import ClubType, EventType, EventSeries
 from clubs_and_events.settings import STORAGE_BASE_DIR
-from user.models import User
 
 
 class Community(models.Model):
@@ -27,9 +27,9 @@ class Community(models.Model):
     is_accepting_requests = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='community_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='community_updated_by')
 
     def __str__(self):
