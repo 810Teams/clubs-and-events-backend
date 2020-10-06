@@ -12,7 +12,7 @@ After the user accessed the album tab, all albums of the community will be shown
 
 The `{int}` is the ID of the community.
 
-For community events, use this API endpoint instead, which will list all albums linked to it.
+For community events, use this API instead, which will list all albums linked to it.
 
 `GET api/asset/album?community_event={int}`
 
@@ -26,11 +26,11 @@ The first `{int}` is the ID of the album, must be made auto, then the next `{int
 
 ### Retrieve Album and its Images
 
-Clicking into the album, the album detail and all images of the album should be loaded. First, use this API endpoint to load the album details.
+Clicking into the album, the album detail and all images of the album should be loaded. First, use this API to load the album details.
 
 `GET api/asset/album/{int}`
 
-The `{int}` is the ID of the album. Then, load all album images using this API endpoint.
+The `{int}` is the ID of the album. Then, load all album images using this API.
 
 `GET api/asset/album/image?album={int}`
 
@@ -84,7 +84,7 @@ To summarize, users can only add or delete images in the album, no updating.
 
 `GET api/commununity/lab/{int}`
 
-After retrieving the community data by one of these API endpoints, a field `is_able_to_manage` is expected. If is `true`, then render the create album button, meaning the current user is able to create albums in the certain community.
+After retrieving the community data by one of these APIs, a field `is_able_to_manage` is expected. If is `true`, then render the create album button, meaning the current user is able to create albums in the certain community.
 
 ### Create Album
 

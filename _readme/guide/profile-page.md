@@ -4,7 +4,7 @@
 
 Depends where this page is accessed from, if this page is accessed from the top-right profile button, then it is supposed to be your own profile.
 
-However, wherever this page is accessed from, the specific ID of the user is recommended to be used in the URL, instead of using the flexible current user API endpoint.
+However, wherever this page is accessed from, the specific ID of the user is recommended to be used in the URL, instead of using the flexible current user API.
 
 ### Retrieve User
 
@@ -42,20 +42,22 @@ After clicking the edit profile button, the user will be redirected to the edit 
 
 By visiting anyone's profile, the visitor can see any user's past activities. If the user is not authenticated, activities involving the non-publicly visible communities will be filtered out automatically.
 
-Call these APIs to complete the feed. Display all memberships to complete the profile, separated in 3 sections.
+The profile feed is divided into 2 sections, including the current memberships section and the past memberships section.
 
-> To be re-designed later.
+### Current Memberships Section
 
-### Club Memberships
+Call these 4 APIs to retrieve all current memberships of the user.
 
-`GET api/membership/membership?user={int}&community-type=club`
+`GET api/membership/membership?user={int}&community_type=club&status=A`
 
-### Event Memberships
+`GET api/membership/membership?user={int}&community_type=event&status=A`
 
-`GET api/membership/membership?user={int}&community-type=event`
+`GET api/membership/membership?user={int}&community_type=community-event&status=A`
 
-`GET api/membership/membership?user={int}&community-type=community-event`
+`GET api/membership/membership?user={int}&community_type=lab&status=A`
 
-### Lab Memberships
+The `{int}` is the current
 
-`GET api/membership/membership?user={int}&community-type=lab`
+### Past Memberships Section
+
+``

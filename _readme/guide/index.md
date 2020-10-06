@@ -51,7 +51,7 @@ If the user is not authenticated, any unapproved events and non-publicly visible
 
 ### List Events
 
-`GET api/community/event`
+`GET api/community/event?exclude_community_events=1`
 
 ### List Community Events
 
