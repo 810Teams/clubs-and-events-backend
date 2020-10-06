@@ -1,9 +1,10 @@
 from django import forms
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext as _
 
-from user.models import EmailPreference, User, StudentCommitteeAuthority
+from user.models import EmailPreference, StudentCommitteeAuthority
 
 import datetime
 
@@ -62,6 +63,6 @@ class StudentCommitteeAuthorityAdmin(admin.ModelAdmin):
     is_active.boolean = True
 
 
-admin.site.register(User, UserAdmin)
+admin.site.register(get_user_model(), UserAdmin)
 admin.site.register(EmailPreference, EmailPreferenceAdmin)
 admin.site.register(StudentCommitteeAuthority, StudentCommitteeAuthorityAdmin)

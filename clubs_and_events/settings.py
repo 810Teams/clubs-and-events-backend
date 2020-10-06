@@ -151,3 +151,7 @@ REST_FRAMEWORK = {
     #     'rest_framework.authentication.TokenAuthentication'
     # ]
 }
+
+# Custom Settings
+
+STORAGE_BASE_DIR = '_storage'

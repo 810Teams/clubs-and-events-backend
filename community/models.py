@@ -1,19 +1,20 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
 from category.models import ClubType, EventType, EventSeries
-from user.models import User
+from clubs_and_events.settings import STORAGE_BASE_DIR
 
 
 class Community(models.Model):
     def get_logo_path(self, file_name):
         file_extension = file_name.split('.')[1]
-        return 'storage/community/{}/logo.{}'.format(self.id, file_extension)
+        return '{}/community/{}/logo.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
 
     def get_banner_path(self, file_name):
         file_extension = file_name.split('.')[1]
-        return 'storage/community/{}/banner.{}'.format(self.id, file_extension)
+        return '{}/community/{}/banner.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
 
     name_th = models.CharField(max_length=128, unique=True)
     name_en = models.CharField(max_length=128, unique=True)
@@ -26,9 +27,9 @@ class Community(models.Model):
     is_accepting_requests = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='community_created_by')
-    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='community_updated_by')
 
     def __str__(self):

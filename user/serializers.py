@@ -1,16 +1,17 @@
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from user.models import User, EmailPreference
+from user.models import EmailPreference
 
 
 class UserSerializer(serializers.ModelSerializer):
     is_lecturer = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = get_user_model()
         exclude = ('password', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'groups', 'user_permissions')
         read_only_fields = ('username', 'name')
 
@@ -29,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class LimitedUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = get_user_model()
         fields = ('username', 'name', 'profile_picture', 'cover_photo')
         read_only_fields = ('username', 'name', 'profile_picture', 'cover_photo')
 

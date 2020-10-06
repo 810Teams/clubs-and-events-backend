@@ -138,6 +138,6 @@ dmypy.json
 # Project Specific
 */migrations/*
 !*/migrations/__init__.py
-storage/
+_storage/
 KEY_SECRET.txt
 KEY_DB.txt
