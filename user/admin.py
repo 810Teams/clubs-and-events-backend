@@ -21,8 +21,9 @@ class EmailPreferenceInline(admin.StackedInline):
 
 
 class UserAdmin(BaseUserAdmin):
-    list_display = ['id', 'username', 'name', 'email', 'is_lecturer', 'is_active', 'is_staff', 'is_superuser']
-    inlines = [EmailPreferenceInline]
+    list_display = ('id', 'username', 'name', 'email', 'is_lecturer', 'is_active', 'is_staff', 'is_superuser')
+    inlines = (EmailPreferenceInline,)
+    readonly_fields = ('created_at', 'updated_at', 'last_login')
 
     fieldsets = (
         (None, {'fields': ('username', 'name', 'email', 'password')}),
@@ -37,9 +38,6 @@ class UserAdmin(BaseUserAdmin):
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups')}),
     )
 
-    def get_readonly_fields(self, request, obj=None):
-        return ['created_at', 'updated_at', 'last_login']
-
     def is_lecturer(self, obj):
         return obj.groups.filter(name='lecturer').exists()
 
@@ -47,15 +45,16 @@ class UserAdmin(BaseUserAdmin):
 
 
 class EmailPreferenceAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'name', 'receive_own_club', 'receive_own_event', 'receive_own_lab',
-                    'receive_other_events']
+    list_display = ('id', 'user', 'name', 'receive_own_club', 'receive_own_event', 'receive_own_lab',
+                    'receive_other_events')
+    readonly_fields = ('user',)
 
     def name(self, obj):
         return obj.user.name
 
 
 class StudentCommitteeAuthorityAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'start_date', 'end_date', 'is_active']
+    list_display = ('id', 'user', 'start_date', 'end_date', 'is_active')
 
     def is_active(self, obj):
         return obj.start_date <= datetime.datetime.now().date() <= obj.end_date

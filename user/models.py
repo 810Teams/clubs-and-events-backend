@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
+from email_validator import validate_email, EmailNotValidError
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
 
@@ -54,6 +55,18 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return '{}'.format(self.username)
+
+    def clean(self):
+        errors = list()
+
+        if self.email is not None:
+            try:
+                validate_email(self.email, check_deliverability=False)
+            except EmailNotValidError:
+                errors.append(ValidationError(_('Invalid email.'), code='invalid_email'))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
 
 
 class EmailPreference(models.Model):

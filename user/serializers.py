@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
+from email_validator import validate_email, EmailNotValidError
 from rest_framework import serializers
 
 from user.models import EmailPreference
@@ -21,6 +22,12 @@ class UserSerializer(serializers.ModelSerializer):
                 _('Birthdates are not able to be set as a future date.'),
                 code='date_error'
             )
+
+        if 'email' in data.keys():
+            try:
+                validate_email(data['email'], check_deliverability=False)
+            except EmailNotValidError:
+                raise serializers.ValidationError(_('Invalid email.'), code='invalid_email')
 
         return data
 
