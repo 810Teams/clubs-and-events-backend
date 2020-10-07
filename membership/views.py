@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 
@@ -272,6 +274,29 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return (permissions.IsAuthenticated(), IsStudentCommittee())
         return (permissions.IsAuthenticated(),)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        queryset = filter_queryset(queryset, request, target_param='advisor', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
+
+        try:
+            query = request.query_params.get('is_active')
+            if query is not None:
+                query = eval(query)
+                active_ids = [i.id for i in queryset if i.start_date <= datetime.now().date() <= i.end_date]
+
+                if query:
+                    queryset = queryset.filter(pk__in=active_ids)
+                else:
+                    queryset = queryset.exclude(pk__in=active_ids)
+        except ValueError:
+            queryset = None
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
 
 
 class MembershipLogViewSet(viewsets.ModelViewSet):

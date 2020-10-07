@@ -34,6 +34,7 @@ class UserViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset()
 
         if self.request.user.is_authenticated:
+            queryset = filter_queryset(queryset, request, target_param='is_lecturer', is_foreign_key=False)
             queryset = filter_queryset(queryset, request, target_param='is_active', is_foreign_key=False)
             queryset = filter_queryset(queryset, request, target_param='is_staff', is_foreign_key=False)
             queryset = filter_queryset(queryset, request, target_param='is_superuser', is_foreign_key=False)
@@ -49,8 +50,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     # Case 1: Exclude lecturers if the community is club
                     try:
                         Club.objects.get(pk=community_id)
-                        excluded_ids += [i.id for i in get_user_model().objects.all()
-                                         if i.groups.filter(name='lecturer').exists()]
+                        excluded_ids += [i.id for i in get_user_model().objects.all() if i.is_lecturer]
                     except Club.DoesNotExist:
                         pass
 
