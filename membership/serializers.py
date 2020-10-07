@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from rest_framework import serializers
@@ -363,6 +365,8 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
 
 
 class AdvisorySerializer(serializers.ModelSerializer):
+    is_active = serializers.SerializerMethodField()
+
     class Meta:
         model = Advisory
         fields = '__all__'
@@ -384,6 +388,9 @@ class AdvisorySerializer(serializers.ModelSerializer):
                 )
 
         return data
+
+    def get_is_active(self, obj):
+        return obj.start_date <= datetime.now().date() <= obj.end_date
 
 
 class MembershipLogSerializer(serializers.ModelSerializer):

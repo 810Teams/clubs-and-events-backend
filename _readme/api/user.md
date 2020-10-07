@@ -58,7 +58,7 @@
     "bio": "string",
     "profile_picture": "image",
     "cover_photo": "image",
-    "birthdate": "date",
+    "birthdate": "date"
 }
 ```
 
@@ -98,3 +98,23 @@
 
 - Token is required
 - Must be the owner.
+
+## Student Committee Authority
+
+### List Student Committee Authorities
+
+`GET api/user/student-committee`
+
+- Token is required
+
+### Retrieve Student Committee Authority
+
+`GET api/user/student-committee/{int}`
+
+- Token is required
+
+### Retrieve Own Student Committee Authority
+
+`GET api/user/student-committee/me`
+
+- Token is required

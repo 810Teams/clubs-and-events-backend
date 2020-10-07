@@ -278,6 +278,25 @@
 
 - Token is required.
 
+### Create Advisory
+
+`POST api/membership/advisory`
+
+```json
+{
+    "advisor": "int",
+    "community": "int",
+    "start_date": "date",
+    "end_date": "date"
+}
+```
+
+- Token is required.
+- Must be an active student committee member.
+- If attempted to make non-lecturer an advisor, a status code `400` will be returned.
+- If attempted to make an overlapped advisory, a status code `400` will be returned.
+- If attempted to make a start date come before an end date, a status code `400` will be returned.
+
 ## Membership Log
 
 ### List Membership Logs
