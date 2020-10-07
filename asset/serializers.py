@@ -49,6 +49,7 @@ class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
 
 
 class ExistingAlbumSerializer(serializers.ModelSerializer):
+    photo_amount = serializers.SerializerMethodField()
     is_able_to_edit = serializers.SerializerMethodField()
 
     class Meta:
@@ -74,6 +75,9 @@ class ExistingAlbumSerializer(serializers.ModelSerializer):
                 )
 
         return data
+
+    def get_photo_amount(self, obj):
+        return len(AlbumImage.objects.filter(album_id=obj.id))
 
     def get_is_able_to_edit(self, obj):
         try:

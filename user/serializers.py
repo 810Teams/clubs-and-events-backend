@@ -5,16 +5,16 @@ from django.utils.translation import gettext as _
 from email_validator import validate_email, EmailNotValidError
 from rest_framework import serializers
 
-from user.models import EmailPreference
+from user.models import EmailPreference, StudentCommitteeAuthority
 
 
 class UserSerializer(serializers.ModelSerializer):
-    is_lecturer = serializers.SerializerMethodField()
+    is_student_committee = serializers.SerializerMethodField()
 
     class Meta:
         model = get_user_model()
         exclude = ('password', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'groups', 'user_permissions')
-        read_only_fields = ('username', 'name')
+        read_only_fields = ('username', 'name', 'created_by', 'updated_by')
 
     def validate(self, data):
         if 'birthdate' in data.keys() and data['birthdate'] is not None and data['birthdate'] > datetime.now().date():
@@ -31,8 +31,12 @@ class UserSerializer(serializers.ModelSerializer):
 
         return data
 
-    def get_is_lecturer(self, obj):
-        return obj.groups.filter(name='lecturer').exists()
+    def get_is_student_committee(self, obj):
+        try:
+            authority = StudentCommitteeAuthority.objects.get(user_id=obj.id)
+            return authority.start_date <= datetime.now().date() <= authority.end_date
+        except StudentCommitteeAuthority.DoesNotExist:
+            return False
 
 
 class LimitedUserSerializer(serializers.ModelSerializer):
@@ -47,3 +51,15 @@ class EmailPreferenceSerializer(serializers.ModelSerializer):
         model = EmailPreference
         fields = '__all__'
         read_only_fields = ('user',)
+
+
+class StudentCommitteeAuthoritySerializer(serializers.ModelSerializer):
+    is_active = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StudentCommitteeAuthority
+        fields = '__all__'
+        read_only_fields = ('created_by', 'updated_by')
+
+    def get_is_active(self, obj):
+        return obj.start_date <= datetime.now().date() <= obj.end_date

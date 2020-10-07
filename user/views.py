@@ -8,9 +8,10 @@ from rest_framework.settings import api_settings
 from community.models import Club, CommunityEvent, Community
 from core.utils import filter_queryset
 from membership.models import Membership, Invitation, Request
-from user.models import EmailPreference
+from user.models import EmailPreference, StudentCommitteeAuthority
 from user.permissions import IsProfileOwner
 from user.serializers import UserSerializer, LimitedUserSerializer, EmailPreferenceSerializer
+from user.serializers import StudentCommitteeAuthoritySerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -122,3 +123,25 @@ class MyEmailPreferenceView(generics.ListAPIView):
         serializer = self.get_serializer(email_preference, many=False)
 
         return Response(serializer.data)
+
+
+class StudentCommitteeAuthorityViewSet(viewsets.ModelViewSet):
+    queryset = StudentCommitteeAuthority.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = StudentCommitteeAuthoritySerializer
+    http_method_names = ('get', 'head', 'options')
+
+
+class MyStudentCommitteeAuthorityView(generics.ListAPIView):
+    queryset = StudentCommitteeAuthority.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = StudentCommitteeAuthoritySerializer
+
+    def list(self, request, *args, **kwargs):
+        try:
+            student_committee_authority = self.get_queryset().get(user_id=request.user.id)
+            serializer = self.get_serializer(student_committee_authority, many=False)
+
+            return Response(serializer.data)
+        except StudentCommitteeAuthority.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)

@@ -5,14 +5,15 @@ from community.models import CommunityEvent, Community, Club, Event, Lab
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
-from membership.permissions import IsRequestOwner, IsEditableRequest, IsCancellableRequest, IsAbleToViewRequestList
-from membership.permissions import IsEditableInvitation
+from membership.permissions import IsRequestOwner, IsWaitingRequest, IsAbleToViewRequestList
+from membership.permissions import IsWaitingInvitation
 from membership.permissions import IsInvitationInvitee, IsAbleToCancelInvitation, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership, IsApplicableForCustomMembershipLabel
 from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipLogSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
+from user.permissions import IsStudentCommittee
 
 
 class RequestViewSet(viewsets.ModelViewSet):
@@ -25,9 +26,9 @@ class RequestViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsStaffOfCommunity(), IsEditableRequest())
+            return (permissions.IsAuthenticated(), IsStaffOfCommunity(), IsWaitingRequest())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsRequestOwner(), IsCancellableRequest())
+            return (permissions.IsAuthenticated(), IsRequestOwner(), IsWaitingRequest())
         return tuple()
 
     def get_serializer_class(self):
@@ -101,7 +102,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
             # Includes IsStaffOfCommunity() in validation() of the serializer
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsInvitationInvitee(), IsEditableInvitation())
+            return (permissions.IsAuthenticated(), IsInvitationInvitee(), IsWaitingInvitation())
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsAbleToCancelInvitation())
         return tuple()
@@ -264,9 +265,13 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
 
 class AdvisoryViewSet(viewsets.ModelViewSet):
     queryset = Advisory.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = AdvisorySerializer
-    http_method_names = ('get', 'head', 'options')
+    http_method_names = ('get', 'post', 'head', 'options')
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return (permissions.IsAuthenticated(), IsStudentCommittee())
+        return (permissions.IsAuthenticated(),)
 
 
 class MembershipLogViewSet(viewsets.ModelViewSet):

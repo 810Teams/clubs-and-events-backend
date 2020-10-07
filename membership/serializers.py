@@ -12,6 +12,14 @@ class ExistingRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('user', 'community', 'updated_by')
 
+    def validate(self, data):
+        if data['status'] == 'W':
+            raise serializers.ValidationError(
+                _('Requests statuses are not able to be updated to waiting.'),
+                code='request_status_error'
+            )
+        return data
+
 
 class NotExistingRequestSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,7 +34,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
         # Case 1: Lecturer trying to request to join the club
         try:
             Club.objects.get(pk=community_id)
-            if self.context['request'].user.groups.filter(name='lecturer').exists():
+            if self.context['request'].user.is_lecturer:
                 raise serializers.ValidationError(
                     _('Requests are not able to be made to the club by a lecturer.'),
                     code='lecturer_limits'
@@ -94,6 +102,14 @@ class ExistingInvitationSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('community', 'invitor', 'invitee')
 
+    def validate(self, data):
+        if data['status'] == 'W':
+            raise serializers.ValidationError(
+                _('Invitation statuses are not able to be updated to waiting.'),
+                code='invitation_status_error'
+            )
+        return data
+
     def get_is_able_to_cancel(self, obj):
         if obj.status != 'W':
             return False
@@ -123,7 +139,7 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         # Case 1: Trying to invite a lecturer to join the club
         try:
             Club.objects.get(pk=community_id)
-            if get_user_model().objects.get(pk=invitee_id).groups.filter(name='lecturer').exists():
+            if get_user_model().objects.get(pk=invitee_id).is_lecturer:
                 raise serializers.ValidationError(
                     _('Invitation to join the club are not able to be made to lecturers.'),
                     code='lecturer_limits'
@@ -351,6 +367,23 @@ class AdvisorySerializer(serializers.ModelSerializer):
         model = Advisory
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
+
+    def validate(self, data):
+        if not data['advisor'].is_lecturer:
+            raise serializers.ValidationError(
+                _('Advisor must be a lecturer.'),
+                code='invalid_advisor'
+            )
+
+        advisors = Advisory.objects.filter(advisor_id=data['advisor'].id)
+        for i in advisors:
+            if data['start_date'] <= i.end_date or i.start_date <= data['end_date']:
+                raise serializers.ValidationError(
+                    _('Advisory time overlapped.'),
+                    code='advisory_overlap'
+                )
+
+        return data
 
 
 class MembershipLogSerializer(serializers.ModelSerializer):

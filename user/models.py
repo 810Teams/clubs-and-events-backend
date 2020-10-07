@@ -48,6 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     birthdate = models.DateField(null=True, blank=True)
 
     # Statuses
+    is_lecturer = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 

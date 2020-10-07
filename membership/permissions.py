@@ -9,13 +9,7 @@ class IsRequestOwner(permissions.BasePermission):
         return request.user.id == obj.user.id
 
 
-class IsEditableRequest(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        # Object class: Request
-        return obj.status == 'W'
-
-
-class IsCancellableRequest(permissions.BasePermission):
+class IsWaitingRequest(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Request
         return obj.status == 'W'
@@ -54,7 +48,7 @@ class IsInvitationInvitee(permissions.BasePermission):
         return request.user.id == obj.invitee.id
 
 
-class IsEditableInvitation(permissions.BasePermission):
+class IsWaitingInvitation(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Invitation
         return obj.status == 'W'
@@ -73,20 +67,25 @@ class IsAbleToViewInvitationList(permissions.BasePermission):
 class IsAbleToUpdateMembership(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Membership
-        # Case 1: Leaving and Retiring, must be the membership owner.
+        # Prerequisite 1: Memberships with a status of 'L' or 'R' are not able to be updated
+        if obj.status in ('L', 'R'):
+            return False
+
+        # Prerequisite 2: Memberships with a position of 3 are not able to be updated
+        if obj.position == 3:
+            return False
+
+        # Case 1: Leaving and retiring, must be the membership owner.
         is_membership_owner = request.user.id == obj.user.id and obj.position not in ('L', 'X')
 
-        # Case 2: Member Removal and Position Assignation, must be done by an active deputy leader of the community,
+        # Case 2: Member removal and position assignation, must be done by an active deputy leader of the community,
         #         and not be done on memberships with position equal to yourself.
         own_membership = Membership.objects.filter(
             user_id=request.user.id, community_id=obj.community.id, position__in=(2, 3), status='A'
         )
         is_deputy_leader_of_that_community = len(own_membership) == 1 and own_membership[0].position > obj.position
 
-        # Both Cases: Leader memberships are not able to be updated by anyone.
-        object_is_not_leader = obj.position != 3
-
-        return (is_membership_owner or is_deputy_leader_of_that_community) and object_is_not_leader
+        return is_membership_owner or is_deputy_leader_of_that_community
 
 
 class IsApplicableForCustomMembershipLabel(permissions.BasePermission):
