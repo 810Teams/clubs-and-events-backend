@@ -57,7 +57,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save(user=request.user, updated_by=request.user)
+        obj = serializer.save()
 
         # In case of requesting to join the community event, if already a member of the base community,
         # you can join without waiting to be approved.
@@ -74,7 +74,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save(updated_by=request.user)
+        obj = serializer.save()
 
         # If the request is accepted, check for past membership to renew it. Otherwise, create a new one.
         if obj.status == 'A':
@@ -130,13 +130,6 @@ class InvitationViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(invitor=request.user)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
@@ -209,7 +202,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save(updated_by=request.user)
+        obj = serializer.save()
 
         # If the membership position is updated to 3, demote own position to 2.
         if old_position != obj.position and obj.position == 3:
@@ -267,20 +260,6 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user, updated_by=request.user)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AdvisoryViewSet(viewsets.ModelViewSet):

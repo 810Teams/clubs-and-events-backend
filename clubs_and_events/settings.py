@@ -59,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'crum.CurrentRequestUserMiddleware',
 ]
 
 ROOT_URLCONF = 'clubs_and_events.urls'
@@ -151,6 +152,7 @@ REST_FRAMEWORK = {
     #     'rest_framework.authentication.TokenAuthentication'
     # ]
 }
+
 
 # Custom Settings
 

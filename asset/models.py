@@ -6,6 +6,7 @@ from django.utils.translation import gettext as _
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, CommunityEvent, Event
 from core.utils import truncate
+from crum import get_current_user
 
 
 class Announcement(models.Model):
@@ -25,6 +26,16 @@ class Announcement(models.Model):
     def __str__(self):
         return '"{}" - {}'.format(truncate(self.text, max_length=32), self.community.name_en)
 
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(Announcement, self).save(*args, **kwargs)
+
 
 class Album(models.Model):
     name = models.CharField(max_length=128)
@@ -37,6 +48,19 @@ class Album(models.Model):
                                    related_name='album_created_by')
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='album_updated_by')
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(Album, self).save(*args, **kwargs)
 
     def clean(self):
         errors = list()
@@ -68,9 +92,6 @@ class Album(models.Model):
         if len(errors) > 0:
             raise ValidationError(errors)
 
-    def __str__(self):
-        return '{}\'{} {}'.format(self.community, 's' * (self.community.name_en[-1] != 's'), self.name)
-
 
 class AlbumImage(models.Model):
     def get_image_path(self, file_name):
@@ -82,6 +103,15 @@ class AlbumImage(models.Model):
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='album_image_created_by')
 
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+
+        super(AlbumImage, self).save(*args, **kwargs)
+
 
 class Comment(models.Model):
     text = models.TextField()
@@ -92,3 +122,12 @@ class Comment(models.Model):
 
     def __str__(self):
         return '"{}" - {}'.format(truncate(self.text, max_length=32), self.written_by)
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+
+        super(Comment, self).save(*args, **kwargs)

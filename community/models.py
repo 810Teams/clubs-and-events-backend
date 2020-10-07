@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 
 from category.models import ClubType, EventType, EventSeries
 from clubs_and_events.settings import STORAGE_BASE_DIR
+from crum import get_current_user
 
 
 class Community(models.Model):
@@ -16,15 +17,22 @@ class Community(models.Model):
         file_extension = file_name.split('.')[1]
         return '{}/community/{}/banner.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
 
+    # Required Information
     name_th = models.CharField(max_length=128, unique=True)
     name_en = models.CharField(max_length=128, unique=True)
+
+    # General Information
     url_id = models.CharField(max_length=32, null=True, blank=True, unique=True, default=None)
     description = models.TextField(null=True, blank=True)
     external_links = models.TextField(null=True, blank=True)
     logo = models.ImageField(null=True, blank=True, upload_to=get_logo_path)
     banner = models.ImageField(null=True, blank=True, upload_to=get_banner_path)
+
+    # Settings
     is_publicly_visible = models.BooleanField(default=False)
     is_accepting_requests = models.BooleanField(default=True)
+
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
@@ -34,6 +42,16 @@ class Community(models.Model):
 
     def __str__(self):
         return '{}'.format(self.name_en)
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(Community, self).save(*args, **kwargs)
 
 
 class Club(Community):
