@@ -44,20 +44,6 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(created_by=request.user, updated_by=request.user)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(updated_by=request.user)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class AlbumViewSet(viewsets.ModelViewSet):
     queryset = Album.objects.all()
@@ -168,14 +154,3 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-
-        if isinstance(request.user, get_user_model()):
-            serializer.save(created_by=request.user)
-        else:
-            serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)

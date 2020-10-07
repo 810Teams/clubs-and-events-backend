@@ -8,7 +8,7 @@ class ClubType(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return '{}'.format(self.title_en)
+        return self.title_en
 
 
 class EventType(models.Model):
@@ -18,7 +18,7 @@ class EventType(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return '{}'.format(self.title_en)
+        return self.title_en
 
 
 class EventSeries(models.Model):
@@ -28,4 +28,4 @@ class EventSeries(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return '{}'.format(self.title_en)
+        return self.title_en

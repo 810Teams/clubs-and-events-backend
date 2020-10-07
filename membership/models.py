@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from community.models import Community, Lab, CommunityEvent, Club
+from crum import get_current_user
 
 
 class Request(models.Model):
@@ -22,6 +23,16 @@ class Request(models.Model):
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='request_updated_by')
 
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.user = user
+        self.updated_by = user
+
+        super(Request, self).save(*args, **kwargs)
+
 
 class Invitation(models.Model):
     STATUS = (
@@ -38,6 +49,15 @@ class Invitation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.invitor = user
+
+        super(Invitation, self).save(*args, **kwargs)
+
 
 class Advisory(models.Model):
     advisor = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
@@ -51,6 +71,16 @@ class Advisory(models.Model):
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='advisory_updated_by')
 
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(Advisory, self).save(*args, **kwargs)
+
     def clean(self):
         errors = list()
 
@@ -58,7 +88,7 @@ class Advisory(models.Model):
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
 
         try:
-            if CommunityEvent.objects.get(pk=self.community):
+            if CommunityEvent.objects.get(pk=self.community.id):
                 errors.append(ValidationError(
                     _('Advisories are not applicable on community events.'),
                     code='advisory_feature'
@@ -67,7 +97,7 @@ class Advisory(models.Model):
             pass
 
         try:
-            if Lab.objects.get(pk=self.community):
+            if Lab.objects.get(pk=self.community.id):
                 errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))
         except Lab.DoesNotExist:
             pass
@@ -95,9 +125,20 @@ class Membership(models.Model):
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='membership_updated_by')
 
-    def save(self, *args, **kwargs):
-        logs = MembershipLog.objects.filter(membership_id=self.id)
+    def __str__(self):
+        return '{} - {}'.format(self.user.username, self.community.name_en)
 
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(Membership, self).save(*args, **kwargs)
+
+        logs = MembershipLog.objects.filter(membership_id=self.id)
         if len(logs) > 0:
             log = logs[len(logs) - 1]
             if log.position != self.position or log.status != self.status:
@@ -106,8 +147,6 @@ class Membership(models.Model):
                 MembershipLog.objects.create(membership_id=self.id, position=self.position, status=self.status)
         else:
             MembershipLog.objects.create(membership_id=self.id, position=self.position, status=self.status)
-
-        super(Membership, self).save(*args, **kwargs)
 
 
     def clean(self):
@@ -119,9 +158,6 @@ class Membership(models.Model):
         if len(errors) > 0:
             raise ValidationError(errors)
 
-    def __str__(self):
-        return '{} - {}'.format(self.user.username, self.community.name_en)
-
 
 class CustomMembershipLabel(models.Model):
     membership = models.OneToOneField(Membership, on_delete=models.CASCADE)
@@ -132,6 +168,16 @@ class CustomMembershipLabel(models.Model):
                                    related_name='custom_membership_label_created_by')
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='custom_membership_label_updated_by')
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(CustomMembershipLabel, self).save(*args, **kwargs)
 
 
 class MembershipLog(models.Model):
@@ -147,3 +193,17 @@ class MembershipLog(models.Model):
     status = models.CharField(max_length=1, choices=STATUS, default='A')
     start_datetime = models.DateTimeField(auto_now_add=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='membership_log_created_by')
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='membership_log_updated_by')
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(MembershipLog, self).save(*args, **kwargs)

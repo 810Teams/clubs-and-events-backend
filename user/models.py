@@ -6,6 +6,7 @@ from django.utils.translation import gettext as _
 from email_validator import validate_email, EmailNotValidError
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
+from crum import get_current_user
 
 
 class UserManager(BaseUserManager):
@@ -34,27 +35,47 @@ class User(AbstractBaseUser, PermissionsMixin):
         file_extension = file_name.split('.')[1]
         return '{}/user/{}/cover_photo.{}'.format(STORAGE_BASE_DIR, self.username, file_extension)
 
+    # Credentials
     username = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
     email = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
+    # Personal Information
     nickname = models.CharField(max_length=32, null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     profile_picture = models.ImageField(null=True, blank=True, upload_to=get_profile_picture_path)
     cover_photo = models.ImageField(null=True, blank=True, upload_to=get_cover_photo_path)
     birthdate = models.DateField(null=True, blank=True)
 
+    # Statuses
+    is_lecturer = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='user_created_by')
+    updated_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='user_updated_by')
 
+    # Others
     USERNAME_FIELD = 'username'
-
     objects = UserManager()
 
     def __str__(self):
         return '{}'.format(self.username)
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.pk is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(User, self).save(*args, **kwargs)
 
     def clean(self):
         errors = list()
@@ -84,9 +105,23 @@ class StudentCommitteeAuthority(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='student_committee_authority_created_by')
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='student_committee_authority_updated_by')
 
     def __str__(self):
         return '{}'.format(self.user.username)
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.pk is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(StudentCommitteeAuthority, self).save(*args, **kwargs)
 
     def clean(self):
         errors = list()

@@ -92,7 +92,7 @@ class MembershipAdmin(admin.ModelAdmin):
 
 
 class MembershipLogAdmin(admin.ModelAdmin):
-    list_display = ('id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime')
+    list_display = ('id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime', 'created_by', 'updated_by')
 
 
 admin.site.register(Request, RequestAdmin)

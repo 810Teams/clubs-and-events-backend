@@ -1,14 +1,26 @@
+from datetime import datetime
 from rest_framework import permissions
+
+from user.models import StudentCommitteeAuthority
 
 
 class IsStudent(permissions.BasePermission):
     def has_permission(self, request, view):
-        return not request.user.groups.filter(name='lecturer').exists()
+        return not request.user.is_lecturer
 
 
 class IsLecturer(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.groups.filter(name='lecturer').exists()
+        return request.user.is_lecturer
+
+
+class IsStudentCommittee(permissions.BasePermission):
+    def has_permission(self, request, view):
+        try:
+            authority = StudentCommitteeAuthority.objects.get(pk=request.user.id)
+            return authority.start_date <= datetime.now().date() <= authority.end_date
+        except StudentCommitteeAuthority.DoesNotExist:
+            return False
 
 
 class IsProfileOwner(permissions.BasePermission):
