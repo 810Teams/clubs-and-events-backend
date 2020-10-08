@@ -37,7 +37,7 @@ After listing all announcements of the community, in each announcement object, t
 
 `GET api/commununity/lab/{int}`
 
-After retrieving the community data by one of these APIs, a field `is_able_to_manage` is expected. If is `true`, then render the create announcement button, meaning the current user is able to create announcements in the certain community.
+After retrieving the community data by one of these APIs, a field `own_membership_position` is expected. If is at least `1`, then render the create announcement button, meaning the current user is able to create announcements in the certain community.
 
 ### Create Announcement
 

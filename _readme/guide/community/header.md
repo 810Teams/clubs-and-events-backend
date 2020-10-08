@@ -100,15 +100,39 @@ Upon calling one of the APIs above in the [heading](#heading) section, a field `
 
 |Code|Action|
 |:-:|:-|
-|"E"|Renders a button that let the current user edit the community.|
-|"D"|Renders a button that let the current user delete the community separately in the [edit page](edit-page.md).|
-|"A"|Renders a button that revert user from being retired to active.|
-|"R"|Renders a button that set the current user's membership status to retired.|
-|"L"|Renders a button that let the current user leaves the community.|
+|"send-approval-request"|Renders a button that let the current user send approval request to student committee members.|
+|"cancel-approval-request"|Renders a button that let the current user cancel the approval request sent to student committee members.|
+|"edit"|Renders a button that let the current user edit the community.|
+|"delete"|Renders a button that let the current user delete the community separately in the [edit page](edit-page.md).|
+|"active"|Renders a button that revert user from being retired to active.|
+|"retire"|Renders a button that set the current user's membership status to retired.|
+|"leave"|Renders a button that let the current user leaves the community.|
 
 These are actions, all should be placed in the same pop-up menu button, unlike request button which is an individual button. This is to prevent accidental action performings.
 
-For the action code `E` and `D`, render the edit community button, and visit the [edit page](edit-page.md) for the further guide.
+For the action code `edit` and `delete`, render the edit community button, and visit the [edit page](edit-page.md) for the further guide.
+
+### Send Approval Request
+
+Upon the leader of the unofficial club or unapproved event clicked the "Send Approval Request", display a form. After the user filled the form, and confirmed. Call this API to send the approval request.
+
+`POST api/membership/approval-request`
+
+```json
+{
+    "community": "int",
+    "message": "string",
+    "attached_file": "file"
+}
+```
+
+The community must be auto.
+
+### Cancel Approval Request
+
+Upon the leader of the unofficial club or unapproved event clicked the "Cancel Approval Request", display a confirmation dialog, if the user confirmed, call this API to cancel the approval request.
+
+`DELETE api/membership/approval-request/{int}`
 
 ### Retiring from Community
 

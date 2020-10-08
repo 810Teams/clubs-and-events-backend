@@ -84,7 +84,7 @@ To summarize, users can only add or delete images in the album, no updating.
 
 `GET api/commununity/lab/{int}`
 
-After retrieving the community data by one of these APIs, a field `is_able_to_manage` is expected. If is `true`, then render the create album button, meaning the current user is able to create albums in the certain community.
+After retrieving the community data by one of these APIs, a field `own_membership_position` is expected. If is at least `1`, then render the create album button, meaning the current user is able to create albums in the certain community.
 
 ### Create Album
 
