@@ -68,13 +68,19 @@ class RequestViewSet(viewsets.ModelViewSet):
 
         # In case of requesting to join the community event, if already a member of the base community,
         # you can join without waiting to be approved.
-        community_event = CommunityEvent.objects.filter(pk=obj.community.id)
-        if len(community_event) == 1:
+        try:
+            community_event = CommunityEvent.objects.get(pk=obj.community.id)
+            Membership.objects.get(
+                user_id=request.user.id, community_id=community_event.created_under.id, status__in=('A', 'R')
+            )
+
             request_obj = Request.objects.get(pk=obj.id)
             request_obj.status = 'A'
             request_obj.save()
             Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
                                       created_by_id=request.user.id, updated_by_id=request.user.id)
+        except (CommunityEvent.DoesNotExist, Membership.DoesNotExist):
+            pass
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
