@@ -4,8 +4,9 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from community.models import Community, CommunityEvent, Club
-from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
+from community.models import Community, CommunityEvent, Club, Lab, Event
+from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog, \
+    ApprovalRequest
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
@@ -415,3 +416,73 @@ class MembershipLogSerializer(serializers.ModelSerializer):
 
     def get_community_name_en(self, obj):
         return obj.membership.community.name_en
+
+
+class ExistingApprovalRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovalRequest
+        fields = '__all__'
+        read_only_fields = ('community', 'message', 'attached_file', 'created_by', 'updated_by')
+
+    def validate(self, data):
+        if data['status'] == 'W':
+            raise serializers.ValidationError(
+                _('Approval request statuses are not able to be updated to waiting.'),
+                code='approval_request_status_error'
+            )
+        return data
+
+
+class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovalRequest
+        fields = '__all__'
+        read_only_fields = ('status', 'created_by', 'updated_by')
+
+    def validate(self, data):
+        # Case 1: Must be not be a lab or a community event
+        try:
+            Lab.objects.get(pk=data['community'].id)
+            raise serializers.ValidationError(
+                _('Approval requests are not able to be made from labs.'),
+                code='approval_request_error'
+            )
+        except Lab.DoesNotExist:
+            pass
+
+        try:
+            CommunityEvent.objects.get(pk=data['community'].id)
+            raise serializers.ValidationError(
+                _('Approval requests are not able to be made from community events.'),
+                code='approval_request_error'
+            )
+        except CommunityEvent.DoesNotExist:
+            pass
+
+        # Case 2: Must be an unofficial club or an unapproved event
+        try:
+            club = Club.objects.get(pk=data['community'].id)
+            if club.is_official:
+                raise serializers.ValidationError(_('The club is already an official club.'), code='already_approved')
+        except Club.DoesNotExist:
+            pass
+
+        try:
+            event = Event.objects.get(pk=data['community'].id)
+            if event.is_approved:
+                raise serializers.ValidationError(_('The event is already approved.'), code='already_approved')
+        except Event.DoesNotExist:
+            pass
+
+        # Case 3: Approval request sender must be the president of the club or event
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=data['community'].id, status='A', position=3
+            )
+        except Membership.DoesNotExist:
+            raise serializers.ValidationError(
+                _('Approval requests can only be made by the leader of the community.'),
+                code='permission_denied'
+            )
+
+        return data

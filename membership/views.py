@@ -4,14 +4,17 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 
 from community.models import CommunityEvent, Community, Club, Event, Lab
-from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
+from core.permissions import IsStaffOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
+from core.permissions import IsInPubliclyVisibleCommunity
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
+from membership.models import ApprovalRequest
 from membership.permissions import IsRequestOwner, IsWaitingRequest, IsAbleToViewRequestList
-from membership.permissions import IsWaitingInvitation
+from membership.permissions import IsWaitingInvitation, IsAbleToViewApprovalRequestList, IsWaitingApprovalRequest
 from membership.permissions import IsInvitationInvitee, IsAbleToCancelInvitation, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership, IsApplicableForCustomMembershipLabel
 from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipLogSerializer
+from membership.serializers import NotExistingApprovalRequestSerializer, ExistingApprovalRequestSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
@@ -340,3 +343,47 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
+
+
+class ApprovalRequestViewSet(viewsets.ModelViewSet):
+    queryset = ApprovalRequest.objects.all()
+    http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (permissions.IsAuthenticated(), IsAbleToViewApprovalRequestList())
+        elif self.request.method == 'POST':
+            # Includes IsLeaderOfCommunity() in validate() of the serializer
+            return (permissions.IsAuthenticated(),)
+        elif self.request.method in ('PUT', 'PATCH'):
+            return (permissions.IsAuthenticated(), IsStudentCommittee(), IsWaitingApprovalRequest())
+        elif self.request.method == 'DELETE':
+            return (permissions.IsAuthenticated(), IsLeaderOfCommunity(), IsWaitingApprovalRequest())
+        return (permissions.IsAuthenticated(),)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return NotExistingApprovalRequestSerializer
+        return ExistingApprovalRequestSerializer
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+
+        if obj.status == 'A':
+            try:
+                club = Club.objects.get(pk=obj.community.id)
+                club.is_official = True
+                club.save()
+            except Club.DoesNotExist:
+                pass
+
+            try:
+                event = Event.objects.get(pk=obj.community.id)
+                event.is_approved = True
+                event.save()
+            except Event.DoesNotExist:
+                pass
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
