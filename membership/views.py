@@ -18,6 +18,7 @@ from membership.serializers import NotExistingApprovalRequestSerializer, Existin
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
+from user.models import StudentCommitteeAuthority
 from user.permissions import IsStudentCommittee
 
 
@@ -365,6 +366,28 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
         if self.request.method == 'POST':
             return NotExistingApprovalRequestSerializer
         return ExistingApprovalRequestSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        try:
+            authority = StudentCommitteeAuthority.objects.get(user_id=request.user.id)
+            is_student_committee = authority.start_date <= datetime.now().date() <= authority.end_date
+        except StudentCommitteeAuthority.DoesNotExist:
+            is_student_committee = False
+
+        if not is_student_committee:
+            visible_ids = [i.community.id for i in Membership.objects.filter(
+                user_id=request.user.id, status='A', position=3
+            )]
+            queryset = queryset.filter(community_id__in=visible_ids)
+
+        queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)

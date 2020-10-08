@@ -47,7 +47,11 @@ class UserAdmin(BaseUserAdmin):
 class EmailPreferenceAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'name', 'receive_own_club', 'receive_own_event', 'receive_own_lab',
                     'receive_other_events')
-    readonly_fields = ('user',)
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return ('user',) + self.readonly_fields
+        return self.readonly_fields
 
     def name(self, obj):
         return obj.user.name
@@ -56,6 +60,11 @@ class EmailPreferenceAdmin(admin.ModelAdmin):
 class StudentCommitteeAuthorityAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'start_date', 'end_date', 'is_active')
     readonly_fields = ('created_by', 'updated_by')
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return ('user',) + self.readonly_fields
+        return self.readonly_fields
 
     def is_active(self, obj):
         return obj.start_date <= datetime.now().date() <= obj.end_date
