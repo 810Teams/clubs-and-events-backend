@@ -4,8 +4,9 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from community.models import Community, CommunityEvent, Club
-from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
+from community.models import Community, CommunityEvent, Club, Lab, Event
+from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog, \
+    ApprovalRequest
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
@@ -71,7 +72,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
 
         # Case 4: Already a member
         membership = Membership.objects.filter(community_id=community_id, user_id=user_id, status__in=('A', 'R'))
-        if len(membership) == 1:
+        if len(membership) >= 1:
             raise serializers.ValidationError(
                 _('Requests are not able to be made to the community which the user is already a member.'),
                 code='member_already_exists'
@@ -79,7 +80,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
 
         # Case 5: Already has a pending request
         request = Request.objects.filter(community_id=community_id, user_id=user_id, status='W')
-        if len(request) == 1:
+        if len(request) >= 1:
             raise serializers.ValidationError(
                 _('Requests are not able to be made to the community if the user already has a pending request.'),
                 code='request_already_exists'
@@ -87,7 +88,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
 
         # Case 6: Already has a pending invitation
         invitation = Invitation.objects.filter(community_id=community_id, invitee_id=user_id, status='W')
-        if len(invitation) == 1:
+        if len(invitation) >= 1:
             raise serializers.ValidationError(
                 _('Requests are not able to be made if the pending invitation to the community exists.'),
                 code='invitation_already_exists'
@@ -169,7 +170,7 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         invitor_membership = Membership.objects.filter(
             community_id=community_id, user_id=invitor_id, position__in=[1, 2, 3],status='A'
         )
-        if len(invitor_membership) != 1:
+        if len(invitor_membership) == 0:
             raise serializers.ValidationError(
                 _('Invitation are not able to be made from the community if the invitor is not a staff.'),
                 code='permission_denied'
@@ -179,7 +180,7 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         invitee_membership = Membership.objects.filter(
             community_id=community_id, user_id=invitee_id, status__in=('A', 'R')
         )
-        if len(invitee_membership) == 1:
+        if len(invitee_membership) >= 1:
             raise serializers.ValidationError(
                 _('Invitation are not able to be made from the community which the invitee is already a member.'),
                 code='member_already_exists'
@@ -187,7 +188,7 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
 
         # Case 5: Already has a pending request
         invitation = Invitation.objects.filter(community_id=community_id, invitee_id=invitee_id, status='W')
-        if len(invitation) == 1:
+        if len(invitation) >= 1:
             raise serializers.ValidationError(
                 _('Invitations are not able to be made from the community if the invitee already has a pending ' +
                   'request.'),
@@ -196,7 +197,7 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
 
         # Case 6: Already has a pending invitation
         request = Request.objects.filter(community_id=community_id, user_id=invitee_id, status='W')
-        if len(request) == 1:
+        if len(request) >= 1:
             raise serializers.ValidationError(
                 _('Invitations are not able to be made from the community if the user already has a pending request.'),
                 code='request_already_exists'
@@ -415,3 +416,80 @@ class MembershipLogSerializer(serializers.ModelSerializer):
 
     def get_community_name_en(self, obj):
         return obj.membership.community.name_en
+
+
+class ExistingApprovalRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovalRequest
+        fields = '__all__'
+        read_only_fields = ('community', 'message', 'attached_file', 'created_by', 'updated_by')
+
+    def validate(self, data):
+        if data['status'] == 'W':
+            raise serializers.ValidationError(
+                _('Approval request statuses are not able to be updated to waiting.'),
+                code='approval_request_status_error'
+            )
+        return data
+
+
+class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApprovalRequest
+        fields = '__all__'
+        read_only_fields = ('status', 'created_by', 'updated_by')
+
+    def validate(self, data):
+        # Case 1: Must be not be a lab or a community event
+        try:
+            Lab.objects.get(pk=data['community'].id)
+            raise serializers.ValidationError(
+                _('Approval requests are not able to be made from labs.'),
+                code='approval_request_error'
+            )
+        except Lab.DoesNotExist:
+            pass
+
+        try:
+            CommunityEvent.objects.get(pk=data['community'].id)
+            raise serializers.ValidationError(
+                _('Approval requests are not able to be made from community events.'),
+                code='approval_request_error'
+            )
+        except CommunityEvent.DoesNotExist:
+            pass
+
+        # Case 2: Must be an unofficial club or an unapproved event
+        try:
+            club = Club.objects.get(pk=data['community'].id)
+            if club.is_official:
+                raise serializers.ValidationError(_('The club is already an official club.'), code='already_approved')
+        except Club.DoesNotExist:
+            pass
+
+        try:
+            event = Event.objects.get(pk=data['community'].id)
+            if event.is_approved:
+                raise serializers.ValidationError(_('The event is already approved.'), code='already_approved')
+        except Event.DoesNotExist:
+            pass
+
+        # Case 3: Approval request sender must be the president of the club or event
+        membership = Membership.objects.get(
+            user_id=self.context['request'].user.id, community_id=data['community'].id, status='A', position=3
+        )
+        if len(membership) == 0:
+            raise serializers.ValidationError(
+                _('Approval requests can only be made by the leader of the community.'),
+                code='permission_denied'
+            )
+
+        # Case 4: Already has pending approval request
+        approval_request = ApprovalRequest.objects.get(community_id=data['community'].id, status='W')
+        if len(approval_request) >= 1:
+            raise serializers.ValidationError(
+                _('Approval requests are not able to be made if the community already has a pending approval request.'),
+                code='approval_request_already_exists'
+            )
+
+        return data

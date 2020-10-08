@@ -26,7 +26,7 @@ Render all pending requests received by calling this API.
 
 ### Render the Accept and Decline Request Buttons
 
-Normal members can see all pending requests, but are not able to accept or decline them. Staff and members with a higher position can do this. Upon calling one of the APIs mentioned in the [Rendering the Tab][#rendering-the-tab] section, the field `is_able_to_manage` is expected. If is `true`, it means that the current logged-in member has permissions to manage the community, so render the accept and decline request buttons for them.
+Normal members can see all pending requests, but are not able to accept or decline them. Staff and members with a higher position can do this. Upon calling one of the APIs mentioned in the [Rendering the Tab][#rendering-the-tab] section, the field `own_membership_position` is expected. If is at least `1`, it means that the current logged-in member has permissions to manage the community, so render the accept and decline request buttons for them.
 
 ### Accepting the Request
 

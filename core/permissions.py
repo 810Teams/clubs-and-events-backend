@@ -3,31 +3,34 @@ from rest_framework import permissions
 from asset.models import Announcement, Album, AlbumImage, Comment
 from community.models import Community
 from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel, MembershipLog
+from membership.models import ApprovalRequest
 
 
 class IsInPubliclyVisibleCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Announcement, Album, AlbumImage, Comment, Membership, CustomMembershipLabel, MembershipLog
-        if isinstance(obj, (Announcement, Album, Membership)):
-            return request.user.is_authenticated or Community.objects.get(pk=obj.community.id).is_publicly_visible
+        # Object classes: Announcement, Album, AlbumImage, Comment, Membership, CustomMembershipLabel, MembershipLog,
+        #                 ApprovalRequest
+        if isinstance(obj, (Announcement, Album, Membership, ApprovalRequest)):
+            ref = obj.community.id
         elif isinstance(obj, AlbumImage):
-            return request.user.is_authenticated or Community.objects.get(pk=obj.album.community.id).is_publicly_visible
+            ref = obj.album.community.id
         elif isinstance(obj, Comment):
-            return request.user.is_authenticated or Community.objects.get(pk=obj.event.id).is_publicly_visible
+            ref = obj.event.id
         elif isinstance(obj, (CustomMembershipLabel, MembershipLog)):
-            return request.user.is_authenticated or Community.objects.get(
-                pk=obj.membership.community.id
-            ).is_publicly_visible
-        return False
+            ref = obj.membership.community.id
+        else:
+            return False
+
+        return request.user.is_authenticated or Community.objects.get(pk=ref).is_publicly_visible
 
 
 class IsLeaderOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community, Announcement, Album, AlbumImage, Request, Invitation, Advisory, Membership,
-        #               CustomMembershipLabel, MembershipLog
+        # Object classes: Community, Announcement, Album, AlbumImage, Request, Invitation, Advisory, Membership,
+        #                 CustomMembershipLabel, MembershipLog, ApprovalRequest
         if isinstance(obj, Community):
             ref = obj.id
-        elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership)):
+        elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership, ApprovalRequest)):
             ref = obj.community.id
         elif isinstance(obj, AlbumImage):
             ref = obj.album.community.id
@@ -44,11 +47,11 @@ class IsLeaderOfCommunity(permissions.BasePermission):
 
 class IsDeputyLeaderOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community, Announcement, Album, AlbumImage, Request, Invitation, Advisory, Membership,
-        #               CustomMembershipLabel, MembershipLog
+        # Object classes: Community, Announcement, Album, AlbumImage, Request, Invitation, Advisory, Membership,
+        #                 CustomMembershipLabel, MembershipLog, ApprovalRequest
         if isinstance(obj, Community):
             ref = obj.id
-        elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership)):
+        elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership, ApprovalRequest)):
             ref = obj.community.id
         elif isinstance(obj, AlbumImage):
             ref = obj.album.community.id
@@ -65,11 +68,11 @@ class IsDeputyLeaderOfCommunity(permissions.BasePermission):
 
 class IsStaffOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community, Announcement, Album, AlbumImage, Request, Invitation, Advisory, Membership,
-        #               CustomMembershipLabel, MembershipLog
+        # Object classes: Community, Announcement, Album, AlbumImage, Request, Invitation, Advisory, Membership,
+        #                 CustomMembershipLabel, MembershipLog, ApprovalRequest
         if isinstance(obj, Community):
             ref = obj.id
-        elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership)):
+        elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership, ApprovalRequest)):
             ref = obj.community.id
         elif isinstance(obj, AlbumImage):
             ref = obj.album.community.id
@@ -86,11 +89,11 @@ class IsStaffOfCommunity(permissions.BasePermission):
 
 class IsMemberOfCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        # Object class: Community, Announcement, Album, AlbumImage, Request, Invitation, Advisory, Membership,
-        #               CustomMembershipLabel, MembershipLog
+        # Object classes: Community, Announcement, Album, AlbumImage, Request, Invitation, Advisory, Membership,
+        #                 CustomMembershipLabel, MembershipLog, ApprovalRequest
         if isinstance(obj, Community):
             ref = obj.id
-        elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership)):
+        elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership, ApprovalRequest)):
             ref = obj.community.id
         elif isinstance(obj, AlbumImage):
             ref = obj.album.community.id

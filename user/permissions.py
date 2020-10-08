@@ -17,7 +17,7 @@ class IsLecturer(permissions.BasePermission):
 class IsStudentCommittee(permissions.BasePermission):
     def has_permission(self, request, view):
         try:
-            authority = StudentCommitteeAuthority.objects.get(pk=request.user.id)
+            authority = StudentCommitteeAuthority.objects.get(user_id=request.user.id)
             return authority.start_date <= datetime.now().date() <= authority.end_date
         except StudentCommitteeAuthority.DoesNotExist:
             return False

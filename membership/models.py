@@ -1,3 +1,4 @@
+from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -5,7 +6,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from community.models import Community, Lab, CommunityEvent, Club
-from crum import get_current_user
+from clubs_and_events.settings import STORAGE_BASE_DIR
 
 
 class Request(models.Model):
@@ -107,6 +108,13 @@ class Advisory(models.Model):
 
 
 class Membership(models.Model):
+    POSITION = (
+        (0, '0'),
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+    )
+
     STATUS = (
         ('A', 'Active'),
         ('R', 'Retired'),
@@ -116,7 +124,7 @@ class Membership(models.Model):
 
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='membership_user')
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    position = models.IntegerField(default=0)
+    position = models.IntegerField(choices=POSITION, default=0)
     status = models.CharField(max_length=1, choices=STATUS, default='A')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -181,6 +189,13 @@ class CustomMembershipLabel(models.Model):
 
 
 class MembershipLog(models.Model):
+    POSITION = (
+        (0, '0'),
+        (1, '1'),
+        (2, '2'),
+        (3, '3'),
+    )
+
     STATUS = (
         ('A', 'Active'),
         ('R', 'Retired'),
@@ -189,7 +204,7 @@ class MembershipLog(models.Model):
     )
 
     membership = models.ForeignKey(Membership, on_delete=models.CASCADE)
-    position = models.IntegerField(default=0)
+    position = models.IntegerField(choices=POSITION, default=0)
     status = models.CharField(max_length=1, choices=STATUS, default='A')
     start_datetime = models.DateTimeField(auto_now_add=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
@@ -207,3 +222,38 @@ class MembershipLog(models.Model):
         self.updated_by = user
 
         super(MembershipLog, self).save(*args, **kwargs)
+
+
+class ApprovalRequest(models.Model):
+    def get_file_path(self, file_name):
+        return '{}/approval_request/{}/{}'.format(STORAGE_BASE_DIR, self.id, file_name)
+
+    STATUS = (
+        ('W', 'Waiting'),
+        ('A', 'Accepted'),
+        ('D', 'Declined')
+    )
+
+    community = models.ForeignKey(Community, on_delete=models.CASCADE)
+    message = models.CharField(max_length=255, null=True, blank=True)
+    attached_file = models.FileField(upload_to=get_file_path, null=True, blank=True)
+    status = models.CharField(max_length=1, choices=STATUS, default='W')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='approval_request_created_by')
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='approval_request_updated_by')
+
+    def __str__(self):
+        return self.community.name_en
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(ApprovalRequest, self).save(*args, **kwargs)

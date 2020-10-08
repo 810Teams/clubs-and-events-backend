@@ -1,7 +1,9 @@
 from django.contrib import admin
 
 from community.models import Club, Event, Lab, CommunityEvent
+from core.utils import truncate
 from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel, MembershipLog
+from membership.models import ApprovalRequest
 
 import datetime
 
@@ -92,7 +94,23 @@ class MembershipAdmin(admin.ModelAdmin):
 
 
 class MembershipLogAdmin(admin.ModelAdmin):
-    list_display = ('id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime', 'created_by', 'updated_by')
+    list_display = ('id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime', 'created_by',
+                    'updated_by')
+    readonly_fields = ('start_datetime', 'end_datetime', 'created_by', 'updated_by',)
+
+
+class ApprovalRequestAdmin(admin.ModelAdmin):
+    list_display = ('id', 'community', 'partial_message', 'has_attached_file', 'status', 'created_at', 'created_by',
+                    'updated_at', 'updated_by')
+    readonly_fields = ('created_by', 'updated_by',)
+
+    def partial_message(self, obj):
+        return truncate(obj.message, max_length=32)
+
+    def has_attached_file(self, obj):
+        return obj.attached_file is not None and obj.attached_file != ''
+
+    has_attached_file.boolean = True
 
 
 admin.site.register(Request, RequestAdmin)
@@ -100,3 +118,4 @@ admin.site.register(Invitation, InvitationAdmin)
 admin.site.register(Advisory, AdvisoryAdmin)
 admin.site.register(Membership, MembershipAdmin)
 admin.site.register(MembershipLog, MembershipLogAdmin)
+admin.site.register(ApprovalRequest, ApprovalRequestAdmin)

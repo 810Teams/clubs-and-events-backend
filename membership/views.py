@@ -4,17 +4,21 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 
 from community.models import CommunityEvent, Community, Club, Event, Lab
-from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsDeputyLeaderOfCommunity
+from core.permissions import IsStaffOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
+from core.permissions import IsInPubliclyVisibleCommunity
 from core.utils import filter_queryset
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
+from membership.models import ApprovalRequest
 from membership.permissions import IsRequestOwner, IsWaitingRequest, IsAbleToViewRequestList
-from membership.permissions import IsWaitingInvitation
+from membership.permissions import IsWaitingInvitation, IsAbleToViewApprovalRequestList, IsWaitingApprovalRequest
 from membership.permissions import IsInvitationInvitee, IsAbleToCancelInvitation, IsAbleToViewInvitationList
 from membership.permissions import IsAbleToUpdateMembership, IsApplicableForCustomMembershipLabel
 from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipLogSerializer
+from membership.serializers import NotExistingApprovalRequestSerializer, ExistingApprovalRequestSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
+from user.models import StudentCommitteeAuthority
 from user.permissions import IsStudentCommittee
 
 
@@ -64,13 +68,19 @@ class RequestViewSet(viewsets.ModelViewSet):
 
         # In case of requesting to join the community event, if already a member of the base community,
         # you can join without waiting to be approved.
-        community_event = CommunityEvent.objects.filter(pk=obj.community.id)
-        if len(community_event) == 1:
+        try:
+            community_event = CommunityEvent.objects.get(pk=obj.community.id)
+            Membership.objects.get(
+                user_id=request.user.id, community_id=community_event.created_under.id, status__in=('A', 'R')
+            )
+
             request_obj = Request.objects.get(pk=obj.id)
             request_obj.status = 'A'
             request_obj.save()
             Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
                                       created_by_id=request.user.id, updated_by_id=request.user.id)
+        except (CommunityEvent.DoesNotExist, Membership.DoesNotExist):
+            pass
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -340,3 +350,69 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
+
+
+class ApprovalRequestViewSet(viewsets.ModelViewSet):
+    queryset = ApprovalRequest.objects.all()
+    http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (permissions.IsAuthenticated(), IsAbleToViewApprovalRequestList())
+        elif self.request.method == 'POST':
+            # Includes IsLeaderOfCommunity() in validate() of the serializer
+            return (permissions.IsAuthenticated(),)
+        elif self.request.method in ('PUT', 'PATCH'):
+            return (permissions.IsAuthenticated(), IsStudentCommittee(), IsWaitingApprovalRequest())
+        elif self.request.method == 'DELETE':
+            return (permissions.IsAuthenticated(), IsLeaderOfCommunity(), IsWaitingApprovalRequest())
+        return (permissions.IsAuthenticated(),)
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return NotExistingApprovalRequestSerializer
+        return ExistingApprovalRequestSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        try:
+            authority = StudentCommitteeAuthority.objects.get(user_id=request.user.id)
+            is_student_committee = authority.start_date <= datetime.now().date() <= authority.end_date
+        except StudentCommitteeAuthority.DoesNotExist:
+            is_student_committee = False
+
+        if not is_student_committee:
+            visible_ids = [i.community.id for i in Membership.objects.filter(
+                user_id=request.user.id, status='A', position=3
+            )]
+            queryset = queryset.filter(community_id__in=visible_ids)
+
+        queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+
+        if obj.status == 'A':
+            try:
+                club = Club.objects.get(pk=obj.community.id)
+                club.is_official = True
+                club.save()
+            except Club.DoesNotExist:
+                pass
+
+            try:
+                event = Event.objects.get(pk=obj.community.id)
+                event.is_approved = True
+                event.save()
+            except Event.DoesNotExist:
+                pass
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

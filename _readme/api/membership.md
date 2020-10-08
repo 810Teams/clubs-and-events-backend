@@ -324,3 +324,64 @@
 
 - Token is optional.
 - If a token is present, membership logs of memberships in non-publicly visible communities will also be retrievable.
+
+## Approval Request
+
+### List Approval Requests
+
+`GET api/membership/approval-request`
+
+- Token is required.
+- Must be either a leader of the community to see a certain approval request, or be a student committee member to see every approval request.
+
+#### URL Parameters
+
+`community={int}`
+
+`status={int}`
+
+### Retrieve Approval Request
+
+`GET api/membership/approval-request/{int}`
+
+- Token is required.
+- Must be either a leader of the community to see a certain approval request, or be a student committee member to see every approval request.
+
+### Create Approval Request
+
+`POST api/membership/approval-request`
+
+```json
+{
+    "community": "int",
+    "message": "string",
+    "attached_file": "file"
+}
+```
+
+- Token is required.
+- If attempted to create an approval request from the lab or community event, a status code `400` will be returned.
+- If attempted to create an approval request from the club or event you are not a leader, a status code `400` will be returned.
+
+### Update Approval Request
+
+`PUT api/membership/approval-request/{int}`
+
+`PATCH api/membership/approval-request/{int}`
+
+```json
+{
+    "status": "string (A, D)"
+}
+```
+
+- Token is required.
+- Must be a student committee member.
+- If attempted to update the status to `'W'`, a status code `400` will be returned.
+
+### Delete Approval Request
+
+`DELETE api/membership/approval-request/{int}`
+
+- Token is required.
+- Must be a leader of the community.

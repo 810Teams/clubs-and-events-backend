@@ -93,7 +93,7 @@ Depends on the community type, call this API to see if the current logged-in use
 
 `GET api/community/lab/{int}`
 
-The field `is_able_to_manage` is expected. If is `true`, it means that the current logged-in member has permissions to manage the community, so render the invite button.
+The field `own_membership_position` is expected. If is at least `1`, it means that the current logged-in member has permissions to manage the community, so render the invite button.
 
 ### Invite
 

@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from rest_framework import permissions
 
 from membership.models import Membership
+from user.models import StudentCommitteeAuthority
 
 
 class IsRequestOwner(permissions.BasePermission):
@@ -92,3 +95,27 @@ class IsApplicableForCustomMembershipLabel(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: CustomMembershipLabel
         return obj.membership.position in (1, 2)
+
+
+class IsAbleToViewApprovalRequestList(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Object class: Approval Request
+        # Case 1: Is the leader of community
+        membership = Membership.objects.filter(
+            user_id=request.user.id, community_id=obj.community.id, status='A', position=3
+        )
+        if len(membership) == 1:
+            return True
+
+        # Case 2: Is a student committee member
+        try:
+            authority = StudentCommitteeAuthority.objects.get(user_id=request.user.id)
+            return authority.start_date <= datetime.now().date() <= authority.end_date
+        except StudentCommitteeAuthority.DoesNotExist:
+            return False
+
+
+class IsWaitingApprovalRequest(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Object class: Approval Request
+        return obj.status == 'W'
