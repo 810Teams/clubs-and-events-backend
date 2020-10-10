@@ -23,13 +23,8 @@ class RequestNotification(Notification):
     request = models.ForeignKey(Request, on_delete=models.CASCADE)
 
 
-class JoinNotification(Notification):
+class MembershipLogNotification(Notification):
     ''' Notification when someone joined the community '''
-    membership_log = models.ForeignKey(MembershipLog, on_delete=models.CASCADE)
-
-
-class RemovedNotification(Notification):
-    ''' Notification when you get removed from the community '''
     membership_log = models.ForeignKey(MembershipLog, on_delete=models.CASCADE)
 
 

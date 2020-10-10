@@ -1,4 +1,7 @@
-from notification.models import Notification, RequestNotification, JoinNotification, RemovedNotification
+from asset.models import Announcement
+from community.models import CommunityEvent, Event
+from membership.models import Request, MembershipLog
+from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 
 
@@ -6,18 +9,16 @@ class InvalidNotificationType(Exception):
     pass
 
 
-def notify(user, notification_type=None, obj=None):
-    if notification_type == 'request':
+def notify(user, obj=None):
+    if isinstance(obj, Request):
         RequestNotification.objects.create(user=user, request=obj)
-    elif notification_type == 'join':
-        JoinNotification.objects.create(user=user, request=obj)
-    elif notification_type == 'removed':
-        RemovedNotification.objects.create(user=user, request=obj)
-    elif notification_type == 'announcement':
+    elif isinstance(obj, MembershipLog):
+        MembershipLogNotification.objects.create(user=user, request=obj)
+    elif isinstance(obj, Announcement):
         AnnouncementNotification.objects.create(user=user, request=obj)
-    elif notification_type == 'community_event':
+    elif isinstance(obj, CommunityEvent):
         CommunityEventNotification.objects.create(user=user, request=obj)
-    elif notification_type == 'event':
+    elif isinstance(obj, Event):
         EventNotification.objects.create(user=user, request=obj)
     else:
         raise InvalidNotificationType
