@@ -60,53 +60,6 @@ class Invitation(models.Model):
         super(Invitation, self).save(*args, **kwargs)
 
 
-class Advisory(models.Model):
-    advisor = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    community = models.ForeignKey(Community, on_delete=models.CASCADE)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
-                                   related_name='advisory_created_by')
-    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
-                                   related_name='advisory_updated_by')
-
-    def save(self, *args, **kwargs):
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
-        super(Advisory, self).save(*args, **kwargs)
-
-    def clean(self):
-        errors = list()
-
-        if self.start_date > self.end_date:
-            errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
-
-        try:
-            if CommunityEvent.objects.get(pk=self.community.id):
-                errors.append(ValidationError(
-                    _('Advisories are not applicable on community events.'),
-                    code='advisory_feature'
-                ))
-        except CommunityEvent.DoesNotExist:
-            pass
-
-        try:
-            if Lab.objects.get(pk=self.community.id):
-                errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))
-        except Lab.DoesNotExist:
-            pass
-
-        if len(errors) > 0:
-            raise ValidationError(errors)
-
-
 class Membership(models.Model):
     POSITION = (
         (0, '0'),
@@ -222,6 +175,53 @@ class MembershipLog(models.Model):
         self.updated_by = user
 
         super(MembershipLog, self).save(*args, **kwargs)
+
+
+class Advisory(models.Model):
+    advisor = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    community = models.ForeignKey(Community, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='advisory_created_by')
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='advisory_updated_by')
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(Advisory, self).save(*args, **kwargs)
+
+    def clean(self):
+        errors = list()
+
+        if self.start_date > self.end_date:
+            errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
+
+        try:
+            if CommunityEvent.objects.get(pk=self.community.id):
+                errors.append(ValidationError(
+                    _('Advisories are not applicable on community events.'),
+                    code='advisory_feature'
+                ))
+        except CommunityEvent.DoesNotExist:
+            pass
+
+        try:
+            if Lab.objects.get(pk=self.community.id):
+                errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))
+        except Lab.DoesNotExist:
+            pass
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
 
 
 class ApprovalRequest(models.Model):
