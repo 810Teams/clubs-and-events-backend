@@ -365,6 +365,72 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
         return data
 
 
+class MembershipLogSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+    community = serializers.SerializerMethodField()
+    community_name_th = serializers.SerializerMethodField()
+    community_name_en = serializers.SerializerMethodField()
+    log_text = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MembershipLog
+        fields = '__all__'
+        read_only_fields = ('membership', 'position', 'status', 'start_date', 'end_date')
+
+    def get_user(self, obj):
+        return obj.membership.user.id
+
+    def get_community(self, obj):
+        return obj.membership.community.id
+
+    def get_community_name_th(self, obj):
+        return obj.membership.community.name_th
+
+    def get_community_name_en(self, obj):
+        return obj.membership.community.name_en
+
+    def get_log_text(self, obj):
+        logs = MembershipLog.objects.filter(membership_id=obj.membership.id)
+
+        current = 0
+        for i in range(len(logs)):
+            if logs[i].id == obj.id:
+                current = i
+                break
+
+        if current == 0:
+            return _('{} has joined the community.'.format(obj.membership.user.name))
+
+        previous = current - 1
+        if logs[previous].status != logs[current].status:
+            if (logs[previous].status, logs[current].status) == ('R', 'A'):
+                return _('{} is back in duty.'.format(obj.membership.user.name))
+            elif logs[current].status == 'A':
+                return _('{} has joined the community.'.format(obj.membership.user.name))
+            elif logs[current].status == 'R':
+                return _('{} has retired from the community.'.format(obj.membership.user.name))
+            elif logs[current].status == 'L':
+                return _('{} has left the community.'.format(obj.membership.user.name))
+            elif logs[current].status == 'X':
+                return _('{} is removed from the community.'.format(obj.membership.user.name))
+
+        elif logs[previous].position != logs[current].position:
+            if logs[current].position == 0:
+                return _('{} is demoted to member.'.format(obj.membership.user.name))
+            elif logs[previous].position > logs[current].position and logs[current].position == 1:
+                return _('{} is demoted to staff.'.format(obj.membership.user.name))
+            elif logs[previous].position < logs[current].position and logs[current].position == 1:
+                return _('{} is promoted to staff.'.format(obj.membership.user.name))
+            elif logs[previous].position > logs[current].position and logs[current].position == 2:
+                return _('{} is demoted to deputy leader.'.format(obj.membership.user.name))
+            elif logs[previous].position < logs[current].position and logs[current].position == 2:
+                return _('{} is promoted to deputy leader.'.format(obj.membership.user.name))
+            elif logs[current].position == 3:
+                return _('{} is promoted to leader.'.format(obj.membership.user.name))
+
+        return None
+
+
 class AdvisorySerializer(serializers.ModelSerializer):
     is_active = serializers.SerializerMethodField()
 
@@ -392,30 +458,6 @@ class AdvisorySerializer(serializers.ModelSerializer):
 
     def get_is_active(self, obj):
         return obj.start_date <= datetime.now().date() <= obj.end_date
-
-
-class MembershipLogSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
-    community = serializers.SerializerMethodField()
-    community_name_th = serializers.SerializerMethodField()
-    community_name_en = serializers.SerializerMethodField()
-
-    class Meta:
-        model = MembershipLog
-        fields = '__all__'
-        read_only_fields = ('membership', 'position', 'status', 'start_date', 'end_date')
-
-    def get_user(self, obj):
-        return obj.membership.user.id
-
-    def get_community(self, obj):
-        return obj.membership.community.id
-
-    def get_community_name_th(self, obj):
-        return obj.membership.community.name_th
-
-    def get_community_name_en(self, obj):
-        return obj.membership.community.name_en
 
 
 class ExistingApprovalRequestSerializer(serializers.ModelSerializer):
