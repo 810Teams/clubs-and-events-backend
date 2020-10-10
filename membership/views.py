@@ -323,8 +323,9 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset()
 
         if not self.request.user.is_authenticated:
-            visible_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
-            queryset = queryset.filter(community_id__in=visible_ids)
+            visible_community_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
+            visible_membership_ids = [i.id for i in Membership.objects.filter(community_id__in=visible_community_ids)]
+            queryset = queryset.filter(membership_id__in=visible_membership_ids)
 
         try:
             query = request.query_params.get('user')
