@@ -24,6 +24,9 @@ class Request(models.Model):
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='request_updated_by')
 
+    def __str__(self):
+        return '{}, {} ({})'.format(self.user.__str__(), self.community.__str__(), self.id)
+
     def save(self, *args, **kwargs):
         user = get_current_user()
         if user is not None and user.id is None:
@@ -49,6 +52,11 @@ class Invitation(models.Model):
     status = models.CharField(max_length=1, choices=STATUS, default='W')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return '{}, {}, {} ({})'.format(
+            self.invitor.__str__(), self.invitee.__str__(), self.community.__str__(), self.id
+        )
 
     def save(self, *args, **kwargs):
         user = get_current_user()
@@ -87,7 +95,7 @@ class Membership(models.Model):
                                    related_name='membership_updated_by')
 
     def __str__(self):
-        return '{} - {}'.format(self.user.username, self.community.name_en)
+        return '{}, {}'.format(self.user.__str__(), self.community.__str__())
 
     def save(self, *args, **kwargs):
         user = get_current_user()
@@ -130,6 +138,9 @@ class CustomMembershipLabel(models.Model):
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='custom_membership_label_updated_by')
 
+    def __str__(self):
+        return '{}, {}'.format(self.membership.__str__(), self.label)
+
     def save(self, *args, **kwargs):
         user = get_current_user()
         if user is not None and user.id is None:
@@ -166,6 +177,9 @@ class MembershipLog(models.Model):
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='membership_log_updated_by')
 
+    def __str__(self):
+        return '{}, {}, {} ({})'.format(self.membership.__str__(), self.position, self.status, self.id)
+
     def save(self, *args, **kwargs):
         user = get_current_user()
         if user is not None and user.id is None:
@@ -188,6 +202,9 @@ class Advisory(models.Model):
                                    related_name='advisory_created_by')
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='advisory_updated_by')
+
+    def __str__(self):
+        return '{}, {} ({})'.format(self.advisor.__str__(), self.community.__str__(), self.id)
 
     def save(self, *args, **kwargs):
         user = get_current_user()
@@ -246,7 +263,7 @@ class ApprovalRequest(models.Model):
                                    related_name='approval_request_updated_by')
 
     def __str__(self):
-        return self.community.name_en
+        return self.community.__str__()
 
     def save(self, *args, **kwargs):
         user = get_current_user()

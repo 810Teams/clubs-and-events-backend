@@ -24,7 +24,7 @@ class Announcement(models.Model):
                                    related_name='announcement_updated_by')
 
     def __str__(self):
-        return '"{}" - {}'.format(truncate(self.text, max_length=32), self.community.name_en)
+        return '"{}", {}'.format(truncate(self.text, max_length=32), self.community.name_en)
 
     def save(self, *args, **kwargs):
         user = get_current_user()
@@ -103,6 +103,9 @@ class AlbumImage(models.Model):
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='album_image_created_by')
 
+    def __str__(self):
+        return '{} ({})'.format(self.album.__str__(), self.id)
+
     def save(self, *args, **kwargs):
         user = get_current_user()
         if user is not None and user.id is None:
@@ -121,7 +124,7 @@ class Comment(models.Model):
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return '"{}" - {}'.format(truncate(self.text, max_length=32), self.written_by)
+        return '"{}", {}, {}'.format(truncate(self.text, max_length=32), self.written_by, self.event.__str__())
 
     def save(self, *args, **kwargs):
         user = get_current_user()
