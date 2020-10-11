@@ -24,7 +24,11 @@ The field `is_lecturer` is expected, if is `false`, it means that the user is st
 
 ### Create Clubs
 
-After the user clicked the create club button, redirect the user to the club creation page, with the form. After the user has filled all the required information and confirmed the club creation, call this API to create the club.
+After the user clicked the create club button, redirect the user to the club creation page, with the form. Within the form, call this API to retrieve club types as the choices for the user to pick.
+
+`GET api/category/club-type`
+
+After the user has filled all the required information and confirmed the club creation, call this API to create the club.
 
 `POST api/community/club`
 
@@ -59,7 +63,13 @@ If the user is not authenticated, any unapproved events and non-publicly visible
 
 ### Create Events
 
-Events can be created by both students and lecturers, so render the button if the user is authenticated. After the user clicked the create event button, redirect the user to the event creation page, with the form. After the user has filled all the required information and confirmed the event creation, call this API to create the event.
+Events can be created by both students and lecturers, so render the button if the user is authenticated. After the user clicked the create event button, redirect the user to the event creation page, with the form. Within the form, call these two API to retrieve the event types and event series as the choices for the user to pick.
+
+`GET api/category/event-type`
+
+`GET api/category/event-series`
+
+After the user has filled all the required information and confirmed the event creation, call this API to create the event.
 
 `POST api/community/event`
 

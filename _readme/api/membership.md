@@ -210,25 +210,31 @@
 - The position of the member that is going to be removed must be lower than own position.
 - If attempted on own membership, a status code `400` will be returned.
 
+## Default Membership Label
+
+### Retrieve Default Membership Labels
+
+`GET api/membership/membership/label/default`
+
 ## Custom Membership Label
 
 ### List Custom Membership Labels
 
-`GET api/membership/custom-label`
+`GET api/membership/membership/label/custom`
 
 - Token is optional.
 - If a token is present, custom membership labels of memberships in non-publicly visible communities will also be shown.
 
 ### Retrieve Custom Membership Label
 
-`GET api/membership/custom-label/{int}`
+`GET api/membership/membership/label/custom/{int}`
 
 - Token is optional.
 - If a token is present, custom membership labels of memberships in non-publicly visible communities will also be retrievable.
 
 ### Create Custom Membership Label
 
-`POST api/membership/custom-label`
+`POST api/membership/membership/label/custom`
 
 ```json
 {
@@ -243,9 +249,9 @@
 
 ### Update Custom Membership Label
 
-`PUT api/membership/custom-label/{int}`
+`PUT api/membership/membership/label/custom/{int}`
 
-`PATCH api/membership/custom-label/{int}`
+`PATCH api/membership/membership/label/custom/{int}`
 
 ```json
 {
@@ -259,10 +265,38 @@
 
 ### Delete Custom Membership Label
 
-`DELETE api/membership/custom-label/{int}`
+`DELETE api/membership/membership/label/custom/{int}`
 
 - Token is required.
 - Own position must be 2 or 3.
+
+## Membership Log
+
+### List Membership Logs
+
+`GET api/membership/membership/log`
+
+- Token is optional.
+- If a token is present, membership logs of memberships in non-publicly visible communities will also be shown.
+
+#### URL Parameters
+
+`user={int}`
+
+`community={int}`
+
+`exclude_current_memberships={boolean}`
+
+`position={int}`
+
+`status={string:A|R|L|X}`
+
+### Retrieve Membership Log
+
+`GET api/membership/membership/log/{int}`
+
+- Token is optional.
+- If a token is present, membership logs of memberships in non-publicly visible communities will also be retrievable.
 
 ## Advisory
 
@@ -296,34 +330,6 @@
 - If attempted to make non-lecturer an advisor, a status code `400` will be returned.
 - If attempted to make an overlapped advisory, a status code `400` will be returned.
 - If attempted to make a start date come before an end date, a status code `400` will be returned.
-
-## Membership Log
-
-### List Membership Logs
-
-`GET api/membership/membership/log`
-
-- Token is optional.
-- If a token is present, membership logs of memberships in non-publicly visible communities will also be shown.
-
-#### URL Parameters
-
-`user={int}`
-
-`community={int}`
-
-`exclude_current_memberships={boolean}`
-
-`position={int}`
-
-`status={string:A|R|L|X}`
-
-### Retrieve Membership Log
-
-`GET api/membership/membership/log/{int}`
-
-- Token is optional.
-- If a token is present, membership logs of memberships in non-publicly visible communities will also be retrievable.
 
 ## Approval Request
 

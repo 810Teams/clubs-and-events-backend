@@ -19,6 +19,8 @@
 
 `status={string}`
 
+`url_id={string}` will return a single item is found, otherwise, a status of `404`.
+
 ### Retrieve Club
 
 `GET api/community/club/{int}`
@@ -116,6 +118,8 @@ In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` 
 `is_cancelled={boolean}`
 
 `exclude_community_events={boolean}`
+
+`url_id={string}` will return a single item is found, otherwise, a status of `404`.
 
 ### Retrieve Event
 
@@ -226,6 +230,8 @@ In case of approved events, 2 additional fields can be used in `PUT` and `PATCH`
 
 `allows_outside_participators={boolean}`
 
+`url_id={string}` will return a single item is found, otherwise, a status of `404`.
+
 ### Retrieve Community Event
 
 `GET api/community/event/community/{int}`
@@ -314,6 +320,8 @@ In case of approved events, 2 additional fields can be used in `PUT` and `PATCH`
 `search={string}` to search for Thai name, English name, description, and tags.
 
 `status={string}`
+
+`url_id={string}` will return a single item is found, otherwise, a status of `404`.
 
 ### Retrieve Lab
 

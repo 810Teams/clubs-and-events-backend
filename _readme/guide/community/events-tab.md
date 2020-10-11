@@ -24,6 +24,14 @@ After retrieving the community data by one of these APIs, a field `own_membershi
 
 ### Create Community Event
 
+After the user has clicked the create community event button, display the form. Within the form, call these two API to retrieve the event types and event series as the choices for the user to pick.
+
+`GET api/category/event-type`
+
+`GET api/category/event-series`
+
+After the user has filled all the required information and confirmed the community event creation, call this API to create the community event.
+
 `POST api/community/event/community`
 
 ```json
