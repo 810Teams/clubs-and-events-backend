@@ -1,6 +1,8 @@
 from datetime import datetime
 
+from django.utils.translation import gettext as _
 from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from community.models import CommunityEvent, Community, Club, Event, Lab
@@ -417,3 +419,33 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
                 pass
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_membership_default_label(request):
+    return Response({
+        'club': {
+            '3': _('President'),
+            '2': _('Vice President'),
+            '1': _('Staff'),
+            '0': _('Member'),
+        },
+        'event': {
+            '3': _('President'),
+            '2': _('Vice President'),
+            '1': _('Staff'),
+            '0': _('Participator'),
+        },
+        'community_event': {
+            '3': _('Event Creator'),
+            '2': _('Event Co-Creator'),
+            '1': _('Staff'),
+            '0': _('Participator'),
+        },
+        'lab': {
+            '3': _('Lab Supervisor'),
+            '2': _('Lab Co-Supervisor'),
+            '1': _('Lab Helper'),
+            '0': _('Lab Member'),
+        }
+    })

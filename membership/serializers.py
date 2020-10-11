@@ -392,28 +392,59 @@ class MembershipLogSerializer(serializers.ModelSerializer):
     def get_log_text(self, obj):
         logs = MembershipLog.objects.filter(membership_id=obj.membership.id)
 
+        # Retrieve index of the membership log in queried log
         current = 0
         for i in range(len(logs)):
             if logs[i].id == obj.id:
                 current = i
                 break
 
-        if current == 0:
-            return _('{} has joined the community.'.format(obj.membership.user.name))
+        # Retrieve the community type
+        community_type = 'community'
+        try:
+            Club.objects.get(pk=obj.membership.community.id)
+            community_type = 'club'
+        except Club.DoesNotExist:
+            pass
 
+        try:
+            Event.objects.get(pk=obj.membership.community.id)
+            community_type = 'event'
+        except Event.DoesNotExist:
+            pass
+
+        try:
+            CommunityEvent.objects.get(pk=obj.membership.community.id)
+            community_type = 'community event'
+        except CommunityEvent.DoesNotExist:
+            pass
+
+        try:
+            Lab.objects.get(pk=obj.membership.community.id)
+            community_type = 'lab'
+        except Lab.DoesNotExist:
+            pass
+
+
+        # If the first log
+        if current == 0:
+            return _('{} has joined the {}.'.format(obj.membership.user.name, community_type))
+
+        # If not the first log, the difference is the status
         previous = current - 1
         if logs[previous].status != logs[current].status:
             if (logs[previous].status, logs[current].status) == ('R', 'A'):
                 return _('{} is back in duty.'.format(obj.membership.user.name))
             elif logs[current].status == 'A':
-                return _('{} has joined the community.'.format(obj.membership.user.name))
+                return _('{} has joined the {}.'.format(obj.membership.user.name, community_type))
             elif logs[current].status == 'R':
-                return _('{} has retired from the community.'.format(obj.membership.user.name))
+                return _('{} has retired from the {}.'.format(obj.membership.user.name, community_type))
             elif logs[current].status == 'L':
-                return _('{} has left the community.'.format(obj.membership.user.name))
+                return _('{} has left the {}.'.format(obj.membership.user.name, community_type))
             elif logs[current].status == 'X':
-                return _('{} is removed from the community.'.format(obj.membership.user.name))
+                return _('{} is removed from the {}.'.format(obj.membership.user.name, community_type))
 
+        # If not the first log, the difference is the position
         elif logs[previous].position != logs[current].position:
             if logs[current].position == 0:
                 return _('{} is demoted to member.'.format(obj.membership.user.name))
