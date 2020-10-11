@@ -200,17 +200,17 @@ class MembershipViewSet(viewsets.ModelViewSet):
             query = request.query_params.get('community_type')
             if query == 'club':
                 club_ids = [i.id for i in Club.objects.all()]
-                queryset = queryset.filter(community__in=club_ids)
+                queryset = queryset.filter(community_id__in=club_ids)
             elif query == 'event':
                 community_event_ids = [i.id for i in CommunityEvent.objects.all()]
-                event_ids = [i.id for i in Event.objects.all() if i not in community_event_ids]
-                queryset = queryset.filter(community__in=event_ids)
+                event_ids = [i.id for i in Event.objects.all() if i.id not in community_event_ids]
+                queryset = queryset.filter(community_id__in=event_ids)
             elif query == 'community_event':
                 community_event_ids = [i.id for i in CommunityEvent.objects.all()]
-                queryset = queryset.filter(community__in=community_event_ids)
+                queryset = queryset.filter(community_id__in=community_event_ids)
             elif query == 'lab':
                 lab_ids = [i.id for i in Lab.objects.all()]
-                queryset = queryset.filter(community__in=lab_ids)
+                queryset = queryset.filter(community_id__in=lab_ids)
         except ValueError:
             queryset = None
 

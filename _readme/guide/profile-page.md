@@ -50,9 +50,9 @@ Call these 4 APIs to retrieve all current memberships of the user.
 
 `GET api/membership/membership?user={int}&community_type=club&status=A`
 
-`GET api/membership/membership?user={int}&community_type=event&status=A&exclude_community_events=1`
+`GET api/membership/membership?user={int}&community_type=event&status=A`
 
-`GET api/membership/membership?user={int}&community_type=community-event&status=A`
+`GET api/membership/membership?user={int}&community_type=community_event&status=A`
 
 `GET api/membership/membership?user={int}&community_type=lab&status=A`
 

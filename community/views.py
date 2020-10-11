@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.response import Response
 
@@ -138,6 +139,10 @@ class EventViewSet(viewsets.ModelViewSet):
             user_id=request.user.id, position=3, community_id=obj.id,
             created_by_id=request.user.id, updated_by_id=request.user.id
         )
+
+        # Notification
+        users = get_user_model().objects.exclude(pk=request.user.id)
+        notify(users=users, obj=obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
