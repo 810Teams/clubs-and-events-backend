@@ -65,7 +65,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     def __str__(self):
-        return '{}'.format(self.username)
+        return self.username
 
     def save(self, *args, **kwargs):
         user = get_current_user()
