@@ -1,8 +1,6 @@
 from crum import get_current_user
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.translation import gettext as _
 
 from asset.models import Announcement
 from community.models import CommunityEvent, Event
@@ -14,8 +12,21 @@ class Notification(models.Model):
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='notification_created_by')
+    updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='notification_updated_by')
+
+    def save(self, *args, **kwargs):
+        user = get_current_user()
+        if user is not None and user.id is None:
+            user = None
+        if self.id is None:
+            self.created_by = user
+        self.updated_by = user
+
+        super(Notification, self).save(*args, **kwargs)
 
 
 class RequestNotification(Notification):

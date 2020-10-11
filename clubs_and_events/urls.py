@@ -1,4 +1,5 @@
-"""clubs_and_events URL Configuration
+'''
+clubs_and_events URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.1/topics/http/urls/
@@ -12,9 +13,11 @@ Class-based views
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+'''
+
 from django.contrib import admin
 from django.urls import path, include
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -22,5 +25,6 @@ urlpatterns = [
     path('api/category/', include('category.urls')),
     path('api/community/', include('community.urls')),
     path('api/membership/', include('membership.urls')),
+    path('api/notification/', include('notification.urls')),
     path('api/user/', include('user.urls')),
 ]

@@ -5,8 +5,8 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
-from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog, \
-    ApprovalRequest
+from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
+from membership.models import ApprovalRequest
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
