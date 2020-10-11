@@ -20,6 +20,7 @@ from membership.serializers import NotExistingApprovalRequestSerializer, Existin
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
+from notification.manager import notify
 from user.models import StudentCommitteeAuthority
 from user.permissions import IsStudentCommittee
 
@@ -83,6 +84,12 @@ class RequestViewSet(viewsets.ModelViewSet):
                                       created_by_id=request.user.id, updated_by_id=request.user.id)
         except (CommunityEvent.DoesNotExist, Membership.DoesNotExist):
             pass
+
+        # Notification
+        users = [i.user for i in Membership.objects.filter(
+            community_id=obj.community.id, position__in=(1, 2, 3), status='A'
+        )]
+        notify(users=users, obj=obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -353,6 +360,16 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+
+        # Notification
+        notify(users=[request.user], obj=obj)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class ApprovalRequestViewSet(viewsets.ModelViewSet):

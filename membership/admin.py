@@ -14,6 +14,8 @@ class RequestAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if obj is not None:
+            if obj.status != 'W':
+                return ('user', 'community', 'status') + self.readonly_fields
             return ('user', 'community') + self.readonly_fields
         return self.readonly_fields
 
@@ -23,6 +25,8 @@ class InvitationAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if obj is not None:
+            if obj.status != 'W':
+                return ('community', 'invitor', 'invitee', 'status') + self.readonly_fields
             return ('community', 'invitor', 'invitee') + self.readonly_fields
         return self.readonly_fields
 

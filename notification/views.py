@@ -1,4 +1,5 @@
 from rest_framework import permissions, viewsets
+from rest_framework.response import Response
 
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
@@ -13,6 +14,14 @@ class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     permission_classes = (permissions.IsAuthenticated, IsNotificationOwner)
     http_method_names = ('get', 'put', 'patch', 'delete', 'head', 'options')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        queryset = queryset.filter(user_id=request.user.id)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
 
 
 class RequestNotificationViewSet(NotificationViewSet):
