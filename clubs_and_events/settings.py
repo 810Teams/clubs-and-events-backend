@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'community',
     'core',
     'membership',
+    'notification',
     'user',
     'corsheaders',
 ]

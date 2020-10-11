@@ -9,16 +9,17 @@ class InvalidNotificationType(Exception):
     pass
 
 
-def notify(user, obj=None):
-    if isinstance(obj, Request):
-        RequestNotification.objects.create(user=user, request=obj)
-    elif isinstance(obj, MembershipLog):
-        MembershipLogNotification.objects.create(user=user, request=obj)
-    elif isinstance(obj, Announcement):
-        AnnouncementNotification.objects.create(user=user, request=obj)
-    elif isinstance(obj, CommunityEvent):
-        CommunityEventNotification.objects.create(user=user, request=obj)
-    elif isinstance(obj, Event):
-        EventNotification.objects.create(user=user, request=obj)
-    else:
-        raise InvalidNotificationType
+def notify(users, obj=None):
+    for i in users:
+        if isinstance(obj, Request):
+            RequestNotification.objects.create(user=i, request=obj)
+        elif isinstance(obj, MembershipLog):
+            MembershipLogNotification.objects.create(user=i, request=obj)
+        elif isinstance(obj, Announcement):
+            AnnouncementNotification.objects.create(user=i, request=obj)
+        elif isinstance(obj, CommunityEvent):
+            CommunityEventNotification.objects.create(user=i, request=obj)
+        elif isinstance(obj, Event):
+            EventNotification.objects.create(user=i, request=obj)
+        else:
+            raise InvalidNotificationType
