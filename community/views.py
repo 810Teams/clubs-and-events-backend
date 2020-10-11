@@ -49,8 +49,14 @@ class ClubViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='club_type', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='is_official', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
 
-        serializer = self.get_serializer(queryset, many=True)
+        if request.query_params.get('url_id') is not None and len(queryset) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        elif request.query_params.get('url_id') is not None and len(queryset) == 1:
+            serializer = self.get_serializer(queryset[0], many=False)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
 
@@ -111,8 +117,14 @@ class EventViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='event_series', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='is_approved', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='is_cancelled', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
 
-        serializer = self.get_serializer(queryset, many=True)
+        if request.query_params.get('url_id') is not None and len(queryset) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        elif request.query_params.get('url_id') is not None and len(queryset) == 1:
+            serializer = self.get_serializer(queryset[0], many=False)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
 
@@ -166,10 +178,15 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='is_approved', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='is_cancelled', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='created_under', is_foreign_key=True)
-        queryset = filter_queryset(queryset, request, target_param='allows_outside_participators',
-                                   is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='allows_outside_participators', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
 
-        serializer = self.get_serializer(queryset, many=True)
+        if request.query_params.get('url_id') is not None and len(queryset) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        elif request.query_params.get('url_id') is not None and len(queryset) == 1:
+            serializer = self.get_serializer(queryset[0], many=False)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
 
@@ -211,8 +228,14 @@ class LabViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(is_publicly_visible=True)
 
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
 
-        serializer = self.get_serializer(queryset, many=True)
+        if request.query_params.get('url_id') is not None and len(queryset) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        elif request.query_params.get('url_id') is not None and len(queryset) == 1:
+            serializer = self.get_serializer(queryset[0], many=False)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
 
