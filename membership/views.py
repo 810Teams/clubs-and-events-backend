@@ -101,13 +101,12 @@ class RequestViewSet(viewsets.ModelViewSet):
         # If the request is accepted, check for past membership to renew it. Otherwise, create a new one.
         if obj.status == 'A':
             try:
-                membership = Membership.objects.get(user_id=obj.invitee.id, community_id=obj.community.id)
+                membership = Membership.objects.get(user_id=obj.user.id, community_id=obj.community.id)
                 membership.position = 0
                 membership.status = 'A'
                 membership.save()
             except Membership.DoesNotExist:
-                Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
-                                          created_by_id=request.user.id, updated_by_id=request.user.id)
+                Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -166,8 +165,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
                 membership.status = 'A'
                 membership.save()
             except Membership.DoesNotExist:
-                Membership.objects.create(user_id=obj.invitee.id, position=0, community_id=obj.community.id,
-                                          created_by_id=request.user.id, updated_by_id=request.user.id)
+                Membership.objects.create(user_id=obj.invitee.id, community_id=obj.community.id)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
