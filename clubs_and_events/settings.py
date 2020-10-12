@@ -12,8 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 
-from core.utils import load_key
-
+from core.loader import load_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -98,7 +97,7 @@ DATABASES = {
         'USER': load_key('KEY_DB.txt', many=True, decrypt=True)[1],
         'PASSWORD': load_key('KEY_DB.txt', many=True, decrypt=True)[2],
         'HOST': load_key('KEY_DB.txt', many=True, decrypt=True)[3],
-        'PORT': '3306',
+        'PORT': '3306'
     }
 }
 
@@ -163,7 +162,7 @@ REST_FRAMEWORK = {
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'community.it.kmitl@gmail.com'
-EMAIL_HOST_PASSWORD = load_key('KEY_DB.txt', decrypt=True),
+EMAIL_HOST_PASSWORD = load_key('KEY_EMAIL.txt', decrypt=True)
 EMAIL_USE_TLS = True
 
 

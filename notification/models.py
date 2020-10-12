@@ -41,7 +41,7 @@ class RequestNotification(Notification):
 
 
 class MembershipLogNotification(Notification):
-    ''' Notification when someone joined the community '''
+    ''' Notification when someone joined the community or someone removed you from the community '''
     membership_log = models.ForeignKey(MembershipLog, on_delete=models.CASCADE)
 
     def __str__(self):
