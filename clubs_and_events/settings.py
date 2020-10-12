@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 
+from core.utils import load_key
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = list(open('KEY_SECRET.txt'))[0].replace('\n', ''),
+SECRET_KEY = load_key('KEY_SECRET.txt', decrypt=True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -91,10 +94,10 @@ WSGI_APPLICATION = 'clubs_and_events.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': list(open('KEY_DB.txt'))[0].replace('\n', ''),
-        'USER': list(open('KEY_DB.txt'))[1].replace('\n', ''),
-        'PASSWORD': list(open('KEY_DB.txt'))[2].replace('\n', ''),
-        'HOST': list(open('KEY_DB.txt'))[3].replace('\n', ''),
+        'NAME': load_key('KEY_DB.txt', many=True, decrypt=True)[0],
+        'USER': load_key('KEY_DB.txt', many=True, decrypt=True)[1],
+        'PASSWORD': load_key('KEY_DB.txt', many=True, decrypt=True)[2],
+        'HOST': load_key('KEY_DB.txt', many=True, decrypt=True)[3],
         'PORT': '3306',
     }
 }
@@ -153,6 +156,15 @@ REST_FRAMEWORK = {
     #     'rest_framework.authentication.TokenAuthentication'
     # ]
 }
+
+
+# Email Settings
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'community.it.kmitl@gmail.com'
+EMAIL_HOST_PASSWORD = load_key('KEY_DB.txt', decrypt=True),
+EMAIL_USE_TLS = True
 
 
 # Custom Settings
