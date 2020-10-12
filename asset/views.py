@@ -10,7 +10,7 @@ from community.models import Community, Event
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity
 from core.utils import filter_queryset, limit_queryset
 from membership.models import Membership
-from notification.manager import notify
+from notification.notifier import notify
 
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
