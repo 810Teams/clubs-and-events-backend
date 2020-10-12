@@ -70,8 +70,8 @@ class IsAbleToViewInvitationList(permissions.BasePermission):
 class IsAbleToUpdateMembership(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Membership
-        # Prerequisite 1: Memberships with a status of 'L' or 'R' are not able to be updated
-        if obj.status in ('L', 'R'):
+        # Prerequisite 1: Memberships with a status of 'L' or 'X' are not able to be updated
+        if obj.status in ('L', 'X'):
             return False
 
         # Prerequisite 2: Memberships with a position of 3 are not able to be updated
