@@ -26,27 +26,27 @@ class StudentCommitteeAuthorityInline(admin.StackedInline):
 
 
 class UserAdmin(BaseUserAdmin):
-    list_display = ('id', 'username', 'name', 'email', 'is_lecturer', 'is_active', 'is_staff', 'is_superuser')
+    list_display = ('id', 'username', 'name', 'is_lecturer', 'is_active', 'is_staff', 'is_superuser')
     inlines = (EmailPreferenceInline, StudentCommitteeAuthorityInline)
     readonly_fields = ('last_login', 'created_at', 'created_by', 'updated_at', 'updated_by')
 
     fieldsets = (
-        (None, {'fields': ('username', 'name', 'email', 'password')}),
+        (None, {'fields': ('username', 'name', 'password')}),
         (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
         (_('Timestamps'), {'fields': ('last_login', 'created_at', 'created_by', 'updated_at', 'updated_by')}),
         (_('Permissions'), {'fields': ('is_lecturer', 'is_active', 'is_staff', 'is_superuser', 'groups')}),
     )
 
     add_fieldsets = (
-        (None, {'fields': ('username', 'name', 'email', 'password1', 'password2')}),
+        (None, {'fields': ('username', 'name', 'password1', 'password2')}),
         (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
         (_('Permissions'), {'fields': ('is_lecturer', 'is_active', 'is_staff', 'is_superuser', 'groups')}),
     )
 
 
 class EmailPreferenceAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'name', 'receive_own_club', 'receive_own_event', 'receive_own_lab',
-                    'receive_other_events')
+    list_display = ('id', 'user', 'name', 'receive_request', 'receive_announcement', 'receive_community_event',
+                    'receive_event')
 
     def get_readonly_fields(self, request, obj=None):
         if obj is not None:

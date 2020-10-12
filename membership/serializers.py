@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
+from core.utils import get_previous_membership_log
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 
@@ -368,8 +369,6 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
 class MembershipLogSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     community = serializers.SerializerMethodField()
-    community_name_th = serializers.SerializerMethodField()
-    community_name_en = serializers.SerializerMethodField()
     log_text = serializers.SerializerMethodField()
 
     class Meta:
@@ -383,21 +382,9 @@ class MembershipLogSerializer(serializers.ModelSerializer):
     def get_community(self, obj):
         return obj.membership.community.id
 
-    def get_community_name_th(self, obj):
-        return obj.membership.community.name_th
-
-    def get_community_name_en(self, obj):
-        return obj.membership.community.name_en
-
     def get_log_text(self, obj):
-        logs = MembershipLog.objects.filter(membership_id=obj.membership.id)
-
-        # Retrieve index of the membership log in queried log
-        current = 0
-        for i in range(len(logs)):
-            if logs[i].id == obj.id:
-                current = i
-                break
+        current = obj
+        previous = get_previous_membership_log(current)
 
         # Retrieve the community type
         community_type = 'community'
@@ -425,39 +412,37 @@ class MembershipLogSerializer(serializers.ModelSerializer):
         except Lab.DoesNotExist:
             pass
 
-
         # If the first log
-        if current == 0:
+        if previous is None:
             return _('{} has joined the {}.'.format(obj.membership.user.name, community_type))
 
         # If not the first log, the difference is the status
-        previous = current - 1
-        if logs[previous].status != logs[current].status:
-            if (logs[previous].status, logs[current].status) == ('R', 'A'):
+        if previous.status != current.status:
+            if (previous.status, current.status) == ('R', 'A'):
                 return _('{} is back in duty.'.format(obj.membership.user.name))
-            elif logs[current].status == 'A':
+            elif current.status == 'A':
                 return _('{} has joined the {}.'.format(obj.membership.user.name, community_type))
-            elif logs[current].status == 'R':
+            elif current.status == 'R':
                 return _('{} has retired from the {}.'.format(obj.membership.user.name, community_type))
-            elif logs[current].status == 'L':
+            elif current.status == 'L':
                 return _('{} has left the {}.'.format(obj.membership.user.name, community_type))
-            elif logs[current].status == 'X':
+            elif current.status == 'X':
                 return _('{} is removed from the {}.'.format(obj.membership.user.name, community_type))
 
         # If not the first log, the difference is the position
-        elif logs[previous].position != logs[current].position:
-            if logs[current].position == 0:
-                return _('{} is demoted to member.'.format(obj.membership.user.name))
-            elif logs[previous].position > logs[current].position and logs[current].position == 1:
-                return _('{} is demoted to staff.'.format(obj.membership.user.name))
-            elif logs[previous].position < logs[current].position and logs[current].position == 1:
-                return _('{} is promoted to staff.'.format(obj.membership.user.name))
-            elif logs[previous].position > logs[current].position and logs[current].position == 2:
+        elif previous.position != current.position:
+            if current.position == 0:
+                return _('{} is demoted to member by {}.'.format(obj.membership.user.name, obj.updated_by.name))
+            elif previous.position > current.position and current.position == 1:
+                return _('{} is demoted to staff by {}.'.format(obj.membership.user.name, obj.updated_by.name))
+            elif previous.position < current.position and current.position == 1:
+                return _('{} is promoted to staff by {}.'.format(obj.membership.user.name, obj.updated_by.name))
+            elif previous.position > current.position and current.position == 2:
                 return _('{} is demoted to deputy leader.'.format(obj.membership.user.name))
-            elif logs[previous].position < logs[current].position and logs[current].position == 2:
-                return _('{} is promoted to deputy leader.'.format(obj.membership.user.name))
-            elif logs[current].position == 3:
-                return _('{} is promoted to leader.'.format(obj.membership.user.name))
+            elif previous.position < current.position and current.position == 2:
+                return _('{} is promoted to deputy leader by {}.'.format(obj.membership.user.name, obj.updated_by.name))
+            elif current.position == 3:
+                return _('{} is promoted to leader by {}.'.format(obj.membership.user.name, obj.updated_by.name))
 
         return None
 

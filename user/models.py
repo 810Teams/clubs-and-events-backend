@@ -35,12 +35,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         file_extension = file_name.split('.')[1]
         return '{}/user/{}/cover_photo.{}'.format(STORAGE_BASE_DIR, self.username, file_extension)
 
-    # Credentials
+    # Personal Information
     username = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=255, null=True, blank=True)
-    email = models.CharField(max_length=255, unique=True, null=True, blank=True)
-
-    # Personal Information
     nickname = models.CharField(max_length=32, null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
     profile_picture = models.ImageField(null=True, blank=True, upload_to=get_profile_picture_path)
@@ -77,25 +74,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         super(User, self).save(*args, **kwargs)
 
-    def clean(self):
-        errors = list()
-
-        if self.email is not None:
-            try:
-                validate_email(self.email, check_deliverability=False)
-            except EmailNotValidError:
-                errors.append(ValidationError(_('Invalid email.'), code='invalid_email'))
-
-        if len(errors) > 0:
-            raise ValidationError(errors)
-
 
 class EmailPreference(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
-    receive_own_club = models.BooleanField(default=True)
-    receive_own_event = models.BooleanField(default=True)
-    receive_own_lab = models.BooleanField(default=True)
-    receive_other_events = models.BooleanField(default=True)
+    receive_request = models.BooleanField(default=True)
+    receive_announcement = models.BooleanField(default=True)
+    receive_community_event = models.BooleanField(default=True)
+    receive_event = models.BooleanField(default=True)
 
     def __str__(self):
         return '{}'.format(self.user.username)
