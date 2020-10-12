@@ -13,7 +13,7 @@ from community.serializers import LabSerializer
 from core.permissions import IsLeaderOfCommunity, IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
 from membership.models import Membership
-from notification.manager import notify
+from notification.notifier import notify
 from user.permissions import IsStudent, IsLecturer
 
 

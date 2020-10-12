@@ -20,7 +20,7 @@ from membership.serializers import NotExistingApprovalRequestSerializer, Existin
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
-from notification.manager import notify
+from notification.notifier import notify
 from user.models import StudentCommitteeAuthority
 from user.permissions import IsStudentCommittee
 
