@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'category',
     'community',
     'core',
+    'generator',
     'membership',
     'notification',
     'user',

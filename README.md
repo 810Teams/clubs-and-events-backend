@@ -20,11 +20,13 @@ Documentation on API endpoints can be viewed in each markdown file below.
 
 3. [Community Application](_readme/api/community.md)
 
-4. [Membership Application](_readme/api/membership.md)
+4. [Generator Application](_readme/api/generator.md)
 
-5. [Notification Application](_readme/api/notification.md)
+5. [Membership Application](_readme/api/membership.md)
 
-6. [User Application](_readme/api/user.md)
+6. [Notification Application](_readme/api/notification.md)
+
+7. [User Application](_readme/api/user.md)
 
 ## Design Guide
 Documentation on designing guides can be viewed in each markdown file below.
@@ -50,6 +52,8 @@ Documentation on designing guides can be viewed in each markdown file below.
     - [Members Tab](_readme/guide/community/members-tab.md)
 
     - [Requests Tab](_readme/guide/community/requests-tab.md)
+    
+    - [QR Codes Tab](_readme/guide/community/qr-codes-tab.md)
 
 4. [Invitations Bar](_readme/guide/invitations-bar.md)
 
