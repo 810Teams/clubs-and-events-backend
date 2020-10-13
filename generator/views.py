@@ -12,7 +12,7 @@ from membership.models import Membership
 
 class QRCodeViewSet(viewsets.ModelViewSet):
     queryset = QRCode.objects.all()
-    http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+    http_method_names = ('get', 'post', 'delete', 'head', 'options')
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -20,8 +20,6 @@ class QRCodeViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'POST':
             # Includes IsDeputyLeaderOfCommunity() in validate() of the serializer
             return (permissions.IsAuthenticated(),)
-        elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
         return tuple()
@@ -37,7 +35,7 @@ class QRCodeViewSet(viewsets.ModelViewSet):
         visible_ids = [i.community.id for i in Membership.objects.filter(user_id=request.user.id, status='A')]
         queryset = queryset.filter(community_id__in=visible_ids)
 
-        queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='event', is_foreign_key=True)
 
         serializer = self.get_serializer(queryset, many=True)
 

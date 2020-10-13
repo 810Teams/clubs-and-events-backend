@@ -19,7 +19,7 @@ class QRCode(models.Model):
 
     url = models.CharField(max_length=255)
     image = models.ImageField(upload_to=get_image_path, blank=True)
-    community = models.ForeignKey(Community, on_delete=models.SET_NULL, null=True, blank=True)
+    event = models.OneToOneField(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='qr_code_created_by')
@@ -47,7 +47,7 @@ class QRCode(models.Model):
 
 class JoinKey(models.Model):
     key = models.CharField(max_length=64, unique=True)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    event = models.OneToOneField(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='join_key_created_by')

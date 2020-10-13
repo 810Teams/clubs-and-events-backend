@@ -22,7 +22,7 @@ class ExistingQRCodeSerializer(QRCodeSerializer):
     class Meta:
         model = QRCode
         fields = '__all__'
-        read_only_fields = ('image', 'community', 'created_by')
+        read_only_fields = ('url', 'image', 'community', 'created_by')
 
 
 class NotExistingQRCodeSerializer(QRCodeSerializer):
