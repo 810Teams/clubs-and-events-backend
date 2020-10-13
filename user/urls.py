@@ -1,8 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from user.views import UserViewSet, LoginAPIView, EmailPreferenceViewSet, MyUserView, MyEmailPreferenceView, \
-    MyStudentCommitteeAuthorityView
+from user.views import UserViewSet, LoginAPIView, EmailPreferenceViewSet, MyUserView, MyEmailPreferenceView
+from user.views import MyStudentCommitteeAuthorityView
 from user.views import StudentCommitteeAuthorityViewSet
 
 
