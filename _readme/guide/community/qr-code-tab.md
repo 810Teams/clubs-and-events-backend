@@ -1,6 +1,6 @@
-# Design Guide - Community Page (QR Codes Tab)
+# Design Guide - Community Page (QR Code Tab)
 
-## QR Codes Tab
+## QR Code Tab
 
 The QR code tab is the 6th tab next to the requests tab. Members can view the QR code in this tab, while deputy leaders can create or delete it. This tab only exists in the events and community events. 
 

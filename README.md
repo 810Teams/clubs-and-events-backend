@@ -53,7 +53,7 @@ Documentation on designing guides can be viewed in each markdown file below.
 
     - [Requests Tab](_readme/guide/community/requests-tab.md)
     
-    - [QR Codes Tab](_readme/guide/community/qr-codes-tab.md)
+    - [QR Code Tab](_readme/guide/community/qr-code-tab.md)
 
 4. [Invitations Bar](_readme/guide/invitations-bar.md)
 
