@@ -55,13 +55,10 @@ class JoinKey(models.Model):
     def clean(self):
         errors = list()
 
-        valid_char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-        for i in self.key:
-            if i not in valid_char:
-                errors.append(ValidationError(
-                    _('Join keys must only contain alphabetical characters and numbers.'),
-                    code='invalid_join_key'
-                ))
+        if not self.key.isalnum():
+            errors.append(ValidationError(
+                _('Join keys must only contain alphabetical characters and numbers.'), code='invalid_join_key'
+            ))
 
         if len(errors) > 0:
             raise ValidationError(errors)

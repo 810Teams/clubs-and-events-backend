@@ -69,12 +69,9 @@ class NotExistingJoinKeySerializer(serializers.ModelSerializer):
                 code='permission_denied'
             )
 
-        valid_char = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-        for i in data['key']:
-            if i not in valid_char:
-                raise serializers.ValidationError(
-                    _('Join keys must only contain alphabetical characters and numbers.'),
-                    code='invalid_join_key'
-                )
+        if not data['key'].isalnum():
+            raise serializers.ValidationError(
+                _('Join keys must only contain alphabetical characters and numbers.'), code='invalid_join_key'
+            )
 
         return data
