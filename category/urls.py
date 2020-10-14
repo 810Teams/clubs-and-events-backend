@@ -4,9 +4,9 @@ from rest_framework.routers import DefaultRouter
 from category.views import ClubTypeViewSet, EventTypeViewSet, EventSeriesViewSet
 
 router = DefaultRouter()
-router.register('type/club', ClubTypeViewSet)
-router.register('type/event', EventTypeViewSet)
-router.register('series/event', EventSeriesViewSet)
+router.register('club-type', ClubTypeViewSet)
+router.register('event-type', EventTypeViewSet)
+router.register('event-series', EventSeriesViewSet)
 
 urlpatterns = [
     path('', include(router.urls))
