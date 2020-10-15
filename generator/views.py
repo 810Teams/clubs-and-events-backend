@@ -85,21 +85,31 @@ def generate_join_key(request):
     query = request.query_params.get('length')
     if query is not None:
         length = int(query)
+
+        if length < 8 or length > 64:
+            return Response({
+                 'details': 'The length of the join key must be at least 8 characters but not more than 64 characters.'
+            }, status=status.HTTP_400_BAD_REQUEST)
     else:
         length = 32
 
     while True:
+        join_key = ''.join(random.choice(letters) for _ in range(length))
         try:
-            join_key = ''.join(random.choice(letters) for i in range(length))
             JoinKey.objects.get(key=join_key)
         except JoinKey.DoesNotExist:
-            return Response({'key': join_key})
+            return Response({'key': join_key}, status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
-def use_join_key(request, key):
+@api_view(['POST'])
+def use_join_key(request):
     if not request.user.is_authenticated:
         return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
+
+    try:
+        key = request.data['key']
+    except KeyError:
+        return Response({'detail': 'Join key was not provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         join_key = JoinKey.objects.get(key=key)
@@ -114,10 +124,10 @@ def use_join_key(request, key):
             membership.status = 'A'
             membership.save()
 
-            return Response({'detail': 'Join successful.'}, status=status.HTTP_200_OK)
+            return Response({'detail': 'Joined successful.'}, status=status.HTTP_200_OK)
         except Membership.DoesNotExist:
             Membership.objects.create(user_id=request.user.id, community_id=join_key.event.id)
-            return Response({'detail': 'Join successful.'}, status=status.HTTP_200_OK)
+            return Response({'detail': 'Joined successful.'}, status=status.HTTP_200_OK)
 
     except JoinKey.DoesNotExist:
         return Response({'detail': 'Invalid join key.'}, status=status.HTTP_404_NOT_FOUND)

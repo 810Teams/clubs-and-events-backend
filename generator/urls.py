@@ -10,6 +10,6 @@ router.register('join-key', JoinKeyViewSet)
 
 urlpatterns = [
     path('join-key/generate', generate_join_key),
-    path('join-key/use/<str:key>', use_join_key),
+    path('join-key/use', use_join_key),
     path('', include(router.urls))
 ]
