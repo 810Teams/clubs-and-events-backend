@@ -63,9 +63,15 @@ class ExistingCommunitySerializerTemplate(serializers.ModelSerializer):
                 if membership.status == 'R':
                     actions.append('active')
 
-            # If the user is the leader, the user can delete the community.
+            # If the user is the leader...
             if membership.position == 3 or (base_membership is not None and base_membership.position == 3):
-                actions.append('delete')
+                # If the community is available for deletion.
+                if isinstance(obj, Club) and not obj.is_official:
+                    actions.append('delete')
+                elif (isinstance(obj, Event) and not obj.is_approved) or isinstance(obj, CommunityEvent):
+                    actions.append('delete')
+                elif isinstance(obj, Lab):
+                    actions.append('delete')
 
                 # If the object is unofficial club, check for actions related to approval requests.
                 if isinstance(obj, Club) and not obj.is_official:
