@@ -9,7 +9,7 @@ from community.models import Club, CommunityEvent, Community
 from core.utils import filter_queryset
 from membership.models import Membership, Invitation, Request
 from user.models import EmailPreference, StudentCommitteeAuthority
-from user.permissions import IsProfileOwner
+from user.permissions import IsProfileOwner, IsEmailPreferenceOwner
 from user.serializers import UserSerializer, LimitedUserSerializer, EmailPreferenceSerializer
 from user.serializers import StudentCommitteeAuthoritySerializer
 
@@ -102,7 +102,7 @@ class LoginAPIView(ObtainAuthToken):
 
 class EmailPreferenceViewSet(viewsets.ModelViewSet):
     queryset = EmailPreference.objects.all()
-    permission_classes = (permissions.IsAuthenticated, IsProfileOwner)
+    permission_classes = (permissions.IsAuthenticated, IsEmailPreferenceOwner)
     serializer_class = EmailPreferenceSerializer
     http_method_names = ('get', 'put', 'patch', 'head', 'options')
 
