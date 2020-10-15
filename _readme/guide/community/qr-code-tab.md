@@ -27,7 +27,11 @@ The field `own_membership_position` is expected, if at least `2`, and the [previ
 
 ### Create QR Code
 
-First, create a join key.
+First, generate a random string to use as a join key by calling this API. The default length is 32.
+
+`GET api/generator/join-key/generate`
+
+Next, use the generated string that was just generated to create a join key.
 
 `POST api/generator/join-key`
 
@@ -53,7 +57,19 @@ Then, create the QR code.
 
 The URL and the event must be auto. The URL must be the URL that activates the join key, meaning, the join key must be embedded in the URL.
 
-For example, if the key is `ABCDEfghijk01234`, the URL should be something like `https://community.it.kmitl.ac.th/join/ABCDEfghijk01234` or `https://community.it.kmitl.ac.th/join?key=ABCDEfghijk01234`.
+For example, if the key is `UwD3hIolrTAgKV62`, the URL that will be used to generate the QR code should be something like `https://community.it.kmitl.ac.th/join/UwD3hIolrTAgKV62` or `https://community.it.kmitl.ac.th/join?key=UwD3hIolrTAgKV62`.
+
+### Using the Join Key
+
+Upon the user calls one of these two URLs, whether via QR code or pasting the URL directly, the front-side must retrieve the key from the URL, then call this API with the key sent as data.
+
+`POST api/generator/join-key/use`
+
+```json
+{
+    "key": "string"
+}
+```
 
 ### Rendering Delete and Regenerate QR Code Button
 
