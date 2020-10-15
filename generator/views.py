@@ -9,6 +9,8 @@ from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSer
 from generator.serializers import ExistingJoinKeySerializer, NotExistingJoinKeySerializer
 from membership.models import Membership
 
+import random
+
 
 class QRCodeViewSet(viewsets.ModelViewSet):
     queryset = QRCode.objects.all()
@@ -74,6 +76,24 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+def generate_join_key(request):
+    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+
+    query = request.query_params.get('length')
+    if query is not None:
+        length = int(query)
+    else:
+        length = 32
+
+    while True:
+        try:
+            join_key = ''.join(random.choice(letters) for i in range(length))
+            JoinKey.objects.get(key=join_key)
+        except JoinKey.DoesNotExist:
+            return Response({'key': join_key})
 
 
 @api_view(['GET'])
