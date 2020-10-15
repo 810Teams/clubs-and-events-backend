@@ -12,12 +12,12 @@ First of all, call this API to retrieve QR code.
 
 The `{int}` is the ID of the community.
 
-- If it returns an empty list, proceed to the next step.
-- If it returns a list with a single item, display it.
+- If it returns an empty list, render the [create QR code button](#rendering-create-qr-code-button).
+- If it returns a list with a single item, display it, and render the [delete and regenerate QR code buttons](#rendering-delete-and-regenerate-qr-code-buttons).
 
 ### Rendering Create QR Code Button
 
-Based on the event type, call one of these APIs.
+The create QR code buttom must be rendered if the event currently does not have an existing QR code. Based on the event type, call one of these APIs.
 
 `GET api/community/event/{int}`
 
@@ -71,9 +71,9 @@ Upon the user calls one of these two URLs, whether via QR code or pasting the UR
 }
 ```
 
-### Rendering Delete and Regenerate QR Code Button
+### Rendering Delete and Regenerate QR Code Buttons
 
-Based on the event type, call one of these APIs.
+The delete and regenerate QR code buttons are always together. These 2 buttons must be rendered if the event currently has an existing QR code. Based on the event type, call one of these APIs.
 
 `GET api/community/event/{int}`
 
