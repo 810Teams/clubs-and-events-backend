@@ -20,7 +20,6 @@ class QRCodeViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (permissions.IsAuthenticated(), IsMemberOfCommunity())
         elif self.request.method == 'POST':
-            # Includes IsDeputyLeaderOfCommunity() in validate() of the serializer
             return (permissions.IsAuthenticated(),)
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
@@ -52,7 +51,6 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (permissions.IsAuthenticated(), IsMemberOfCommunity())
         elif self.request.method == 'POST':
-            # Includes IsDeputyLeaderOfCommunity() in validate() of the serializer
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
@@ -117,7 +115,7 @@ def use_join_key(request):
         try:
             membership = Membership.objects.get(user_id=request.user.id, community_id=join_key.event.id)
 
-            if membership.status == 'A':
+            if IsMemberOfCommunity().has_object_permission(request, None, membership):
                 return Response({'detail': 'Already a member.'}, status=status.HTTP_400_BAD_REQUEST)
 
             membership.position = 0
