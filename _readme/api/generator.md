@@ -85,3 +85,26 @@
 
 - Token is required.
 - The current user must be a deputy leader of the event that the join key in created in.
+
+### Generate Join Key
+
+`GET api/generator/join-key/generate`
+
+#### URL Parameters
+
+`length={int}` must be an integer from 8 to 64, by leaving blank, 32 will be used as default.
+
+### Use Join Key
+
+`POST api/generator/join-key/use`
+
+```json
+{
+    "key": "string"
+}
+```
+
+- Token is required.
+- If the join key is not provided, a status code of `400` will be returned.
+- If the user is already a member, a status code of `400` will be returned.
+- If the join key does not exist, a status code of `404` will be returned.
