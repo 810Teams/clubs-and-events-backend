@@ -8,6 +8,8 @@ from community.models import Community, CommunityEvent, Club, Lab, Event
 from core.utils import get_previous_membership_log
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
+from membership.permissions import IsAbleToDeleteInvitation
+from user.permissions import IsLecturer
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
@@ -36,15 +38,10 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
         user_id = self.context['request'].user.id
 
         # Case 1: Lecturer trying to request to join the club
-        try:
-            Club.objects.get(pk=community_id)
-            if self.context['request'].user.is_lecturer:
-                raise serializers.ValidationError(
-                    _('Requests are not able to be made to the club by a lecturer.'),
-                    code='lecturer_limits'
-                )
-        except Club.DoesNotExist:
-            pass
+        if IsLecturer().has_permission(self.context['request'], None):
+            raise serializers.ValidationError(
+                _('Requests are not able to be made to the club by a lecturer.'), code='lecturer_limits'
+            )
 
         # Case 2: Community does not accept requests
         community = Community.objects.get(pk=community_id)
@@ -109,24 +106,12 @@ class ExistingInvitationSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['status'] == 'W':
             raise serializers.ValidationError(
-                _('Invitation statuses are not able to be updated to waiting.'),
-                code='invitation_status_error'
+                _('Invitation statuses are not able to be updated to waiting.'), code='invitation_status_error'
             )
         return data
 
     def get_is_able_to_cancel(self, obj):
-        if obj.status != 'W':
-            return False
-        if self.context['request'].user.id == obj.invitor:
-            return True
-
-        try:
-            Membership.objects.get(
-                user=self.context['request'].user.id, community_id=obj.community.id, status='A', position__in=(2, 3)
-            )
-            return True
-        except Membership.DoesNotExist:
-            return False
+        return IsAbleToDeleteInvitation().has_object_permission(self.context['request'], None, obj)
 
 
 class NotExistingInvitationSerializer(serializers.ModelSerializer):
@@ -232,8 +217,7 @@ class MembershipSerializer(serializers.ModelSerializer):
         # Validation
         if position['new'] not in (0, 1, 2, 3):
             raise serializers.ValidationError(
-                _('Membership position must be a number from 0 to 3.'),
-                code='membership_error'
+                _('Membership position must be a number from 0 to 3.'), code='membership_error'
             )
 
         # Case 1: Leaving and Retiring
@@ -457,18 +441,12 @@ class AdvisorySerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if not data['advisor'].is_lecturer:
-            raise serializers.ValidationError(
-                _('Advisor must be a lecturer.'),
-                code='invalid_advisor'
-            )
+            raise serializers.ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor')
 
         advisors = Advisory.objects.filter(advisor_id=data['advisor'].id)
         for i in advisors:
             if data['start_date'] <= i.end_date or i.start_date <= data['end_date']:
-                raise serializers.ValidationError(
-                    _('Advisory time overlapped.'),
-                    code='advisory_overlap'
-                )
+                raise serializers.ValidationError(_('Advisory time overlapped.'), code='advisory_overlap')
 
         return data
 

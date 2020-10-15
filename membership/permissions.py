@@ -1,75 +1,53 @@
-from datetime import datetime
-
 from rest_framework import permissions
 
-from membership.models import Membership
-from user.models import StudentCommitteeAuthority
+from core.permissions import IsStaffOfCommunity, IsMemberOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
+from user.permissions import IsStudentCommittee
 
 
-class IsRequestOwner(permissions.BasePermission):
+class IsAbleToRetrieveRequest(permissions.BasePermission):
+    ''' Main permission of GET request of Request '''
     def has_object_permission(self, request, view, obj):
-        # Object class: Request
-        return request.user.id == obj.user.id
+        return IsMemberOfCommunity().has_object_permission(request, view, obj) and request.user.id == obj.user.id
 
 
-class IsWaitingRequest(permissions.BasePermission):
+class IsAbleToUpdateRequest(permissions.BasePermission):
+    ''' Main permission of PUT, PATCH request of Request '''
     def has_object_permission(self, request, view, obj):
-        # Object class: Request
-        return obj.status == 'W'
+        return IsStaffOfCommunity().has_object_permission(request, view, obj) and obj.status == 'W'
 
 
-class IsAbleToViewRequestList(permissions.BasePermission):
+class IsAbleToDeleteRequest(permissions.BasePermission):
+    ''' Main permission of DELETE request of Request '''
     def has_object_permission(self, request, view, obj):
-        # Object class: Request
-        # Condition: If is membership of the community or is the sender of the request
-        membership = Membership.objects.filter(
-            user_id=request.user.id, community_id=obj.community.id, status__in=('A', 'R')
-        )
-        return len(membership) == 1 or request.user.id == obj.user.id
+        return request.user.id == obj.user.id and obj.status == 'W'
 
 
-class IsAbleToCancelInvitation(permissions.BasePermission):
+class IsAbleToRetrieveInvitation(permissions.BasePermission):
+    ''' Main permission of GET request of Invitation '''
     def has_object_permission(self, request, view, obj):
-        # Object class: Invitation
+        return IsMemberOfCommunity().has_object_permission(request, view, obj) and request.user.id == obj.invitee.id
+
+
+class IsAbleToUpdateInvitation(permissions.BasePermission):
+    ''' Main permission of PUT, PATCH request of Invitation '''
+    def has_object_permission(self, request, view, obj):
+        return request.user.id == obj.invitee.id and obj.status == 'W'
+
+
+class IsAbleToDeleteInvitation(permissions.BasePermission):
+    ''' Main permission of DELETE request of Invitation '''
+    def has_object_permission(self, request, view, obj):
         if obj.status != 'W':
             return False
         if request.user.id == obj.invitor:
             return True
 
-        try:
-            Membership.objects.get(
-                user=request.user.id, community_id=obj.community.id, status='A', position__in=(2, 3)
-            )
-            return True
-        except Membership.DoesNotExist:
-            return False
-
-
-class IsInvitationInvitee(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        # Object class: Invitation
-        return request.user.id == obj.invitee.id
-
-
-class IsWaitingInvitation(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        # Object class: Invitation
-        return obj.status == 'W'
-
-
-class IsAbleToViewInvitationList(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        # Object class: Invitation
-        # Condition: If is membership of the community or is the invitee of the invitation
-        membership = Membership.objects.filter(
-            user_id=request.user.id, community_id=obj.community.id, status__in=('A', 'R')
-        )
-        return len(membership) == 1 or request.user.id == obj.invitee.id
+        return IsDeputyLeaderOfCommunity().has_object_permission(request, view, obj)
 
 
 class IsAbleToUpdateMembership(permissions.BasePermission):
+    ''' Main permission of PUT, PATCH request of Membership '''
     def has_object_permission(self, request, view, obj):
-        # Object class: Membership
         # Prerequisite 1: Memberships with a status of 'L' or 'X' are not able to be updated
         if obj.status in ('L', 'X'):
             return False
@@ -83,39 +61,32 @@ class IsAbleToUpdateMembership(permissions.BasePermission):
 
         # Case 2: Member removal and position assignation, must be done by an active deputy leader of the community,
         #         and not be done on memberships with position equal to yourself.
-        own_membership = Membership.objects.filter(
-            user_id=request.user.id, community_id=obj.community.id, position__in=(2, 3), status='A'
-        )
-        is_deputy_leader_of_that_community = len(own_membership) == 1 and own_membership[0].position > obj.position
+        is_deputy_leader_of_that_community = IsDeputyLeaderOfCommunity().has_object_permission(request, view, obj)
 
         return is_membership_owner or is_deputy_leader_of_that_community
 
 
-class IsApplicableForCustomMembershipLabel(permissions.BasePermission):
+class IsAbleToUpdateCustomMembershipLabel(permissions.BasePermission):
+    ''' Main permission of PUT, PATCH request of CustomMembershipLabel '''
     def has_object_permission(self, request, view, obj):
-        # Object class: CustomMembershipLabel
-        return obj.membership.position in (1, 2)
+        return IsDeputyLeaderOfCommunity().has_object_permission(request, view, obj) \
+               and obj.membership.position in (1, 2)
 
 
-class IsAbleToViewApprovalRequestList(permissions.BasePermission):
+class IsAbleToRetrieveApprovalRequest(permissions.BasePermission):
+    ''' Main permission of GET request of ApprovalRequest '''
     def has_object_permission(self, request, view, obj):
-        # Object class: Approval Request
-        # Case 1: Is the leader of community
-        membership = Membership.objects.filter(
-            user_id=request.user.id, community_id=obj.community.id, status='A', position=3
-        )
-        if len(membership) == 1:
-            return True
-
-        # Case 2: Is a student committee member
-        try:
-            authority = StudentCommitteeAuthority.objects.get(user_id=request.user.id)
-            return authority.start_date <= datetime.now().date() <= authority.end_date
-        except StudentCommitteeAuthority.DoesNotExist:
-            return False
+        return IsLeaderOfCommunity().has_object_permission(request, view, obj) \
+               or IsStudentCommittee().has_object_permission(request, view, obj)
 
 
-class IsWaitingApprovalRequest(permissions.BasePermission):
+class IsAbleToUpdateApprovalRequest(permissions.BasePermission):
+    ''' Main permission of PUT, PATCH request of ApprovalRequest '''
     def has_object_permission(self, request, view, obj):
-        # Object class: Approval Request
-        return obj.status == 'W'
+        return IsStudentCommittee().has_object_permission(request, view, obj) and obj.status == 'W'
+
+
+class IsAbleToDeleteApprovalRequest(permissions.BasePermission):
+    ''' Main permission of DELETE request of ApprovalRequest '''
+    def has_object_permission(self, request, view, obj):
+        return IsLeaderOfCommunity().has_object_permission(request, view, obj) and obj.status == 'W'

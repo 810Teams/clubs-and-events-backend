@@ -3,14 +3,14 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.response import Response
 
 from community.models import Club, Event, CommunityEvent, Lab
-from community.permissions import IsPubliclyVisibleCommunity
-from community.permissions import IsLeaderOfBaseCommunity, IsDeputyLeaderOfBaseCommunity, IsStaffOfBaseCommunity
-from community.permissions import IsDeletableClub, IsDeletableEvent, IsDeletableCommunityEvent, IsDeletableLab
+from community.permissions import IsPubliclyVisibleCommunity, IsAbleToUpdateClub, IsAbleToDeleteClub
+from community.permissions import IsAbleToDeleteEvent, IsDeputyLeaderOfBaseCommunity, IsAbleToDeleteCommunityEvent
+from community.permissions import IsAbleToUpdateLab, IsAbleToDeleteLab
 from community.serializers import OfficialClubSerializer, UnofficialClubSerializer
 from community.serializers import ApprovedEventSerializer, UnapprovedEventSerializer
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
-from core.permissions import IsLeaderOfCommunity, IsDeputyLeaderOfCommunity
+from core.permissions import IsDeputyLeaderOfCommunity
 from core.utils import filter_queryset
 from membership.models import Membership
 from notification.notifier import notify
@@ -29,9 +29,9 @@ class ClubViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(), IsStudent())
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsStudent(), IsDeputyLeaderOfCommunity())
+            return (permissions.IsAuthenticated(), IsAbleToUpdateClub())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsStudent(), IsLeaderOfCommunity(), IsDeletableClub())
+            return (permissions.IsAuthenticated(), IsAbleToDeleteClub())
         return tuple()
 
     def get_serializer_class(self):
@@ -67,10 +67,7 @@ class ClubViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        Membership.objects.create(
-            user_id=request.user.id, position=3, community_id=obj.id,
-            created_by_id=request.user.id, updated_by_id=request.user.id
-        )
+        Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id,)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -89,7 +86,7 @@ class EventViewSet(viewsets.ModelViewSet):
         elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsLeaderOfCommunity(), IsDeletableEvent())
+            return (permissions.IsAuthenticated(), IsAbleToDeleteEvent())
         return tuple()
 
     def get_serializer_class(self):
@@ -135,10 +132,8 @@ class EventViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        Membership.objects.create(
-            user_id=request.user.id, position=3, community_id=obj.id,
-            created_by_id=request.user.id, updated_by_id=request.user.id
-        )
+        # Initial Membership
+        Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
         # Notification
         users = get_user_model().objects.exclude(pk=request.user.id)
@@ -157,12 +152,11 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
-            # Includes IsStaffOfBaseCommunity() in validation() of the serializer
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfBaseCommunity())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsLeaderOfBaseCommunity(), IsDeletableCommunityEvent())
+            return (permissions.IsAuthenticated(), IsAbleToDeleteCommunityEvent())
         return tuple()
 
     def get_serializer_class(self):
@@ -202,15 +196,10 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         obj = serializer.save()
 
         # Initial Membership
-        Membership.objects.create(
-            user_id=request.user.id, position=3, community_id=obj.id,
-            created_by_id=request.user.id, updated_by_id=request.user.id
-        )
+        Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id,)
 
         # Notification
-        users = [i.user for i in Membership.objects.filter(
-            community_id=obj.created_under.id, status='A'
-        )]
+        users = [i.user for i in Membership.objects.filter(community_id=obj.created_under.id, status='A')]
         notify(users=users, obj=obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -229,9 +218,9 @@ class LabViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(), IsLecturer())
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsLecturer(), IsDeputyLeaderOfCommunity())
+            return (permissions.IsAuthenticated(), IsAbleToUpdateLab())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsLecturer(), IsLeaderOfCommunity(), IsDeletableLab())
+            return (permissions.IsAuthenticated(), IsAbleToDeleteLab())
         return tuple()
 
     def list(self, request, *args, **kwargs):
@@ -257,9 +246,6 @@ class LabViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        Membership.objects.create(
-            user_id=request.user.id, position=3, community_id=obj.id,
-            created_by_id=request.user.id, updated_by_id=request.user.id
-        )
+        Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -111,6 +111,6 @@ class IsMemberOfCommunity(permissions.BasePermission):
         else:
             return False
 
-        membership = Membership.objects.filter(user_id=request.user.id, community_id=ref, status='A')
+        membership = Membership.objects.filter(user_id=request.user.id, community_id=ref, status__in=('A', 'R'))
 
         return len(membership) == 1

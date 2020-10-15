@@ -22,8 +22,9 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
-        elif self.request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
-            # Includes IsStaffOfCommunity() in validation() of the serializer for POST request separately
+        elif self.request.method == 'POST':
+            return (permissions.IsAuthenticated(),)
+        elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
             return (permissions.IsAuthenticated(), IsStaffOfCommunity())
         return tuple()
 
@@ -68,8 +69,9 @@ class AlbumViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
-        elif self.request.method in ('POST', 'PUT', 'PATCH', 'DELETE'):
-            # Includes IsStaffOfCommunity() in validation() of the serializer for POST request separately
+        elif self.request.method == 'POST':
+            return (permissions.IsAuthenticated(),)
+        elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
             return (permissions.IsAuthenticated(), IsStaffOfCommunity())
         return tuple()
 
@@ -100,8 +102,9 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
-        elif self.request.method in ('POST', 'DELETE'):
-            # Includes IsStaffOfCommunity() in validation() of the serializer for POST request separately
+        elif self.request.method == 'POST':
+            return (permissions.IsAuthenticated(),)
+        elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsStaffOfCommunity())
         return tuple()
 
