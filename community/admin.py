@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.translation import gettext as _
 
 from community.models import Club, Event, CommunityEvent, Lab
 from membership.models import Membership, Advisory, Invitation, Request
@@ -29,16 +28,16 @@ class AdvisoryInline(admin.TabularInline):
 
 
 class ClubAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'is_accepting_requests', 'created_at',
-                    'updated_at', 'club_type', 'room', 'founded_date', 'is_official', 'status')
+    list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'club_type', 'room',
+                    'is_official', 'status', 'valid_through', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline)
 
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'is_accepting_requests', 'created_at',
-                    'updated_at', 'event_type', 'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled',
-                    'is_community_event')
+    list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'event_type',
+                    'start_date', 'end_date', 'is_approved', 'is_cancelled', 'is_community_event',
+                    'created_at', 'updated_at',)
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline)
 
@@ -53,9 +52,9 @@ class EventAdmin(admin.ModelAdmin):
 
 
 class CommunityEventAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'is_accepting_requests', 'created_at',
-                    'updated_at','event_type', 'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled',
-                    'created_under', 'allows_outside_participators')
+    list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'event_type',
+                    'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled', 'created_under',
+                    'allows_outside_participators', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline)
 
@@ -66,10 +65,17 @@ class CommunityEventAdmin(admin.ModelAdmin):
 
 
 class LabAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name_th', 'name_en', 'url_id', 'is_publicly_visible', 'is_accepting_requests', 'created_at',
-                    'updated_at', 'room', 'founded_date', 'tags', 'status')
+    list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'room', 'main_tags',
+                    'status', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline)
+
+    def main_tags(self, obj):
+        try:
+            tags = [i.strip() for i in obj.tags.split(',')]
+            return ', '.join(tags[0:2]) + ', ...' * (len(tags) > 2)
+        except (AttributeError, IndexError):
+            return None
 
 
 admin.site.register(Club, ClubAdmin)

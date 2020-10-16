@@ -6,9 +6,9 @@ from asset.models import Announcement, Album, AlbumImage, Comment
 from asset.serializers import ExistingAnnouncementSerializer, NotExistingAnnouncementSerializer
 from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerializer
 from asset.serializers import AlbumImageSerializer, CommentSerializer
-from community.models import Community, Event
+from community.models import Community
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity
-from core.utils import filter_queryset, limit_queryset
+from core.utils import filter_queryset, limit_queryset, filter_queryset_permission
 from membership.models import Membership
 from notification.notifier import notify
 
@@ -36,10 +36,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            visible_ids = Community.objects.filter(is_publicly_visible=True)
-            queryset = queryset.filter(community_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
 
         serializer = self.get_serializer(queryset, many=True)
@@ -83,10 +80,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            visible_ids = Community.objects.filter(is_publicly_visible=True)
-            queryset = queryset.filter(community_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
 
         serializer = self.get_serializer(queryset, many=True)
@@ -162,10 +156,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            visible_ids = Event.objects.filter(is_publicly_visible=True)
-            queryset = queryset.filter(event_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='event', is_foreign_key=True)
 
         serializer = self.get_serializer(queryset, many=True)

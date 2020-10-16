@@ -5,7 +5,7 @@ from notification.models import AnnouncementNotification, CommunityEventNotifica
 
 
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ('user', 'is_read', 'created_at', 'created_by', 'updated_at', 'updated_by')
+    list_display = ('user', 'is_read', 'notification_type', 'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
 
     def get_readonly_fields(self, request, obj=None):
@@ -15,6 +15,39 @@ class NotificationAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+    def notification_type(self, obj):
+        try:
+            RequestNotification.objects.get(pk=obj.id)
+            return 'Request'
+        except RequestNotification.DoesNotExist:
+            pass
+
+        try:
+            MembershipLogNotification.objects.get(pk=obj.id)
+            return 'Membership Log'
+        except MembershipLogNotification.DoesNotExist:
+            pass
+
+        try:
+            AnnouncementNotification.objects.get(pk=obj.id)
+            return 'Announcement'
+        except AnnouncementNotification.DoesNotExist:
+            pass
+
+        try:
+            CommunityEventNotification.objects.get(pk=obj.id)
+            return 'Community Event'
+        except CommunityEventNotification.DoesNotExist:
+            pass
+
+        try:
+            EventNotification.objects.get(pk=obj.id)
+            return 'Event'
+        except EventNotification.DoesNotExist:
+            pass
+
+        return None
 
 
 class RequestNotificationAdmin(admin.ModelAdmin):

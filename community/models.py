@@ -66,6 +66,7 @@ class Club(Community):
     founded_date = models.DateField(null=True, blank=True)
     is_official = models.BooleanField(default=False)
     status = models.CharField(max_length=1, choices=STATUS, default='R')
+    valid_through = models.DateField(null=True, blank=True)
 
     def clean(self):
         errors = list()
@@ -86,6 +87,18 @@ class Club(Community):
                     _('Unofficial clubs cannot be publicly visible.'),
                     code='unofficial_club_limitations'
                 ))
+            if self.valid_through is not None:
+                errors.append(ValidationError(
+                    _('Unofficial clubs must not have a valid through date.'),
+                    code='not_null_valid_through_date'
+                ))
+
+
+        elif self.is_official and self.valid_through is None:
+            errors.append(ValidationError(
+                _('Official clubs must have a valid through date.'),
+                code='null_valid_through_date'
+            ))
 
         if len(errors) > 0:
             raise ValidationError(errors)

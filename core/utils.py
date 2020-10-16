@@ -50,3 +50,12 @@ def get_previous_membership_log(obj):
 
 def get_email(user, domain_name='it.kmitl.ac.th'):
     return user.username + '@' + domain_name
+
+
+def filter_queryset_permission(queryset, request, permissions):
+    for i in permissions:
+        visible_ids = [j.id for j in queryset if i.has_permission(request, None)]
+        queryset = queryset.filter(pk__in=visible_ids)
+        visible_ids = [j.id for j in queryset if i.has_object_permission(request, None, j)]
+        queryset = queryset.filter(pk__in=visible_ids)
+    return queryset

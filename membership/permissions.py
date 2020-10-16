@@ -7,7 +7,7 @@ from user.permissions import IsStudentCommittee
 class IsAbleToRetrieveRequest(permissions.BasePermission):
     ''' Main permission of GET request of Request '''
     def has_object_permission(self, request, view, obj):
-        return IsMemberOfCommunity().has_object_permission(request, view, obj) and request.user.id == obj.user.id
+        return IsMemberOfCommunity().has_object_permission(request, view, obj) or request.user.id == obj.user.id
 
 
 class IsAbleToUpdateRequest(permissions.BasePermission):
@@ -57,13 +57,13 @@ class IsAbleToUpdateMembership(permissions.BasePermission):
             return False
 
         # Case 1: Leaving and retiring, must be the membership owner.
-        is_membership_owner = request.user.id == obj.user.id and obj.position not in ('L', 'X')
+        is_membership_owner = request.user.id == obj.user.id
 
         # Case 2: Member removal and position assignation, must be done by an active deputy leader of the community,
         #         and not be done on memberships with position equal to yourself.
-        is_deputy_leader_of_that_community = IsDeputyLeaderOfCommunity().has_object_permission(request, view, obj)
+        is_deputy_leader = IsDeputyLeaderOfCommunity().has_object_permission(request, view, obj)
 
-        return is_membership_owner or is_deputy_leader_of_that_community
+        return is_membership_owner or is_deputy_leader
 
 
 class IsAbleToUpdateCustomMembershipLabel(permissions.BasePermission):

@@ -5,10 +5,10 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from community.models import CommunityEvent, Community, Club, Event, Lab
+from community.models import Club, Event, CommunityEvent, Lab
 from core.permissions import IsDeputyLeaderOfCommunity
 from core.permissions import IsInPubliclyVisibleCommunity
-from core.utils import filter_queryset
+from core.utils import filter_queryset, filter_queryset_permission
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToRetrieveRequest, IsAbleToUpdateRequest, IsAbleToDeleteRequest
@@ -22,7 +22,6 @@ from membership.serializers import ExistingInvitationSerializer, NotExistingInvi
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
 from notification.notifier import notify
-from user.models import StudentCommitteeAuthority
 from user.permissions import IsStudentCommittee
 
 
@@ -49,14 +48,7 @@ class RequestViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        memberships = Membership.objects.filter(user_id=request.user.id, status__in=('A', 'R'))
-        communities = [i.community.id for i in memberships]
-
-        id_set = [i.id for i in queryset.filter(community_id__in=communities)]
-        id_set += [i.id for i in queryset.filter(user_id=request.user.id)]
-
-        queryset = queryset.filter(pk__in=id_set)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='user', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
@@ -135,14 +127,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        memberships = Membership.objects.filter(user_id=request.user.id, status__in=('A', 'R'))
-        communities = [i.community.id for i in memberships]
-
-        id_set = [i.id for i in queryset.filter(community_id__in=communities)]
-        id_set += [i.id for i in queryset.filter(invitee_id=request.user.id)]
-
-        queryset = queryset.filter(pk__in=id_set)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='invitor', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='invitee', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
@@ -185,10 +170,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            visible_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
-            queryset = queryset.filter(community_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='user', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
@@ -269,24 +251,69 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-
-        if not self.request.user.is_authenticated:
-            visible_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
-            visible_ids = [i.id for i in Membership.objects.filter(community_id__in=visible_ids)]
-            queryset = queryset.filter(membership_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
 
 
+class MembershipLogViewSet(viewsets.ModelViewSet):
+    queryset = MembershipLog.objects.all()
+    serializer_class = MembershipLogSerializer
+    http_method_names = ('get', 'head', 'options')
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return (IsInPubliclyVisibleCommunity(),)
+        return tuple()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
+
+        try:
+            query = request.query_params.get('user')
+            if query is not None:
+                membership_ids = [i.id for i in Membership.objects.filter(user_id=query)]
+                queryset = queryset.filter(membership_id__in=membership_ids)
+
+            query = request.query_params.get('community')
+            if query is not None:
+                membership_ids = [i.id for i in Membership.objects.filter(community_id=query)]
+                queryset = queryset.filter(membership_id__in=membership_ids)
+
+            query = request.query_params.get('exclude_current_memberships')
+            if query is not None and eval(query):
+                queryset = queryset.exclude(end_datetime=None)
+        except ValueError:
+            queryset = None
+
+        queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+
+        # Notification
+        notify(users=[request.user], obj=obj)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 class AdvisoryViewSet(viewsets.ModelViewSet):
     queryset = Advisory.objects.all()
     serializer_class = AdvisorySerializer
-    http_method_names = ('get', 'post', 'head', 'options')
+    http_method_names = ('get', 'post', 'delete', 'head', 'options')
 
     def get_permissions(self):
-        if self.request.method == 'POST':
+        if self.request.method in ('POST', 'DELETE'):
             return (permissions.IsAuthenticated(), IsStudentCommittee())
         return (permissions.IsAuthenticated(),)
 
@@ -314,60 +341,6 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class MembershipLogViewSet(viewsets.ModelViewSet):
-    queryset = MembershipLog.objects.all()
-    serializer_class = MembershipLogSerializer
-    http_method_names = ('get', 'head', 'options')
-
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
-        return tuple()
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-
-        if not self.request.user.is_authenticated:
-            visible_community_ids = [i.id for i in Community.objects.filter(is_publicly_visible=True)]
-            visible_membership_ids = [i.id for i in Membership.objects.filter(community_id__in=visible_community_ids)]
-            queryset = queryset.filter(membership_id__in=visible_membership_ids)
-
-        try:
-            query = request.query_params.get('user')
-            if query is not None:
-                membership_ids = [i.id for i in Membership.objects.filter(user_id=query)]
-                queryset = queryset.filter(membership_id__in=membership_ids)
-
-            query = request.query_params.get('community')
-            if query is not None:
-                membership_ids = [i.id for i in Membership.objects.filter(community_id=query)]
-                queryset = queryset.filter(membership_id__in=membership_ids)
-
-            query = request.query_params.get('exclude_current_memberships')
-            if query is not None:
-                if eval(query):
-                    queryset = queryset.exclude(end_datetime=None)
-        except ValueError:
-            queryset = None
-
-        queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
-        queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
-
-        serializer = self.get_serializer(queryset, many=True)
-
-        return Response(serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
-
-        # Notification
-        notify(users=[request.user], obj=obj)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 class ApprovalRequestViewSet(viewsets.ModelViewSet):
     queryset = ApprovalRequest.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
@@ -391,18 +364,7 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        try:
-            authority = StudentCommitteeAuthority.objects.get(user_id=request.user.id)
-            is_student_committee = authority.start_date <= datetime.now().date() <= authority.end_date
-        except StudentCommitteeAuthority.DoesNotExist:
-            is_student_committee = False
-
-        if not is_student_committee:
-            visible_ids = [i.community.id for i in Membership.objects.filter(
-                user_id=request.user.id, status='A', position=3
-            )]
-            queryset = queryset.filter(community_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
 
@@ -419,6 +381,13 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
             try:
                 club = Club.objects.get(pk=obj.community.id)
                 club.is_official = True
+
+                today = datetime.now().date()
+                if today.month > 7:
+                    club.valid_through = datetime(today.year + 1, 7, 31).date()
+                else:
+                    club.valid_through = datetime(today.year, 7, 31).date()
+
                 club.save()
             except Club.DoesNotExist:
                 pass
