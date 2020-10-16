@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -74,7 +76,7 @@ class ExistingCommunitySerializerTemplate(serializers.ModelSerializer):
                     actions.append('delete')
 
                 # If the object is unofficial club, check for actions related to approval requests.
-                if isinstance(obj, Club) and not obj.is_official:
+                if isinstance(obj, Club) and (not obj.is_official or datetime.now().date() > obj.valid_through):
                     try:
                         ApprovalRequest.objects.get(community_id=obj.id, status='W')
                         actions.append('cancel-approval-request')
@@ -98,7 +100,7 @@ class OfficialClubSerializer(ExistingCommunitySerializerTemplate):
     class Meta:
         model = Club
         fields = '__all__'
-        read_only_fields = ('is_official', 'created_by', 'updated_by')
+        read_only_fields = ('is_official', 'valid_through', 'created_by', 'updated_by')
 
 
 class UnofficialClubSerializer(ExistingCommunitySerializerTemplate):

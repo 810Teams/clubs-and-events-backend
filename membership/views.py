@@ -284,9 +284,8 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(membership_id__in=membership_ids)
 
             query = request.query_params.get('exclude_current_memberships')
-            if query is not None:
-                if eval(query):
-                    queryset = queryset.exclude(end_datetime=None)
+            if query is not None and eval(query):
+                queryset = queryset.exclude(end_datetime=None)
         except ValueError:
             queryset = None
 
@@ -382,6 +381,13 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
             try:
                 club = Club.objects.get(pk=obj.community.id)
                 club.is_official = True
+
+                today = datetime.now().date()
+                if today.month > 7:
+                    club.valid_through = datetime(today.year + 1, 7, 31).date()
+                else:
+                    club.valid_through = datetime(today.year, 7, 31).date()
+
                 club.save()
             except Club.DoesNotExist:
                 pass

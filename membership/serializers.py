@@ -21,8 +21,7 @@ class ExistingRequestSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if data['status'] == 'W':
             raise serializers.ValidationError(
-                _('Requests statuses are not able to be updated to waiting.'),
-                code='request_status_error'
+                _('Requests statuses are not able to be updated to waiting.'), code='request_status_error'
             )
         return data
 
@@ -130,8 +129,7 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
             Club.objects.get(pk=community_id)
             if get_user_model().objects.get(pk=invitee_id).is_lecturer:
                 raise serializers.ValidationError(
-                    _('Invitation to join the club are not able to be made to lecturers.'),
-                    code='lecturer_limits'
+                    _('Invitation to join the club are not able to be made to lecturers.'), code='lecturer_limits'
                 )
         except Club.DoesNotExist:
             pass
@@ -498,8 +496,8 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
         # Case 2: Must be an unofficial club or an unapproved event
         try:
             club = Club.objects.get(pk=data['community'].id)
-            if club.is_official:
-                raise serializers.ValidationError(_('The club is already an official club.'), code='already_approved')
+            if club.is_official and datetime.now().date() <= club.valid_through:
+                raise serializers.ValidationError(_('The club is still valid.'), code='already_approved')
         except Club.DoesNotExist:
             pass
 
@@ -511,7 +509,7 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
             pass
 
         # Case 3: Approval request sender must be the president of the club or event
-        membership = Membership.objects.get(
+        membership = Membership.objects.filter(
             user_id=self.context['request'].user.id, community_id=data['community'].id, status='A', position=3
         )
         if len(membership) == 0:
@@ -521,7 +519,7 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
             )
 
         # Case 4: Already has pending approval request
-        approval_request = ApprovalRequest.objects.get(community_id=data['community'].id, status='W')
+        approval_request = ApprovalRequest.objects.filter(community_id=data['community'].id, status='W')
         if len(approval_request) >= 1:
             raise serializers.ValidationError(
                 _('Approval requests are not able to be made if the community already has a pending approval request.'),
