@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from community.models import Club, Event, CommunityEvent, Lab
 from community.permissions import IsPubliclyVisibleCommunity, IsAbleToUpdateClub, IsAbleToDeleteClub
-from community.permissions import IsAbleToDeleteEvent, IsDeputyLeaderOfBaseCommunity, IsAbleToDeleteCommunityEvent
+from community.permissions import IsAbleToDeleteEvent, IsAbleToUpdateCommunityEvent, IsAbleToDeleteCommunityEvent
 from community.permissions import IsAbleToUpdateLab, IsAbleToDeleteLab
 from community.serializers import OfficialClubSerializer, UnofficialClubSerializer
 from community.serializers import ApprovedEventSerializer, UnapprovedEventSerializer
@@ -151,7 +151,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsDeputyLeaderOfBaseCommunity())
+            return (permissions.IsAuthenticated(), IsAbleToUpdateCommunityEvent())
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsAbleToDeleteCommunityEvent())
         return tuple()
