@@ -53,9 +53,7 @@ class IsAbleToDeleteLab(permissions.BasePermission):
 class IsPubliclyVisibleCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Object class: Community
-        if not request.user.is_authenticated and not obj.is_publicly_visible:
-            return False
-        return True
+        return request.user.is_authenticated or obj.is_publicly_visible
 
 
 class IsLeaderOfBaseCommunity(permissions.BasePermission):
@@ -63,10 +61,10 @@ class IsLeaderOfBaseCommunity(permissions.BasePermission):
         # Object class: CommunityEvent
         base_community = Community.objects.get(pk=obj.created_under.id)
         base_membership = Membership.objects.filter(
-            user_id=request.user.id, position__in=[3], community_id=base_community.id, status='A'
+            user_id=request.user.id, position=3, community_id=base_community.id, status='A'
         )
         membership = Membership.objects.filter(
-            user_id=request.user.id, position__in=[3], community_id=obj.id, status='A'
+            user_id=request.user.id, position=3, community_id=obj.id, status='A'
         )
 
         return len(base_membership) == 1 or len(membership) == 1

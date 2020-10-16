@@ -11,7 +11,7 @@ from community.serializers import ApprovedEventSerializer, UnapprovedEventSerial
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
 from core.permissions import IsDeputyLeaderOfCommunity
-from core.utils import filter_queryset
+from core.utils import filter_queryset, filter_queryset_permission
 from membership.models import Membership
 from notification.notifier import notify
 from user.permissions import IsStudent, IsLecturer
@@ -45,9 +45,7 @@ class ClubViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            queryset = queryset.filter(is_publicly_visible=True, is_official=True)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='club_type', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='is_official', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
@@ -100,8 +98,7 @@ class EventViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            queryset = queryset.filter(is_publicly_visible=True, is_approved=True)
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
 
         try:
             query = request.query_params.get('exclude_community_events')
@@ -170,9 +167,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            queryset = queryset.filter(is_publicly_visible=True)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='event_type', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='event_series', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='is_approved', is_foreign_key=False)
@@ -226,9 +221,7 @@ class LabViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            queryset = queryset.filter(is_publicly_visible=True)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
 

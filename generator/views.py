@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity
-from core.utils import filter_queryset
+from core.utils import filter_queryset, filter_queryset_permission
 from generator.models import QRCode, JoinKey
 from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSerializer
 from generator.serializers import ExistingJoinKeySerializer, NotExistingJoinKeySerializer
@@ -33,9 +33,7 @@ class QRCodeViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        visible_ids = [i.community.id for i in Membership.objects.filter(user_id=request.user.id, status='A')]
-        queryset = queryset.filter(community_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='event', is_foreign_key=True)
 
         serializer = self.get_serializer(queryset, many=True)
@@ -66,9 +64,7 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
 
-        visible_ids = [i.community.id for i in Membership.objects.filter(user_id=request.user.id, status='A')]
-        queryset = queryset.filter(event_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='event', is_foreign_key=True)
 
         serializer = self.get_serializer(queryset, many=True)
