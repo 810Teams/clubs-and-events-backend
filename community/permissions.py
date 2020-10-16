@@ -1,5 +1,8 @@
+from datetime import datetime
+
 from rest_framework import permissions
 
+from clubs_and_events.settings import CLUB_ADVANCED_RENEWAL
 from community.models import Community
 from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
 from membership.models import Membership
@@ -28,10 +31,18 @@ class IsAbleToDeleteEvent(permissions.BasePermission):
                and IsDeletableEvent().has_object_permission(request, view, obj)
 
 
+class IsAbleToUpdateCommunityEvent(permissions.BasePermission):
+    ''' Main permission of PUT, PATCH request of CommunityEvent '''
+    def has_object_permission(self, request, view, obj):
+        return IsDeputyLeaderOfCommunity().has_object_permission(request, view, obj) \
+               or IsDeputyLeaderOfBaseCommunity().has_object_permission(request, view, obj)
+
+
 class IsAbleToDeleteCommunityEvent(permissions.BasePermission):
     ''' Main permission of DELETE request of CommunityEvent '''
     def has_object_permission(self, request, view, obj):
-        return IsLeaderOfCommunity().has_object_permission(request, view, obj) \
+        return (IsLeaderOfCommunity().has_object_permission(request, view, obj)
+                or IsLeaderOfBaseCommunity().has_object_permission(request, view, obj)) \
                and IsDeletableCommunityEvent().has_object_permission(request, view, obj)
 
 
@@ -110,6 +121,13 @@ class IsMemberOfBaseCommunity(permissions.BasePermission):
         )
 
         return len(base_membership) == 1 or len(membership) == 1
+
+
+class IsRenewableClub(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        # Object class: Club
+        return not obj.is_official or obj.valid_through is None \
+               or datetime.now().date() >= obj.valid_through - CLUB_ADVANCED_RENEWAL
 
 
 # TODO: Implements a better deletable condition

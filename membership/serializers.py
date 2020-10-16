@@ -5,6 +5,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
+from community.permissions import IsRenewableClub
 from core.utils import get_previous_membership_log
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
@@ -493,11 +494,13 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
         except CommunityEvent.DoesNotExist:
             pass
 
-        # Case 2: Must be an unofficial club or an unapproved event
+        # Case 2: Must be an unofficial or renewable club, or an unapproved event
         try:
             club = Club.objects.get(pk=data['community'].id)
-            if club.is_official and datetime.now().date() <= club.valid_through:
-                raise serializers.ValidationError(_('The club is still valid.'), code='already_approved')
+            if not IsRenewableClub().has_object_permission(self.context['request'], None, club):
+                raise serializers.ValidationError(
+                    _('The club is still valid and not ready for renewal yet.'), code='already_approved'
+                )
         except Club.DoesNotExist:
             pass
 

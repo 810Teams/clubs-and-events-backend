@@ -5,7 +5,9 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from clubs_and_events.settings import CLUB_VALID_MONTH, CLUB_VALID_DAY, CLUB_ADVANCED_RENEWAL
 from community.models import Club, Event, CommunityEvent, Lab
+from community.permissions import IsRenewableClub
 from core.permissions import IsDeputyLeaderOfCommunity
 from core.permissions import IsInPubliclyVisibleCommunity
 from core.utils import filter_queryset, filter_queryset_permission
@@ -383,10 +385,14 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
                 club.is_official = True
 
                 today = datetime.now().date()
-                if today.month > 7:
-                    club.valid_through = datetime(today.year + 1, 7, 31).date()
-                else:
-                    club.valid_through = datetime(today.year, 7, 31).date()
+
+                if IsRenewableClub().has_object_permission(request, None, club):
+                    valid_through = datetime(today.year, CLUB_VALID_MONTH, CLUB_VALID_DAY).date()
+
+                    if today >= valid_through - CLUB_ADVANCED_RENEWAL:
+                        valid_through = datetime(today.year + 1, CLUB_VALID_MONTH, CLUB_VALID_DAY).date()
+
+                    club.valid_through = valid_through
 
                 club.save()
             except Club.DoesNotExist:

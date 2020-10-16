@@ -1,9 +1,9 @@
-from datetime import datetime
-
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from community.models import Club, Event, CommunityEvent, Lab, Community
+from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent
+from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
 from membership.models import Membership, ApprovalRequest
 
 
@@ -31,18 +31,18 @@ class ExistingCommunitySerializerTemplate(serializers.ModelSerializer):
             return None
 
     def get_available_actions(self, obj):
+        request = self.context['request']
+
         try:
             # Declare an empty action list and fetch a membership
             actions = list()
-            membership = Membership.objects.get(
-                user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
-            )
+            membership = Membership.objects.get(user_id=request.user.id, community_id=obj.id, status__in=('A', 'R'))
 
             # Try retrieving base membership
             if isinstance(obj, CommunityEvent):
                 try:
                     base_membership = Membership.objects.get(
-                        user_id=self.context['request'].user.id,
+                        user_id=request.user.id,
                         community_id=obj.created_under.id,
                         status__in=('A', 'R')
                     )
@@ -68,22 +68,28 @@ class ExistingCommunitySerializerTemplate(serializers.ModelSerializer):
             # If the user is the leader...
             if membership.position == 3 or (base_membership is not None and base_membership.position == 3):
                 # If the community is available for deletion.
-                if isinstance(obj, Club) and not obj.is_official:
-                    actions.append('delete')
-                elif (isinstance(obj, Event) and not obj.is_approved) or isinstance(obj, CommunityEvent):
-                    actions.append('delete')
+                if isinstance(obj, Club):
+                    if IsAbleToDeleteClub().has_object_permission(request, None, obj):
+                        actions.append('delete')
+                elif isinstance(obj, Event) and not isinstance(obj, CommunityEvent):
+                    if IsAbleToDeleteEvent().has_object_permission(request, None, obj):
+                        actions.append('delete')
+                elif isinstance(obj, CommunityEvent):
+                    if IsAbleToDeleteCommunityEvent().has_object_permission(request, None, obj):
+                        actions.append('delete')
                 elif isinstance(obj, Lab):
-                    actions.append('delete')
+                    if IsAbleToDeleteLab().has_object_permission(request, None, obj):
+                        actions.append('delete')
 
-                # If the object is unofficial club, check for actions related to approval requests.
-                if isinstance(obj, Club) and (not obj.is_official or datetime.now().date() > obj.valid_through):
+                # If the object is an unofficial or a renewable club, check for actions related to approval requests.
+                if isinstance(obj, Club) and IsRenewableClub().has_object_permission(request, None, obj):
                     try:
                         ApprovalRequest.objects.get(community_id=obj.id, status='W')
                         actions.append('cancel-approval-request')
                     except ApprovalRequest.DoesNotExist:
                         actions.append('send-approval-request')
 
-                # If the object is unapproved event, check for actions related to approval requests.
+                # If the object is an unapproved event, check for actions related to approval requests.
                 if isinstance(obj, Event) and not obj.is_approved:
                     try:
                         ApprovalRequest.objects.get(community_id=obj.id, status='W')

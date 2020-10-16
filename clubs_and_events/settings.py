@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 from core.loader import load_key
@@ -52,7 +53,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-CORS_ORIGIN_ALLOW_ALL=True
+CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -170,3 +171,6 @@ EMAIL_USE_TLS = True
 # Custom Settings
 
 STORAGE_BASE_DIR = '_storage'
+CLUB_VALID_MONTH = 7
+CLUB_VALID_DAY = 31
+CLUB_ADVANCED_RENEWAL = timedelta(days=60)
