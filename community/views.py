@@ -188,10 +188,10 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
+        obj = serializer.save(is_approved=True)
 
         # Initial Membership
-        Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id,)
+        Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
         # Notification
         users = [i.user for i in Membership.objects.filter(community_id=obj.created_under.id, status='A')]

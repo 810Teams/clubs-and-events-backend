@@ -129,10 +129,6 @@ class CommunityEvent(Event):
     created_under = models.ForeignKey(Community, on_delete=models.PROTECT)
     allows_outside_participators = models.BooleanField(default=False)
 
-    def __init__(self, *args, **kwargs):
-        super(Event, self).__init__(*args, **kwargs)
-        self._meta.get_field('is_approved').default = True
-
     def clean(self):
         errors = list()
 
