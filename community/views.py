@@ -43,7 +43,7 @@ class ClubViewSet(viewsets.ModelViewSet):
         return OfficialClubSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='club_type', is_foreign_key=True)
@@ -96,7 +96,7 @@ class EventViewSet(viewsets.ModelViewSet):
         return ApprovedEventSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
 
@@ -165,7 +165,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         return ExistingCommunityEventSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='event_type', is_foreign_key=True)
@@ -219,7 +219,7 @@ class LabViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
