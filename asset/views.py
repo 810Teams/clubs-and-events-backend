@@ -34,7 +34,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return ExistingAnnouncementSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
@@ -78,7 +78,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
         return ExistingAlbumSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
@@ -154,7 +154,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='event', is_foreign_key=True)

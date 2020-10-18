@@ -31,7 +31,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return LimitedUserSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        queryset = self.filter_queryset(self.get_queryset())
 
         if self.request.user.is_authenticated:
             queryset = filter_queryset(queryset, request, target_param='is_lecturer', is_foreign_key=False)
