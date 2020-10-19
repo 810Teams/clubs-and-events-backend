@@ -5,8 +5,9 @@ from rest_framework.response import Response
 from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
 from core.utils import filter_queryset, filter_queryset_permission
 from generator.models import QRCode, JoinKey, GeneratedDocx
-from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSerializer, GeneratedDocxSerializer
+from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSerializer
 from generator.serializers import ExistingJoinKeySerializer, NotExistingJoinKeySerializer
+from generator.serializers import ExistingGeneratedDocxSerializer, NotExistingGeneratedDocxSerializer
 from membership.models import Membership
 
 import random
@@ -127,7 +128,6 @@ def use_join_key(request):
 
 class GeneratedDocxViewSet(viewsets.ModelViewSet):
     queryset = GeneratedDocx.objects.all()
-    serializer_class = GeneratedDocxSerializer
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
     def get_permissions(self):
@@ -138,6 +138,11 @@ class GeneratedDocxViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsLeaderOfCommunity())
         return tuple()
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return NotExistingGeneratedDocxSerializer
+        return ExistingGeneratedDocxSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
