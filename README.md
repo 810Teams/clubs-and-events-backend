@@ -55,6 +55,8 @@ Documentation on designing guides can be viewed in each markdown file below.
     
     - [QR Code Tab](_readme/guide/community/qr-code-tab.md)
 
+    - [Generate Document Menu](_readme/guide/community/generate-document-menu.md)
+
 4. [Invitations Bar](_readme/guide/invitations-bar.md)
 
 5. [Notifications Bar](_readme/guide/notifications-bar.md)
