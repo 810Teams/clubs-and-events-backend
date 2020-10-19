@@ -58,21 +58,25 @@ class UserViewSet(viewsets.ModelViewSet):
                     try:
                         community_event = CommunityEvent.objects.get(pk=community_id)
                         base_community = Community.objects.get(pk=community_event.created_under.id)
-                        base_membership_ids = [i.id for i in Membership.objects.filter(community_id=base_community.id)]
+                        base_membership_ids = [i.id for i in Membership.objects.filter(
+                            community_id=base_community.id, status__in=('A', 'R')
+                        )]
                         excluded_ids += [i.id for i in get_user_model().objects.all() if i not in base_membership_ids]
                     except CommunityEvent.DoesNotExist:
                         pass
 
                     # Case 3: Already a member
-                    excluded_ids += [i.id for i in Membership.objects.filter(
-                        community_id=community_id,status__in=('A', 'R')
+                    excluded_ids += [i.user.id for i in Membership.objects.filter(
+                        community_id=community_id, status__in=('A', 'R')
                     )]
 
-                    # Case 4: Already has pending request
-                    excluded_ids += [i.id for i in Invitation.objects.filter(community_id=community_id, status='W')]
+                    # Case 4: Already has pending invitation
+                    excluded_ids += [i.invitee.id for i in Invitation.objects.filter(
+                        community_id=community_id, status='W'
+                    )]
 
-                    # Case 5: Already has pending invitation
-                    excluded_ids += [i.id for i in Request.objects.filter(community_id=community_id, status='W')]
+                    # Case 5: Already has pending request
+                    excluded_ids += [i.user.id for i in Request.objects.filter(community_id=community_id, status='W')]
 
                     # Excluding Process
                     queryset = queryset.exclude(pk__in=excluded_ids)
