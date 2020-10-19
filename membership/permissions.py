@@ -25,7 +25,7 @@ class IsAbleToDeleteRequest(permissions.BasePermission):
 class IsAbleToRetrieveInvitation(permissions.BasePermission):
     ''' Main permission of GET request of Invitation '''
     def has_object_permission(self, request, view, obj):
-        return IsMemberOfCommunity().has_object_permission(request, view, obj) and request.user.id == obj.invitee.id
+        return IsMemberOfCommunity().has_object_permission(request, view, obj) or request.user.id == obj.invitee.id
 
 
 class IsAbleToUpdateInvitation(permissions.BasePermission):
