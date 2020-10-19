@@ -14,7 +14,6 @@ from community.models import Club, Event
 
 import qrcode
 
-from core.utils import OverwriteStorage
 from generator.generate_docx import generate_docx
 
 
@@ -57,6 +56,9 @@ class JoinKey(models.Model):
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='join_key_created_by')
 
+    def __str__(self):
+        return self.event.name_en
+
     def clean(self):
         errors = list()
 
@@ -82,7 +84,7 @@ class GeneratedDocx(models.Model):
     def get_file_path(self, file_name):
         return '{}/generated_docx/{}/{}'.format(STORAGE_BASE_DIR, self.club.id, file_name)
 
-    # Auto Field
+    # Main Field
     club = models.OneToOneField(Club, on_delete=models.CASCADE)
 
     # Fill-in Fields
@@ -104,6 +106,9 @@ class GeneratedDocx(models.Model):
                                    related_name='docx_created_by')
     updated_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='docx_updated_by')
+
+    def __str__(self):
+        return self.club.name_en
 
     def save(self, *args, **kwargs):
         buffer = BytesIO()
@@ -130,11 +135,12 @@ class GeneratedDocx(models.Model):
             club=self.club,
             advisor=self.advisor,
             objective=self.objective,
-            objective_list=self.objective_list.split('\n'),
+            objective_list=self.objective_list,
             room=self.room,
             schedule=self.schedule,
-            plan_list=self.plan_list.split('\n'),
-            merit=self.merit
+            plan_list=self.plan_list,
+            merit=self.merit,
+            save=True
         )
 
         user = get_current_user()

@@ -27,6 +27,11 @@ class GeneratedDocxAdmin(admin.ModelAdmin):
     list_display = ('id', 'club', 'document', 'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('document', 'created_by', 'updated_by')
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj is not None:
+            return ('club',) + self.readonly_fields
+        return self.readonly_fields
+
 
 admin.site.register(QRCode, QRCodeAdmin)
 admin.site.register(JoinKey, JoinKeyAdmin)

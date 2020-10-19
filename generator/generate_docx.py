@@ -8,19 +8,26 @@ from membership.models import Membership
 
 
 def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, objective=str(), objective_list=tuple(),
-                  room=str(), schedule=str(), plan_list=tuple(), merit=str(), save=True):
+                  room=str(), schedule=str(), plan_list=tuple(), merit=str(), save=False):
+    # Init Document
     document = Document('generator/docx/{}'.format(file_name))
 
+    # Init Generated File Name
     if generated_file_name is None:
         generated_file_name = 'generated-' + file_name
 
-    if not os.path.exists('{}/generated_docx'.format(STORAGE_BASE_DIR)):
-        os.mkdir('{}/generated_docx'.format(STORAGE_BASE_DIR))
-    if not os.path.exists('{}/generated_docx/{}'.format(STORAGE_BASE_DIR, club.id)):
-        os.mkdir('{}/generated_docx/{}'.format(STORAGE_BASE_DIR, club.id))
+    # Init Generated Document Directories
+    base_path = '{}/generated_docx'.format(STORAGE_BASE_DIR)
+    id_path = '{}/{}'.format(base_path, club.id)
+    path = '{}/{}'.format(id_path, generated_file_name)
 
-    path = '{}/generated_docx/{}/{}'.format(STORAGE_BASE_DIR, club.id, generated_file_name)
+    # Create Directories if not present
+    if not os.path.exists(base_path):
+        os.mkdir(base_path)
+    if not os.path.exists(id_path):
+        os.mkdir(id_path)
 
+    # Storing Data
     data = {
         'date': get_date(),
         'club_name': club.name_th.replace('ชุมนุม', ''),
@@ -37,6 +44,17 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
         'member_list': get_member_list(club)
     }
 
+    # Formatting Data
+    data['objective_list'] = data['objective_list'].split('\n') # Always a list
+    data['plan_list'] = data['plan_list'].split('\n')           # Always a list
+
+    for i in ('schedule', 'merit'):
+        if '\n' in data[i]:
+            data[i] = data[i].split('\n') # Able to be a list
+        else:
+            data[i] = '\t' + data[i]      # Not a list, add a tab
+
+    # Replace Paragraphs
     for paragraph in document.paragraphs:
         for inline in paragraph.runs:
             for j in data:
@@ -50,6 +68,7 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
                         ) for i in range(len(data[j]))])
                     )
 
+    # Replace Paragraphs in Tables
     for table in document.tables:
         for row in table.rows:
             for cell in row.cells:
@@ -59,9 +78,11 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
                             if not isinstance(data[j], list):
                                 inline.text = inline.text.replace('{%s}' % j, data[j])
 
+    # Document Saving
     if save:
         document.save(path)
 
+    # Return
     return document
 
 
