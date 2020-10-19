@@ -2,10 +2,10 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity
+from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
 from core.utils import filter_queryset, filter_queryset_permission
-from generator.models import QRCode, JoinKey
-from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSerializer
+from generator.models import QRCode, JoinKey, GeneratedDocx
+from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSerializer, GeneratedDocxSerializer
 from generator.serializers import ExistingJoinKeySerializer, NotExistingJoinKeySerializer
 from membership.models import Membership
 
@@ -50,9 +50,7 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
             return (permissions.IsAuthenticated(), IsMemberOfCommunity())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
-        elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
-        elif self.request.method == 'DELETE':
+        elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
         return tuple()
 
@@ -125,3 +123,29 @@ def use_join_key(request):
 
     except JoinKey.DoesNotExist:
         return Response({'detail': 'Invalid join key.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class GeneratedDocxViewSet(viewsets.ModelViewSet):
+    queryset = GeneratedDocx.objects.all()
+    serializer_class = GeneratedDocxSerializer
+    http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
+
+    def get_permissions(self):
+        if self.request.method in ('GET', 'PUT', 'PATCH'):
+            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
+        elif self.request.method == 'POST':
+            return (permissions.IsAuthenticated(),)
+        elif self.request.method == 'DELETE':
+            return (permissions.IsAuthenticated(), IsLeaderOfCommunity())
+        return tuple()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
+        queryset = filter_queryset(queryset, request, target_param='club', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='advisor', is_foreign_key=True)
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)

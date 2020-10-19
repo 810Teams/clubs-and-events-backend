@@ -1,12 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from generator.views import QRCodeViewSet, JoinKeyViewSet, generate_join_key, use_join_key
+from generator.views import QRCodeViewSet, JoinKeyViewSet, GeneratedDocxViewSet, generate_join_key, use_join_key
 
 
 router = DefaultRouter()
 router.register('qr-code', QRCodeViewSet)
 router.register('join-key', JoinKeyViewSet)
+router.register('docx', GeneratedDocxViewSet)
 
 urlpatterns = [
     path('join-key/generate', generate_join_key),
