@@ -78,12 +78,7 @@ class NotExistingJoinKeySerializer(serializers.ModelSerializer):
         return data
 
 
-class GeneratedDocxSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GeneratedDocx
-        fields = '__all__'
-        read_only_fields = ('document', 'created_by', 'updated_by')
-
+class GeneratedDocxSerializerTemplate(serializers.ModelSerializer):
     def validate(self, data):
         if not IsDeputyLeaderOfCommunity().has_object_permission(self.context['request'], None, data['club']):
             raise serializers.ValidationError(
@@ -103,3 +98,17 @@ class GeneratedDocxSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(_('Room must be a single line.'), code='invalid_room')
 
         return data
+
+
+class ExistingGeneratedDocxSerializer(GeneratedDocxSerializerTemplate):
+    class Meta:
+        model = GeneratedDocx
+        fields = '__all__'
+        read_only_fields = ('club', 'document', 'created_by', 'updated_by')
+
+
+class NotExistingGeneratedDocxSerializer(GeneratedDocxSerializerTemplate):
+    class Meta:
+        model = GeneratedDocx
+        fields = '__all__'
+        read_only_fields = ('document', 'created_by', 'updated_by')
