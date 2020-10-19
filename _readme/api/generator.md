@@ -137,7 +137,21 @@
 
 `POST api/generator/docx`
 
+```json
+{
+    "objective": "string",
+    "objective_list": "string",
+    "room": "string",
+    "schedule": "string",
+    "plan_list": "string",
+    "merit": "string",
+    "club": "int",
+    "advisor": "int"
+}
+```
+
 - Token is required.
+- The field `objective` and `room` must be a single line, otherwise, a status code of `400` will be returned.
 - The current user must be a vice president of the club that the generated Microsoft Word document in created in, otherwise, a status code of `400` will be returned.
 - The advisor must be a lecturer, otherwise, a status code of `400` will be returned.
 - If the generated Microsoft Word document for a certain club already exists, a status code of `400` will be returned.
@@ -148,7 +162,20 @@
 
 `PATCH api/generator/docx/{int}`
 
+```json
+{
+    "objective": "string",
+    "objective_list": "string",
+    "room": "string",
+    "schedule": "string",
+    "plan_list": "string",
+    "merit": "string",
+    "advisor": "int"
+}
+```
+
 - Token is required.
+- The field `objective` and `room` must be a single line, otherwise, a status code of `400` will be returned.
 - The current user must be a vice president of the club that the generated Microsoft Word document in created in.
 - The advisor must be a lecturer, otherwise, a status code of `400` will be returned.
 
