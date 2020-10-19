@@ -175,8 +175,8 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         invitation = Invitation.objects.filter(community_id=community_id, invitee_id=invitee_id, status='W')
         if len(invitation) >= 1:
             raise serializers.ValidationError(
-                _('Invitations are not able to be made from the community if the invitee already has a pending ' +
-                  'request.'),
+                _('Invitations are not able to be made from the community if the user already has a pending ' +
+                  'invitation.'),
                 code='invitation_already_exists'
             )
 
