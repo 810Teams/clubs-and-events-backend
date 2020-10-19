@@ -203,8 +203,16 @@ class MembershipSerializer(serializers.ModelSerializer):
         read_only_fields = ('user', 'community', 'created_by', 'updated_by')
 
     def validate(self, data):
+        # Loads Original Membership
         original_membership = Membership.objects.get(pk=self.instance.id)
 
+        # Fill Missing Data from Request
+        if 'status' not in data.keys():
+            data['status'] = original_membership.status
+        elif 'position' not in data.keys():
+            data['position'] = original_membership.position
+
+        # Variables for Validation
         user_id = {'new': self.instance.user.id, 'own': self.context['request'].user.id}
         position = {
             'old': original_membership.position,
