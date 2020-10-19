@@ -36,6 +36,7 @@
 - Token is required.
 - The current user must be a deputy leader of the event that the QR code in created in, otherwise, a status code of `400` will be returned.
 - The value of the `url` field must be a valid format or a URL, otherwise, a status code of `400` will be returned.
+- If the QR code for a certain event already exists, a status code of `400` will be returned.
 
 ### Delete QR Code
 
@@ -78,6 +79,7 @@
 - Token is required.
 - The current user must be a deputy leader of the event that the join key in created in, otherwise, a status code of `400` will be returned.
 - The value of the `key` field must only consist of alphabetical characters and numbers, otherwise, a status code of `400` will be returned.
+- If the join key for a certain event already exists, a status code of `400` will be returned.
 
 ### Delete Join Key
 
@@ -108,3 +110,51 @@
 - If the join key is not provided, a status code of `400` will be returned.
 - If the user is already a member, a status code of `400` will be returned.
 - If the join key does not exist, a status code of `404` will be returned.
+
+## Generated Microsoft Word Document
+
+### List Generated Microsoft Word Documents
+
+`GET api/generator/docx`
+
+- Token is required.
+- Only generated Microsoft Word documents created in the club the current user is the vice president will be shown.
+
+#### URL Parameters
+
+`club={int}`
+
+`advisor={int}`
+
+### Retrieve Generated Microsoft Word Document
+
+`GET api/generator/docx/{int}`
+
+- Token is required.
+- The current user must be a vice president of the club that the generated Microsoft Word document in created in.
+
+### Create Generated Microsoft Word Document
+
+`POST api/generator/docx`
+
+- Token is required.
+- The current user must be a vice president of the club that the generated Microsoft Word document in created in, otherwise, a status code of `400` will be returned.
+- The advisor must be a lecturer, otherwise, a status code of `400` will be returned.
+- If the generated Microsoft Word document for a certain club already exists, a status code of `400` will be returned.
+
+### Update Generated Microsoft Word Document
+
+`PUT api/generator/docx/{int}`
+
+`PATCH api/generator/docx/{int}`
+
+- Token is required.
+- The current user must be a vice president of the club that the generated Microsoft Word document in created in.
+- The advisor must be a lecturer, otherwise, a status code of `400` will be returned.
+
+### Delete Generated Microsoft Word Document
+
+`DELETE api/generator/docx/{int}`
+
+- Token is required.
+- The current user must be a president of the club that the generated Microsoft Word document in created in.
