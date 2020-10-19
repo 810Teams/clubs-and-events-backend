@@ -77,3 +77,7 @@ To render the cancel button, look for the field `is_able_to_cancel` from calling
 Cancelling the invitation is equivalent to deleting the invitation itself. Call this API to cancel the invitation.
 
 `DELETE api/membership/invitation/{id}`
+
+### Sending Invitations
+
+The invitation menu can be accessed from the both requests tab and the members tab. Read instructions [here](members-tab.md/#render-invite-button), follow the same instructions for logic.

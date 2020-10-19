@@ -112,3 +112,16 @@ In the invite panel, the person doing the invitation can search for users to inv
 `GET api/user/user?is_applicable_for={int}&search={string}`
 
 The `{string}` is the search query, can be used to search for the username, name, and nickname of users.
+
+### Send Invitation
+
+`POST api/membership/invitation`
+
+```json
+{
+    "community": "int",
+    "invitee": "int"
+}
+```
+
+The field `community` must be auto.
