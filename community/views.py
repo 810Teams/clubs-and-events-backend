@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.response import Response
 
-from community.models import Club, Event, CommunityEvent, Lab
+from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsPubliclyVisibleCommunity, IsAbleToUpdateClub, IsAbleToDeleteClub
 from community.permissions import IsAbleToDeleteEvent, IsAbleToUpdateCommunityEvent, IsAbleToDeleteCommunityEvent
 from community.permissions import IsAbleToUpdateLab, IsAbleToDeleteLab
@@ -18,7 +18,7 @@ from user.permissions import IsStudent, IsLecturer
 
 
 class CommunityViewSet(viewsets.ModelViewSet):
-    queryset = CommunityEvent.objects.all()
+    queryset = Community.objects.all()
     permission_classes = (IsPubliclyVisibleCommunity,)
     serializer_class = CommunitySerializer
     http_method_names = ('get', 'head', 'options')
