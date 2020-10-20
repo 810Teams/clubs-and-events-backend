@@ -8,9 +8,38 @@ from membership.models import Membership, ApprovalRequest
 
 
 class ExistingCommunitySerializerTemplate(serializers.ModelSerializer):
+    community_type = serializers.SerializerMethodField()
     own_membership_id = serializers.SerializerMethodField()
     own_membership_position = serializers.SerializerMethodField()
     available_actions = serializers.SerializerMethodField()
+
+    def get_community_type(self, obj):
+        try:
+            Club.objects.get(pk=obj.id)
+            return 'club'
+        except Club.DoesNotExist:
+            pass
+
+        try:
+            CommunityEvent.objects.get(pk=obj.id)
+            return 'community_event'
+        except CommunityEvent.DoesNotExist:
+            pass
+
+        try:
+            Event.objects.get(pk=obj.id)
+            return 'event'
+        except Event.DoesNotExist:
+            pass
+
+        try:
+            Lab.objects.get(pk=obj.id)
+            return 'lab'
+        except Lab.DoesNotExist:
+            pass
+
+        return None
+
 
     def get_own_membership_id(self, obj):
         try:

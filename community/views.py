@@ -102,10 +102,9 @@ class EventViewSet(viewsets.ModelViewSet):
 
         try:
             query = request.query_params.get('exclude_community_events')
-            if query is not None:
-                if eval(query):
-                    community_event_list = [i.id for i in CommunityEvent.objects.all()]
-                    queryset = queryset.exclude(pk__in=community_event_list)
+            if query is not None and eval(query):
+                community_event_list = [i.id for i in CommunityEvent.objects.all()]
+                queryset = queryset.exclude(pk__in=community_event_list)
         except ValueError:
             queryset = None
 
