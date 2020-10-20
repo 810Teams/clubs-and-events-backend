@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import models
 from django.utils.translation import gettext as _
 
@@ -43,6 +44,28 @@ class Community(models.Model):
     def __str__(self):
         return '{}'.format(self.name_en)
 
+    def clean(self, get_error=False):
+        errors = list()
+
+        if self.external_links is not None:
+            urls = [i.replace('\r', '') for i in self.external_links.split('\n') if i.strip() != '']
+            validate = URLValidator()
+
+            for i in urls:
+                try:
+                    validate(i)
+                except ValidationError:
+                    errors.append(ValidationError(
+                        _('External links contains an invalid URL. Each URL must be written on a new line.'),
+                        code='invalid_url'
+                    ))
+
+        if get_error:
+            return errors
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
     def save(self, *args, **kwargs):
         user = get_current_user()
         if user is not None and user.id is None:
@@ -68,7 +91,7 @@ class Club(Community):
     status = models.CharField(max_length=1, choices=STATUS, default='R')
     valid_through = models.DateField(null=True, blank=True)
 
-    def clean(self):
+    def clean(self, get_error=False):
         errors = list()
 
         if not self.is_official:
@@ -100,6 +123,9 @@ class Club(Community):
                 code='null_valid_through_date'
             ))
 
+        if get_error:
+            return errors
+
         if len(errors) > 0:
             raise ValidationError(errors)
 
@@ -115,11 +141,14 @@ class Event(Community):
     is_approved = models.BooleanField(default=False)
     is_cancelled = models.BooleanField(default=False)
 
-    def clean(self):
-        errors = list()
+    def clean(self, get_error=False):
+        errors = super(Event, self).clean(get_error=True)
 
         if self.start_date > self.end_date:
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
+
+        if get_error:
+            return errors
 
         if len(errors) > 0:
             raise ValidationError(errors)
@@ -129,8 +158,8 @@ class CommunityEvent(Event):
     created_under = models.ForeignKey(Community, on_delete=models.PROTECT)
     allows_outside_participators = models.BooleanField(default=False)
 
-    def clean(self):
-        errors = list()
+    def clean(self, get_error=False):
+        errors = super(CommunityEvent, self).clean(get_error=True)
 
         try:
             if Event.objects.get(pk=self.created_under.id) is not None:
@@ -156,6 +185,9 @@ class CommunityEvent(Event):
                 code='status_error'
             ))
 
+        if get_error:
+            return errors
+
         if len(errors) > 0:
             raise ValidationError(errors)
 
@@ -171,3 +203,23 @@ class Lab(Community):
     founded_date = models.DateField(null=True, blank=True)
     tags = models.CharField(max_length=255, null=True, blank=True)
     status = models.CharField(max_length=1, choices=STATUS, default='R')
+
+    def clean(self, get_error=False):
+        errors = super(Lab, self).clean(get_error=True)
+
+        characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-., '
+
+        if self.tags is not None and self.tags.strip() != '':
+            for i in self.tags:
+                if i not in characters:
+                    errors.append(ValidationError(
+                        _('Tags must only consist of alphabetical characters, numbers, dashes, dots, and spaces. ' +
+                          'Each tag are separated by commas.'),
+                        code='invalid_tags'
+                    ))
+
+        if get_error:
+            return errors
+
+        if len(errors) > 0:
+            raise ValidationError(errors)

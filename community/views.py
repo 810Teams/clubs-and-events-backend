@@ -6,7 +6,7 @@ from community.models import Club, Event, CommunityEvent, Lab
 from community.permissions import IsPubliclyVisibleCommunity, IsAbleToUpdateClub, IsAbleToDeleteClub
 from community.permissions import IsAbleToDeleteEvent, IsAbleToUpdateCommunityEvent, IsAbleToDeleteCommunityEvent
 from community.permissions import IsAbleToUpdateLab, IsAbleToDeleteLab
-from community.serializers import OfficialClubSerializer, UnofficialClubSerializer
+from community.serializers import OfficialClubSerializer, UnofficialClubSerializer, CommunitySerializer
 from community.serializers import ApprovedEventSerializer, UnapprovedEventSerializer
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
@@ -15,6 +15,15 @@ from core.utils import filter_queryset, filter_queryset_permission
 from membership.models import Membership
 from notification.notifier import notify
 from user.permissions import IsStudent, IsLecturer
+
+
+class CommunityViewSet(viewsets.ModelViewSet):
+    queryset = CommunityEvent.objects.all()
+    permission_classes = (IsPubliclyVisibleCommunity,)
+    serializer_class = CommunitySerializer
+    http_method_names = ('get', 'head', 'options')
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name_th', 'name_en', 'description')
 
 
 class ClubViewSet(viewsets.ModelViewSet):
