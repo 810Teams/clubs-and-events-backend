@@ -10,7 +10,7 @@ from community.models import Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub
 from core.permissions import IsDeputyLeaderOfCommunity
 from core.permissions import IsInPubliclyVisibleCommunity
-from core.utils import filter_queryset, filter_queryset_permission
+from core.utils import filter_queryset, filter_queryset_permission, get_latest_membership_log
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToRetrieveRequest, IsAbleToUpdateRequest, IsAbleToDeleteRequest
@@ -23,7 +23,7 @@ from membership.serializers import NotExistingApprovalRequestSerializer, Existin
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
-from notification.notifier import notify
+from notification.notifier import notify, notify_membership_log
 from user.permissions import IsStudentCommittee
 
 
@@ -101,7 +101,10 @@ class RequestViewSet(viewsets.ModelViewSet):
                 membership.status = 'A'
                 membership.save()
             except Membership.DoesNotExist:
-                Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
+                membership = Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
+
+            # Notification
+            notify_membership_log(get_latest_membership_log(membership))
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -152,7 +155,10 @@ class InvitationViewSet(viewsets.ModelViewSet):
                 membership.status = 'A'
                 membership.save()
             except Membership.DoesNotExist:
-                Membership.objects.create(user_id=obj.invitee.id, community_id=obj.community.id)
+                membership = Membership.objects.create(user_id=obj.invitee.id, community_id=obj.community.id)
+
+            # Notification
+            notify_membership_log(get_latest_membership_log(membership))
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -218,6 +224,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
             membership.updated_by = request.user
             membership.save()
 
+
         # If the status is set to retired, get demoted to a normal member.
         if old_status != obj.status and obj.status == 'R':
             membership = Membership.objects.get(
@@ -227,6 +234,9 @@ class MembershipViewSet(viewsets.ModelViewSet):
             membership.position = 0
             membership.updated_by = request.user
             membership.save()
+
+        # Notification
+        notify_membership_log(get_latest_membership_log(obj))
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
