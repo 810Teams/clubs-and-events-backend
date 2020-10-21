@@ -87,6 +87,14 @@ def get_previous_membership_log(obj):
     return logs[current - 1]
 
 
+def get_latest_membership_log(membership):
+    logs = MembershipLog.objects.filter(membership_id=membership.id)
+
+    if len(logs) > 0:
+        return logs[len(logs) - 1]
+    return None
+
+
 def get_email(user, domain_name='it.kmitl.ac.th', is_student=True):
     if is_student and user.username[0:2] == 'it':
         return user.username[2:] + '@' + domain_name
