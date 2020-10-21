@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from core.utils import has_instance
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 
@@ -14,38 +15,25 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def get_meta(self, obj):
         notification_type = None
+        community_id = None
 
-        try:
-            RequestNotification.objects.get(pk=obj.id)
+        if has_instance(obj, RequestNotification):
             notification_type = 'request'
-        except RequestNotification.DoesNotExist:
-            pass
-
-        try:
-            MembershipLogNotification.objects.get(pk=obj.id)
+            community_id = RequestNotification.objects.get(pk=obj.id).request.community.id
+        elif has_instance(obj, MembershipLogNotification):
             notification_type = 'membership_log'
-        except MembershipLogNotification.DoesNotExist:
-            pass
-
-        try:
-            AnnouncementNotification.objects.get(pk=obj.id)
+            community_id = MembershipLogNotification.objects.get(pk=obj.id).membership.community.id
+        elif has_instance(obj, AnnouncementNotification):
             notification_type = 'announcement'
-        except AnnouncementNotification.DoesNotExist:
-            pass
-
-        try:
-            CommunityEventNotification.objects.get(pk=obj.id)
+            community_id = AnnouncementNotification.objects.get(pk=obj.id).announcement.community.id
+        elif has_instance(obj, CommunityEventNotification):
             notification_type = 'community_event'
-        except CommunityEventNotification.DoesNotExist:
-            pass
-
-        try:
-            EventNotification.objects.get(pk=obj.id)
+            community_id = CommunityEventNotification.objects.get(pk=obj.id).community_event.id
+        elif has_instance(obj, EventNotification):
             notification_type = 'event'
-        except EventNotification.DoesNotExist:
-            pass
+            community_id = EventNotification.objects.get(pk=obj.id).event.id
 
-        return {'notification_type': notification_type, 'object_id': obj.id}
+        return {'notification_type': notification_type, 'community_id': community_id}
 
 
 class RequestNotificationSerializer(serializers.ModelSerializer):
