@@ -19,7 +19,9 @@ class ExistingAnnouncementSerializer(serializers.ModelSerializer):
         try:
             Membership.objects.get(
                 user_id=self.context['request'].user.id,
-                position__in=(1, 2, 3), community_id=obj.community.id, status='A'
+                position__in=(1, 2, 3),
+                community_id=obj.community.id,
+                status='A'
             )
             return True
         except Membership.DoesNotExist:
@@ -35,7 +37,7 @@ class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
     def validate(self, data):
         membership = Membership.objects.filter(
             user_id=self.context['request'].user.id,
-            position__in=[1, 2, 3],
+            position__in=(1, 2, 3),
             community_id=data['community'].id,
             status='A'
         )

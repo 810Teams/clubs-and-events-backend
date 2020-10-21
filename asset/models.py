@@ -15,6 +15,7 @@ class Announcement(models.Model):
 
     text = models.TextField()
     image = models.ImageField(null=True, blank=True, upload_to=get_image_path)
+    is_publicly_visible = models.BooleanField(default=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
