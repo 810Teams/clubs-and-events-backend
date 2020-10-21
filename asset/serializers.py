@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from asset.models import Announcement, Album, Comment, AlbumImage
 from community.models import Event, CommunityEvent
+from core.utils import get_client_ip
 from membership.models import Membership
 
 
@@ -136,4 +137,37 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
-        read_only_fields = ('created_by',)
+        read_only_fields = ('ip_address', 'created_by')
+
+    def validate(self, data):
+        request = self.context['request']
+        user = request.user
+        event = data['event']
+
+        if not user.is_authenticated and not event.is_publicly_visible:
+            raise serializers.ValidationError(
+                _('Comments are not able to be made by an anonymous user in non-publicly visible events.'),
+                code='comment_permission_error'
+            )
+        if isinstance(event, CommunityEvent) and not event.allows_outside_participators:
+            try:
+                Membership.objects.get(community_id=event.id, user_id=user.id, status__in=('A', 'R'))
+            except Membership.DoesNotExist:
+                raise serializers.ValidationError(
+                    _('Comments are not able to be made by non-members in community events that does not allow ' +
+                      'outside participators.'),
+                    code='comment_permission_error'
+                )
+
+        commentators = Comment.objects.filter(event_id=event.id)
+
+        if user.is_authenticated and user.id in [i.created_by.id for i in commentators.exclude(created_by=None)]:
+            raise serializers.ValidationError(
+                _('Comment from this user is already made in this event.'), code='comment_already_exists'
+            )
+        elif not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in commentators]:
+            raise serializers.ValidationError(
+                _('Comment from this IP Address is already made in this event.'), code='comment_already_exists'
+            )
+
+        return data

@@ -3,9 +3,11 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from asset.models import Comment
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent
 from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
+from core.utils import get_client_ip
 from membership.models import Membership, ApprovalRequest
 
 
@@ -80,19 +82,18 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
     def get_available_actions(self, obj):
         request = self.context['request']
+        user = request.user
+        actions = list()
 
         try:
-            # Declare an empty action list and fetch a membership
-            actions = list()
-            membership = Membership.objects.get(user_id=request.user.id, community_id=obj.id, status__in=('A', 'R'))
+            # Fetch membership
+            membership = Membership.objects.get(user_id=user.id, community_id=obj.id, status__in=('A', 'R'))
 
             # Try retrieving base membership
             if isinstance(obj, CommunityEvent):
                 try:
                     base_membership = Membership.objects.get(
-                        user_id=request.user.id,
-                        community_id=obj.created_under.id,
-                        status__in=('A', 'R')
+                        user_id=user.id, community_id=obj.created_under.id, status__in=('A', 'R')
                     )
                 except Membership.DoesNotExist:
                     base_membership = None
@@ -113,7 +114,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                 if membership.status == 'R':
                     actions.append('active')
 
-            # If the user is the leader...
+            # If the user is the leader, check for delete community and send/cancel approval request permissions.
             if membership.position == 3 or (base_membership is not None and base_membership.position == 3):
                 # If the community is available for deletion.
                 if isinstance(obj, Club):
@@ -145,9 +146,32 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                     except ApprovalRequest.DoesNotExist:
                         actions.append('send-approval-request')
 
-            return actions
         except Membership.DoesNotExist:
-            return list()
+            pass
+
+        # Check if the community is event, and able to comment on the current session.
+        if isinstance(obj, Event):
+            is_able_to_comment = True
+
+            if not user.is_authenticated and not obj.is_publicly_visible:
+                is_able_to_comment = False
+            if isinstance(obj, CommunityEvent) and not obj.allows_outside_participators:
+                try:
+                    Membership.objects.get(community_id=obj.id, user_id=user.id, status__in=('A', 'R'))
+                except Membership.DoesNotExist:
+                    is_able_to_comment = False
+
+            commentators = Comment.objects.filter(event_id=obj.id)
+
+            if user.is_authenticated and user.id in [i.created_by.id for i in commentators]:
+                is_able_to_comment = False
+            elif not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in commentators]:
+                is_able_to_comment = False
+
+            if is_able_to_comment:
+                actions.append('comment')
+
+        return actions
 
 
 class CommunitySerializer(CommunitySerializerTemplate):

@@ -40,7 +40,7 @@ class AlbumAdmin(admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'partial_text', 'written_by', 'event', 'created_at', 'created_by')
-    readonly_fields = ('created_by',)
+    readonly_fields = ('ip_address', 'created_by')
 
     def get_readonly_fields(self, request, obj=None):
         if obj is not None:

@@ -49,6 +49,15 @@ def filter_queryset(queryset, request, target_param=None, is_foreign_key=False):
     return queryset
 
 
+def filter_queryset_permission(queryset, request, permissions):
+    for i in permissions:
+        visible_ids = [
+            j.id for j in queryset if i.has_permission(request, None) and i.has_object_permission(request, None, j)
+        ]
+        queryset = queryset.filter(pk__in=visible_ids)
+    return queryset
+
+
 def limit_queryset(queryset, request, target_param='limit'):
     try:
         limit = request.query_params.get(target_param)
@@ -77,14 +86,17 @@ def get_previous_membership_log(obj):
     return logs[current - 1]
 
 
-def get_email(user, domain_name='it.kmitl.ac.th'):
+def get_email(user, domain_name='it.kmitl.ac.th', is_student=True):
+    if is_student and user.username[0:2] == 'it':
+        return user.username[2:] + '@' + domain_name
     return user.username + '@' + domain_name
 
 
-def filter_queryset_permission(queryset, request, permissions):
-    for i in permissions:
-        visible_ids = [j.id for j in queryset if i.has_permission(request, None)]
-        queryset = queryset.filter(pk__in=visible_ids)
-        visible_ids = [j.id for j in queryset if i.has_object_permission(request, None, j)]
-        queryset = queryset.filter(pk__in=visible_ids)
-    return queryset
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+
+    if x_forwarded_for is not None:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
