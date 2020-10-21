@@ -10,6 +10,18 @@ The events tab is the 3rd tab next to the albums tab. This tab only exists in th
 
 The `{int}` is the ID of the event.
 
+### Render Create Comment Button
+
+`GET api/commununity/club/{int}`
+
+`GET api/commununity/event/{int}`
+
+`GET api/commununity/event/community/{int}`
+
+`GET api/commununity/lab/{int}`
+
+After retrieving the community data by one of these APIs, a field `available_actions` is expected. If `"comment"` is in the list, then render the create comment button, meaning the current user or the current session allows creating comments in the event. See all available actions [here](header.md/###get-available-actions).
+
 ### Create Comment
 
 Anyone can create comments, even without authorization, so render the button.

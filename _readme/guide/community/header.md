@@ -107,6 +107,7 @@ Upon calling one of the APIs above in the [heading](#heading) section, a field `
 |"active"|Renders a button that revert user from being retired to active.|
 |"retire"|Renders a button that set the current user's membership status to retired.|
 |"leave"|Renders a button that let the current user leaves the community.|
+|"comment"|Renders a button that let the current user writes comment in the comments tab.|
 
 These are actions, all should be placed in the same pop-up menu button, unlike request button which is an individual button. This is to prevent accidental action performings.
 
