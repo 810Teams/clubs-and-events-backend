@@ -1,5 +1,29 @@
 # Community Application API Endpoints
 
+## Community
+
+### List Communities
+
+`GET api/community`
+
+- Token is optional.
+- If a token is present, non-publicly visible clubs will also be shown.
+
+#### URL Parameters
+
+`search={string}` to search for Thai name, English name, and description.
+
+`status={string}`
+
+`url_id={string}` will return a single item is found, otherwise, a status of `404`.
+
+### Retrieve Community
+
+`GET api/community/{int}`
+
+- Token is optional.
+- If a token is present, non-publicly visible clubs will also be retrievable.
+
 ## Club
 
 ### List Clubs
