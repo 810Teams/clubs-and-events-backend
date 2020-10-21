@@ -15,25 +15,31 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def get_meta(self, obj):
         notification_type = None
+        object_id = None
         community_id = None
 
         if has_instance(obj, RequestNotification):
             notification_type = 'request'
+            object_id = RequestNotification.objects.get(pk=obj.id).request.id
             community_id = RequestNotification.objects.get(pk=obj.id).request.community.id
         elif has_instance(obj, MembershipLogNotification):
             notification_type = 'membership_log'
-            community_id = MembershipLogNotification.objects.get(pk=obj.id).membership.community.id
+            object_id = MembershipLogNotification.objects.get(pk=obj.id).membership_log.id
+            community_id = MembershipLogNotification.objects.get(pk=obj.id).membership_log.membership.community.id
         elif has_instance(obj, AnnouncementNotification):
             notification_type = 'announcement'
+            object_id = AnnouncementNotification.objects.get(pk=obj.id).announcement.id
             community_id = AnnouncementNotification.objects.get(pk=obj.id).announcement.community.id
         elif has_instance(obj, CommunityEventNotification):
             notification_type = 'community_event'
+            object_id = CommunityEventNotification.objects.get(pk=obj.id).community_event.id
             community_id = CommunityEventNotification.objects.get(pk=obj.id).community_event.id
         elif has_instance(obj, EventNotification):
             notification_type = 'event'
+            object_id = EventNotification.objects.get(pk=obj.id).event.id
             community_id = EventNotification.objects.get(pk=obj.id).event.id
 
-        return {'notification_type': notification_type, 'community_id': community_id}
+        return {'notification_type': notification_type, 'object_id': object_id, 'community_id': community_id}
 
 
 class RequestNotificationSerializer(serializers.ModelSerializer):
