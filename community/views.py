@@ -25,6 +25,22 @@ class CommunityViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description')
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
+        queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
+
+        if request.query_params.get('url_id') is not None and len(queryset) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        elif request.query_params.get('url_id') is not None and len(queryset) == 1:
+            serializer = self.get_serializer(queryset[0], many=False)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
 
 class ClubViewSet(viewsets.ModelViewSet):
     queryset = Club.objects.all()

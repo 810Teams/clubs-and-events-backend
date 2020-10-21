@@ -17,15 +17,7 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
         generated_file_name = 'generated-' + file_name
 
     # Init Generated Document Directories
-    base_path = '{}/generated_docx'.format(STORAGE_BASE_DIR)
-    id_path = '{}/{}'.format(base_path, club.id)
-    path = '{}/{}'.format(id_path, generated_file_name)
-
-    # Create Directories if not present
-    if not os.path.exists(base_path):
-        os.mkdir(base_path)
-    if not os.path.exists(id_path):
-        os.mkdir(id_path)
+    path = '{}/generated_docx/{}/{}'.format(STORAGE_BASE_DIR, club.id, generated_file_name)
 
     # Storing Data
     data = {

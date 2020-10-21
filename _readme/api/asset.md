@@ -15,6 +15,8 @@
 
 `community={int}`
 
+`is_publicly_visible={boolean}`
+
 ### Retrieve Announcement
 
 `GET api/asset/announcement/{int}`
@@ -30,6 +32,7 @@
 {
     "text": "string",
     "image": "image",
+    "is_publicly_visible": "boolean",
     "community": "int"
 }
 ```
@@ -47,6 +50,7 @@
 {
     "text": "string",
     "image": "image",
+    "is_publicly_visible": "boolean"
 }
 ```
 

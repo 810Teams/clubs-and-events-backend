@@ -24,6 +24,7 @@ After listing all announcements of the community, in each announcement object, t
 {
     "text": "string",
     "image": "image",
+    "is_publicly_visible": "boolean"
 }
 ```
 
@@ -49,6 +50,7 @@ Make sure to pass the current community's ID automatically in to this request.
 {
     "text": "string",
     "image": "image",
+    "is_publicly_visible": "boolean",
     "community": "int"
 }
 ```

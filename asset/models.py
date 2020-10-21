@@ -4,9 +4,9 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
-from community.models import Community, CommunityEvent, Event
-from core.utils import truncate
-from crum import get_current_user
+from community.models import Community, Event, CommunityEvent
+from core.utils import truncate, get_client_ip
+from crum import get_current_request, get_current_user
 
 
 class Announcement(models.Model):
@@ -15,6 +15,7 @@ class Announcement(models.Model):
 
     text = models.TextField()
     image = models.ImageField(null=True, blank=True, upload_to=get_image_path)
+    is_publicly_visible = models.BooleanField(default=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -122,6 +123,7 @@ class Comment(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
+    ip_address = models.CharField(max_length=15)
 
     def __str__(self):
         return '"{}", {}, {}'.format(truncate(self.text, max_length=32), self.written_by, self.event.__str__())
@@ -132,5 +134,6 @@ class Comment(models.Model):
             user = None
         if self.id is None:
             self.created_by = user
+        self.ip_address = get_client_ip(get_current_request())
 
         super(Comment, self).save(*args, **kwargs)
