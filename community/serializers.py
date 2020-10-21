@@ -78,7 +78,9 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
             if has_instance(obj, CommunityEvent):
                 try:
                     base_membership = Membership.objects.get(
-                        user_id=user.id, community_id=obj.created_under.id, status__in=('A', 'R')
+                        user_id=user.id,
+                        community_id=CommunityEvent.objects.get(pk=obj.id).created_under.id,
+                        status__in=('A', 'R')
                     )
                 except Membership.DoesNotExist:
                     base_membership = None
