@@ -3,6 +3,7 @@ import os
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
+from django.db import models
 
 from membership.models import MembershipLog
 
@@ -100,3 +101,13 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+def has_instance(obj, model):
+    if isinstance(obj, models.Model):
+        try:
+            model.objects.get(pk=obj.id)
+            return True
+        except model.DoesNotExist:
+            return False
+    return False

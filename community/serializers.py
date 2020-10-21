@@ -7,7 +7,7 @@ from asset.models import Comment
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent
 from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
-from core.utils import get_client_ip
+from core.utils import get_client_ip, has_instance
 from membership.models import Membership, ApprovalRequest
 
 
@@ -35,29 +35,14 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
 
     def get_community_type(self, obj):
-        try:
-            Club.objects.get(pk=obj.id)
+        if has_instance(obj, Club):
             return 'club'
-        except Club.DoesNotExist:
-            pass
-
-        try:
-            CommunityEvent.objects.get(pk=obj.id)
-            return 'community_event'
-        except CommunityEvent.DoesNotExist:
-            pass
-
-        try:
-            Event.objects.get(pk=obj.id)
+        elif has_instance(obj, Event) and not has_instance(obj, CommunityEvent):
             return 'event'
-        except Event.DoesNotExist:
-            pass
-
-        try:
-            Lab.objects.get(pk=obj.id)
+        elif has_instance(obj, CommunityEvent):
+            return 'community_event'
+        elif has_instance(obj, Lab):
             return 'lab'
-        except Lab.DoesNotExist:
-            pass
 
         return None
 
@@ -90,7 +75,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
             membership = Membership.objects.get(user_id=user.id, community_id=obj.id, status__in=('A', 'R'))
 
             # Try retrieving base membership
-            if isinstance(obj, CommunityEvent):
+            if has_instance(obj, CommunityEvent):
                 try:
                     base_membership = Membership.objects.get(
                         user_id=user.id, community_id=obj.created_under.id, status__in=('A', 'R')
@@ -117,18 +102,16 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
             # If the user is the leader, check for delete community and send/cancel approval request permissions.
             if membership.position == 3 or (base_membership is not None and base_membership.position == 3):
                 # If the community is available for deletion.
-                if isinstance(obj, Club):
-                    if IsAbleToDeleteClub().has_object_permission(request, None, obj):
-                        actions.append('delete')
-                elif isinstance(obj, Event) and not isinstance(obj, CommunityEvent):
-                    if IsAbleToDeleteEvent().has_object_permission(request, None, obj):
-                        actions.append('delete')
-                elif isinstance(obj, CommunityEvent):
-                    if IsAbleToDeleteCommunityEvent().has_object_permission(request, None, obj):
-                        actions.append('delete')
-                elif isinstance(obj, Lab):
-                    if IsAbleToDeleteLab().has_object_permission(request, None, obj):
-                        actions.append('delete')
+                if isinstance(obj, Club) and IsAbleToDeleteClub().has_object_permission(request, None, obj):
+                    actions.append('delete')
+                elif isinstance(obj, Event) and not isinstance(obj, CommunityEvent) \
+                        and IsAbleToDeleteEvent().has_object_permission(request, None, obj):
+                    actions.append('delete')
+                elif isinstance(obj, CommunityEvent) \
+                        and IsAbleToDeleteCommunityEvent().has_object_permission(request, None, obj):
+                    actions.append('delete')
+                elif isinstance(obj, Lab) and IsAbleToDeleteLab().has_object_permission(request, None, obj):
+                    actions.append('delete')
 
                 # If the object is an unofficial or a renewable club, check for actions related to approval requests.
                 if isinstance(obj, Club) and IsRenewableClub().has_object_permission(request, None, obj):
@@ -155,7 +138,8 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
             if not user.is_authenticated and not obj.is_publicly_visible:
                 is_able_to_comment = False
-            if isinstance(obj, CommunityEvent) and not obj.allows_outside_participators:
+            if has_instance(obj, CommunityEvent) \
+                    and not CommunityEvent.objects.get(pk=obj.id).allows_outside_participators:
                 try:
                     Membership.objects.get(community_id=obj.id, user_id=user.id, status__in=('A', 'R'))
                 except Membership.DoesNotExist:
@@ -163,7 +147,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
             commentators = Comment.objects.filter(event_id=obj.id)
 
-            if user.is_authenticated and user.id in [i.created_by.id for i in commentators]:
+            if user.is_authenticated and user.id in [i.created_by.id for i in commentators.exclude(created_by=None)]:
                 is_able_to_comment = False
             elif not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in commentators]:
                 is_able_to_comment = False
@@ -175,6 +159,10 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
 
 class CommunitySerializer(CommunitySerializerTemplate):
+    own_membership_id = None
+    own_membership_position = None
+    available_actions = None
+
     class Meta:
         model = Community
         fields = '__all__'

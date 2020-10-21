@@ -7,3 +7,4 @@ email-validator==1.1.1
 django-crum==0.7.7
 qrcode==6.1
 python-docx==0.8.10
+django-cleanup==5.1.0
