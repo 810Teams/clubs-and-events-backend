@@ -298,16 +298,6 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=False)
-        serializer.is_valid(raise_exception=True)
-        obj = serializer.save()
-
-        # Notification
-        notify(users=[request.user], obj=obj)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 
 class AdvisoryViewSet(viewsets.ModelViewSet):
     queryset = Advisory.objects.all()
