@@ -160,6 +160,12 @@ REST_FRAMEWORK = {
 }
 
 
+# Media URL
+
+MEDIA_URL = 'media/'
+MEDIA_ROOT = load_key('MEDIA_ROOT.txt', decrypt=False)
+
+
 # Email Settings
 
 EMAIL_HOST = 'smtp.gmail.com'
