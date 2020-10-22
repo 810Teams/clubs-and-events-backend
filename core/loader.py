@@ -1,7 +1,14 @@
+'''
+    Core Application Loader
+    core/loader.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from math import gcd
 
 
 def load_key(path, many=False, decrypt=False):
+    ''' Load key from file '''
     data = [i.replace('\n', '') for i in open(path)]
 
     if decrypt:
@@ -18,6 +25,7 @@ def load_key(path, many=False, decrypt=False):
 
 
 def decrypt_key(p, d, c1, c2):
+    ''' Decrypt key '''
     message = str()
 
     for i in range(len(c2)):
@@ -27,6 +35,7 @@ def decrypt_key(p, d, c1, c2):
 
 
 def modulo_inverse(a, b):
+    ''' Inverse modulo '''
     if gcd(a, b) != 1:
         return None
 

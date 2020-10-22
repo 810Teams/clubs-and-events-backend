@@ -15,9 +15,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 '''
 
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 
+from clubs_and_events import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,4 +30,4 @@ urlpatterns = [
     path('api/membership/', include('membership.urls')),
     path('api/notification/', include('notification.urls')),
     path('api/user/', include('user.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

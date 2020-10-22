@@ -1,3 +1,9 @@
+'''
+    Community Application Serializers
+    community/serializers.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
@@ -12,12 +18,14 @@ from membership.models import Membership, ApprovalRequest
 
 
 class CommunitySerializerTemplate(serializers.ModelSerializer):
+    ''' Community serializer template'''
     community_type = serializers.SerializerMethodField()
     own_membership_id = serializers.SerializerMethodField()
     own_membership_position = serializers.SerializerMethodField()
     available_actions = serializers.SerializerMethodField()
 
     def validate(self, data):
+        ''' Validate data '''
         if 'external_links' in data.keys() and data['external_links'] is not None:
             urls = [i.replace('\r', '') for i in data['external_links'].split('\n') if i.strip() != '']
             validate = URLValidator()
@@ -35,6 +43,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
 
     def get_community_type(self, obj):
+        ''' Retrieve community type '''
         if has_instance(obj, Club):
             return 'club'
         elif has_instance(obj, Event) and not has_instance(obj, CommunityEvent):
@@ -48,6 +57,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
 
     def get_own_membership_id(self, obj):
+        ''' Retrieve own membership ID '''
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status__in=('A', 'R')
@@ -57,6 +67,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
             return None
 
     def get_own_membership_position(self, obj):
+        ''' Retrieve own membership position '''
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.id, status='A'
@@ -66,6 +77,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
             return None
 
     def get_available_actions(self, obj):
+        ''' Retrieve available actions '''
         request = self.context['request']
         user = request.user
         actions = list()
@@ -161,57 +173,72 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
 
 class CommunitySerializer(CommunitySerializerTemplate):
+    ''' Community serializer '''
     own_membership_id = None
     own_membership_position = None
     available_actions = None
 
     class Meta:
+        ''' Meta '''
         model = Community
         fields = '__all__'
 
 
 class OfficialClubSerializer(CommunitySerializerTemplate):
+    ''' Official club serializer '''
     class Meta:
+        ''' Meta '''
         model = Club
         fields = '__all__'
         read_only_fields = ('is_official', 'valid_through', 'created_by', 'updated_by')
 
 
 class UnofficialClubSerializer(CommunitySerializerTemplate):
+    ''' Unofficial club serializer '''
     class Meta:
+        ''' Meta '''
         model = Club
         exclude = ('url_id', 'is_publicly_visible', 'room')
         read_only_fields = ('is_official', 'created_by', 'updated_by')
 
 
 class ApprovedEventSerializer(CommunitySerializerTemplate):
+    ''' Approved event serializer '''
     class Meta:
+        ''' Meta '''
         model = Event
         fields = '__all__'
         read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
 
 class UnapprovedEventSerializer(CommunitySerializerTemplate):
+    ''' Unapproved event serializer '''
     class Meta:
+        ''' Meta '''
         model = Event
         exclude = ('url_id', 'is_publicly_visible')
         read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
 
 class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
+    ''' Existing community event serializer '''
     class Meta:
+        ''' Meta '''
         model = CommunityEvent
         fields = '__all__'
         read_only_fields = ('is_approved', 'created_under', 'created_by', 'updated_by')
 
 
 class NotExistingCommunityEventSerializer(ExistingCommunityEventSerializer):
+    ''' Not existing community event serializer '''
     class Meta:
+        ''' Meta '''
         model = CommunityEvent
         fields = '__all__'
         read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
     def validate(self, data):
+        ''' Validate data '''
         super(NotExistingCommunityEventSerializer, self).validate(data)
 
         base_community = Community.objects.get(pk=data['created_under'].id)
@@ -247,12 +274,15 @@ class NotExistingCommunityEventSerializer(ExistingCommunityEventSerializer):
 
 
 class LabSerializer(CommunitySerializerTemplate):
+    ''' Lab serializer '''
     class Meta:
+        ''' Meta '''
         model = Lab
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
 
     def validate(self, data):
+        ''' Validate data '''
         super(LabSerializer, self).validate(data)
 
         characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-., '
@@ -269,6 +299,7 @@ class LabSerializer(CommunitySerializerTemplate):
         return data
 
     def create(self, validated_data):
+        ''' Create lab instance '''
         if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
             validated_data['url_id'] = None
         if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
@@ -277,6 +308,7 @@ class LabSerializer(CommunitySerializerTemplate):
         return self.Meta.model.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
+        ''' Update lab instance '''
         if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
             validated_data['url_id'] = None
         if 'room' in validated_data.keys() and validated_data['room'].strip() == '':

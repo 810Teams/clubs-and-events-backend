@@ -1,3 +1,9 @@
+'''
+    Category Application Views
+    category/views.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from rest_framework import viewsets
 
 from category.models import ClubType, EventType, EventSeries

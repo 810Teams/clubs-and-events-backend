@@ -1,3 +1,9 @@
+'''
+    Community Application Models
+    community/models.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -10,11 +16,14 @@ from crum import get_current_user
 
 
 class Community(models.Model):
+    ''' Community model '''
     def get_logo_path(self, file_name):
+        ''' Get logo path '''
         file_extension = file_name.split('.')[1]
         return '{}/community/{}/logo.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
 
     def get_banner_path(self, file_name):
+        ''' Get banner path '''
         file_extension = file_name.split('.')[1]
         return '{}/community/{}/banner.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
 
@@ -42,9 +51,11 @@ class Community(models.Model):
                                    related_name='community_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return '{}'.format(self.name_en)
 
     def clean(self, get_error=False):
+        ''' Validate instance on save '''
         errors = list()
 
         if self.external_links is not None:
@@ -67,6 +78,7 @@ class Community(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -78,6 +90,7 @@ class Community(models.Model):
 
 
 class Club(Community):
+    ''' Club model '''
     STATUS = (
         ('R', 'Recruiting'),
         ('C', 'Closed'),
@@ -92,6 +105,7 @@ class Club(Community):
     valid_through = models.DateField(null=True, blank=True)
 
     def clean(self, get_error=False):
+        ''' Validate instance on save '''
         errors = list()
 
         if not self.is_official:
@@ -131,6 +145,7 @@ class Club(Community):
 
 
 class Event(Community):
+    ''' Event model '''
     event_type = models.ForeignKey(EventType, on_delete=models.SET_NULL, null=True, blank=True)
     event_series = models.ForeignKey(EventSeries, on_delete=models.SET_NULL, null=True, blank=True)
     location = models.CharField(max_length=255)
@@ -142,6 +157,7 @@ class Event(Community):
     is_cancelled = models.BooleanField(default=False)
 
     def clean(self, get_error=False):
+        ''' Validate instance on save '''
         errors = super(Event, self).clean(get_error=True)
 
         if self.start_date > self.end_date:
@@ -155,10 +171,12 @@ class Event(Community):
 
 
 class CommunityEvent(Event):
+    ''' Community event model '''
     created_under = models.ForeignKey(Community, on_delete=models.PROTECT)
     allows_outside_participators = models.BooleanField(default=False)
 
     def clean(self, get_error=False):
+        ''' Validate instance on save '''
         errors = super(CommunityEvent, self).clean(get_error=True)
 
         try:
@@ -193,6 +211,7 @@ class CommunityEvent(Event):
 
 
 class Lab(Community):
+    ''' Lab model '''
     STATUS = (
         ('R', 'Recruiting'),
         ('C', 'Closed'),
@@ -205,6 +224,7 @@ class Lab(Community):
     status = models.CharField(max_length=1, choices=STATUS, default='R')
 
     def clean(self, get_error=False):
+        ''' Validate instance on save '''
         errors = super(Lab, self).clean(get_error=True)
 
         characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-., '

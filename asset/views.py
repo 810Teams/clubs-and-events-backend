@@ -1,3 +1,9 @@
+'''
+    Asset Application Views
+    asset/views.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.http import Http404
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
@@ -15,12 +21,14 @@ from notification.notifier import notify
 
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
+    ''' Announcement view set '''
     queryset = Announcement.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('text',)
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsAbleToRetrieveAnnouncement(),)
         elif self.request.method == 'POST':
@@ -30,11 +38,13 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingAnnouncementSerializer
         return ExistingAnnouncementSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List announcements '''
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -46,26 +56,27 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        ''' Create announcement '''
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
         # Notification
-        users = [i.user for i in Membership.objects.filter(
-            community_id=obj.community.id, status='A'
-        )]
+        users = [i.user for i in Membership.objects.filter(community_id=obj.community.id, status='A')]
         notify(users=users, obj=obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class AlbumViewSet(viewsets.ModelViewSet):
+    ''' Album view set '''
     queryset = Album.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
@@ -75,11 +86,13 @@ class AlbumViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingAlbumSerializer
         return ExistingAlbumSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List albums '''
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -91,11 +104,13 @@ class AlbumViewSet(viewsets.ModelViewSet):
 
 
 class AlbumImageViewSet(viewsets.ModelViewSet):
+    ''' Album image view set '''
     queryset = AlbumImage.objects.all()
     serializer_class = AlbumImageSerializer
     http_method_names = ('get', 'post', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
@@ -105,12 +120,10 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def list(self, request, *args, **kwargs):
+        ''' List album images '''
         queryset = self.get_queryset()
 
-        if not self.request.user.is_authenticated:
-            visible_ids = Community.objects.filter(is_publicly_visible=True)
-            queryset = queryset.filter(community_id__in=visible_ids)
-
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='album', is_foreign_key=True)
         queryset = limit_queryset(queryset, request)
 
@@ -119,10 +132,12 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        ''' Create album image '''
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         serializer.save(created_by=request.user)
 
+        # Update album's updater
         album = Album.objects.get(pk=request.data['album'])
         album.updated_by = request.user
         album.save()
@@ -130,11 +145,13 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
+        ''' Destroy album image '''
         try:
             instance = self.get_object()
             album_id = instance.album.id
             self.perform_destroy(instance)
 
+            # Update album's updater
             album = Album.objects.get(pk=album_id)
             album.updated_by = request.user
             album.save()
@@ -144,6 +161,7 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    ''' Comment view set '''
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     http_method_names = ('get', 'post', 'head', 'options')
@@ -151,11 +169,13 @@ class CommentViewSet(viewsets.ModelViewSet):
     search_fields = ('text', 'written_by')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         return tuple()
 
     def list(self, request, *args, **kwargs):
+        ''' List comments '''
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
