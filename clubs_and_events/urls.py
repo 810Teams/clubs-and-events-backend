@@ -21,6 +21,7 @@ from django.urls import path, include
 
 from clubs_and_events import settings
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/asset/', include('asset.urls')),

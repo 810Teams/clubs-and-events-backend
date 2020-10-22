@@ -1,3 +1,9 @@
+'''
+    Membership Application Views
+    membership/views.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from datetime import datetime
 
 from django.utils.translation import gettext as _
@@ -18,20 +24,22 @@ from membership.permissions import IsAbleToRetrieveInvitation, IsAbleToUpdateInv
 from membership.permissions import IsAbleToUpdateMembership, IsAbleToUpdateCustomMembershipLabel
 from membership.permissions import IsAbleToRetrieveApprovalRequest, IsAbleToUpdateApprovalRequest
 from membership.permissions import IsAbleToDeleteApprovalRequest
-from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer, MembershipLogSerializer
-from membership.serializers import NotExistingApprovalRequestSerializer, ExistingApprovalRequestSerializer
+from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
-from membership.serializers import MembershipSerializer, AdvisorySerializer
+from membership.serializers import MembershipSerializer, MembershipLogSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
+from membership.serializers import ExistingApprovalRequestSerializer, NotExistingApprovalRequestSerializer
 from notification.notifier import notify, notify_membership_log
 from user.permissions import IsStudentCommittee
 
 
 class RequestViewSet(viewsets.ModelViewSet):
+    ''' Request view set '''
     queryset = Request.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (permissions.IsAuthenticated(), IsAbleToRetrieveRequest())
         elif self.request.method == 'POST':
@@ -43,11 +51,13 @@ class RequestViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingRequestSerializer
         return ExistingRequestSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List requests '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -60,6 +70,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        ''' Create request '''
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
@@ -89,6 +100,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
+        ''' Update request '''
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
@@ -110,10 +122,12 @@ class RequestViewSet(viewsets.ModelViewSet):
 
 
 class InvitationViewSet(viewsets.ModelViewSet):
+    ''' Invitation view set '''
     queryset = Invitation.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (permissions.IsAuthenticated(), IsAbleToRetrieveInvitation())
         elif self.request.method == 'POST':
@@ -125,11 +139,13 @@ class InvitationViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingInvitationSerializer
         return ExistingInvitationSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List invitations '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -143,6 +159,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
+        ''' Update invitation '''
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
@@ -164,11 +181,13 @@ class InvitationViewSet(viewsets.ModelViewSet):
 
 
 class MembershipViewSet(viewsets.ModelViewSet):
+    ''' Membership view set '''
     queryset = Membership.objects.all()
     serializer_class = MembershipSerializer
     http_method_names = ('get', 'put', 'patch', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method in ('PUT', 'PATCH'):
@@ -176,6 +195,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def list(self, request, *args, **kwargs):
+        ''' List memberships '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -207,6 +227,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
+        ''' Update membership '''
         old_position = Membership.objects.get(pk=kwargs['pk']).position
         old_status = Membership.objects.get(pk=kwargs['pk']).status
 
@@ -242,10 +263,12 @@ class MembershipViewSet(viewsets.ModelViewSet):
 
 
 class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
+    ''' Custom membership label view set '''
     queryset = CustomMembershipLabel.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
@@ -257,11 +280,13 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingCustomMembershipLabelSerializer
         return ExistingCustomMembershipLabelSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List custom membership labels '''
         queryset = self.get_queryset()
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         serializer = self.get_serializer(queryset, many=True)
@@ -270,16 +295,19 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
 
 
 class MembershipLogViewSet(viewsets.ModelViewSet):
+    ''' Membership log view set '''
     queryset = MembershipLog.objects.all()
     serializer_class = MembershipLogSerializer
     http_method_names = ('get', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
         return tuple()
 
     def list(self, request, *args, **kwargs):
+        ''' List membership logs '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -310,16 +338,19 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
 
 
 class AdvisoryViewSet(viewsets.ModelViewSet):
+    ''' Advisory view set '''
     queryset = Advisory.objects.all()
     serializer_class = AdvisorySerializer
     http_method_names = ('get', 'post', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method in ('POST', 'DELETE'):
             return (permissions.IsAuthenticated(), IsStudentCommittee())
         return (permissions.IsAuthenticated(),)
 
     def list(self, request, *args, **kwargs):
+        ''' List advisories '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset(queryset, request, target_param='advisor', is_foreign_key=True)
@@ -344,10 +375,12 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
 
 
 class ApprovalRequestViewSet(viewsets.ModelViewSet):
+    ''' Approval request view set '''
     queryset = ApprovalRequest.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (permissions.IsAuthenticated(), IsAbleToRetrieveApprovalRequest())
         elif self.request.method == 'POST':
@@ -359,11 +392,13 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
         return (permissions.IsAuthenticated(),)
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingApprovalRequestSerializer
         return ExistingApprovalRequestSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List approval requests '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -375,6 +410,7 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
+        ''' Update approval request '''
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
@@ -409,7 +445,8 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['GET'])
-def get_membership_default_label(request):
+def get_membership_default_labels(request):
+    ''' Get membership default labels API '''
     return Response({
         'club': {
             '3': _('President'),

@@ -1,3 +1,9 @@
+'''
+    Membership Application Serializers
+    membership/serializers.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
@@ -6,7 +12,7 @@ from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
 from community.permissions import IsRenewableClub
-from core.utils import get_previous_membership_log
+from core.utils import get_previous_membership_log, has_instance
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToDeleteInvitation
@@ -14,12 +20,15 @@ from user.permissions import IsLecturer
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
+    ''' Existing request serializer '''
     class Meta:
+        ''' Meta '''
         model = Request
         fields = '__all__'
         read_only_fields = ('user', 'community', 'updated_by')
 
     def validate(self, data):
+        ''' Validate data '''
         if data['status'] == 'W':
             raise serializers.ValidationError(
                 _('Requests statuses are not able to be updated to waiting.'), code='request_status_error'
@@ -28,12 +37,15 @@ class ExistingRequestSerializer(serializers.ModelSerializer):
 
 
 class NotExistingRequestSerializer(serializers.ModelSerializer):
+    ''' Not existing request serializer '''
     class Meta:
+        ''' Meta '''
         model = Request
         fields = '__all__'
         read_only_fields = ('user', 'status', 'updated_by',)
 
     def validate(self, data):
+        ''' Validate data '''
         community_id = data['community'].id
         user_id = self.context['request'].user.id
 
@@ -96,14 +108,17 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
 
 
 class ExistingInvitationSerializer(serializers.ModelSerializer):
+    ''' Existing invitation serializer '''
     is_able_to_cancel = serializers.SerializerMethodField()
 
     class Meta:
+        ''' Meta '''
         model = Invitation
         fields = '__all__'
         read_only_fields = ('community', 'invitor', 'invitee')
 
     def validate(self, data):
+        ''' Validate data '''
         if data['status'] == 'W':
             raise serializers.ValidationError(
                 _('Invitation statuses are not able to be updated to waiting.'), code='invitation_status_error'
@@ -111,16 +126,20 @@ class ExistingInvitationSerializer(serializers.ModelSerializer):
         return data
 
     def get_is_able_to_cancel(self, obj):
+        ''' Retrieve cancellable status '''
         return IsAbleToDeleteInvitation().has_object_permission(self.context['request'], None, obj)
 
 
 class NotExistingInvitationSerializer(serializers.ModelSerializer):
+    ''' Not existing invitation serializer '''
     class Meta:
+        ''' Meta '''
         model = Invitation
         fields = '__all__'
         read_only_fields = ('invitor', 'status')
 
     def validate(self, data):
+        ''' Validate data '''
         community_id = data['community'].id
         invitor_id = self.context['request'].user.id
         invitee_id = data['invitee'].id
@@ -192,17 +211,20 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
 
 
 class MembershipSerializer(serializers.ModelSerializer):
+    ''' Membership serializer '''
     is_able_to_assign = serializers.SerializerMethodField()
     is_able_to_remove = serializers.SerializerMethodField()
     is_able_to_leave = serializers.SerializerMethodField()
     custom_membership_label = serializers.SerializerMethodField()
 
     class Meta:
+        ''' Meta '''
         model = Membership
         fields = '__all__'
         read_only_fields = ('user', 'community', 'created_by', 'updated_by')
 
     def validate(self, data):
+        ''' Validate data '''
         # Loads Original Membership
         original_membership = Membership.objects.get(pk=self.instance.id)
 
@@ -280,6 +302,7 @@ class MembershipSerializer(serializers.ModelSerializer):
         return data
 
     def get_is_able_to_assign(self, obj):
+        ''' Retrieve assignable positions '''
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.community.id, status='A'
@@ -293,6 +316,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             return list()
 
     def get_is_able_to_remove(self, obj):
+        ''' Retrieve removable status '''
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.community.id, status='A'
@@ -307,9 +331,11 @@ class MembershipSerializer(serializers.ModelSerializer):
             return False
 
     def get_is_able_to_leave(self, obj):
+        ''' Retrieve leave-able status '''
         return obj.user.id == self.context['request'].user.id and obj.position != 3 and obj.status in ('A', 'R')
 
     def get_custom_membership_label(self, obj):
+        ''' Retrieve custom membership label '''
         try:
             return CustomMembershipLabel.objects.get(membership_id=obj.id).label
         except CustomMembershipLabel.DoesNotExist:
@@ -317,19 +343,24 @@ class MembershipSerializer(serializers.ModelSerializer):
 
 
 class ExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
+    ''' Existing custom membership label serializer '''
     class Meta:
+        ''' Meta '''
         model = CustomMembershipLabel
         fields = '__all__'
         read_only_fields = ('membership', 'created_by', 'updated_by')
 
 
 class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
+    ''' Not existing custom membership label serializer'''
     class Meta:
+        ''' Meta '''
         model = CustomMembershipLabel
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
 
     def validate(self, data):
+        ''' Validate data '''
         membership = Membership.objects.filter(
             user_id=self.context['request'].user.id,
             position__in=(2, 3),
@@ -358,50 +389,42 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
 
 
 class MembershipLogSerializer(serializers.ModelSerializer):
+    ''' Membership log serializer '''
     user = serializers.SerializerMethodField()
     community = serializers.SerializerMethodField()
     log_text = serializers.SerializerMethodField()
 
     class Meta:
+        ''' Meta '''
         model = MembershipLog
         fields = '__all__'
         read_only_fields = ('membership', 'position', 'status', 'start_date', 'end_date')
 
     def get_user(self, obj):
+        ''' Retrieve user ID '''
         return obj.membership.user.id
 
     def get_community(self, obj):
+        ''' Retrieve community id '''
         return obj.membership.community.id
 
     def get_log_text(self, obj):
+        ''' Retrieve log text '''
         current = obj
         previous = get_previous_membership_log(current)
 
         # Retrieve the community type
         community_type = 'community'
-        try:
-            Club.objects.get(pk=obj.membership.community.id)
+
+        if has_instance(obj.membership.community, Club):
             community_type = 'club'
-        except Club.DoesNotExist:
-            pass
-
-        try:
-            Event.objects.get(pk=obj.membership.community.id)
+        elif has_instance(obj.membership.community, Event) \
+                and not has_instance(obj.membership.community, CommunityEvent):
             community_type = 'event'
-        except Event.DoesNotExist:
-            pass
-
-        try:
-            CommunityEvent.objects.get(pk=obj.membership.community.id)
+        elif has_instance(obj.membership.community, CommunityEvent):
             community_type = 'community event'
-        except CommunityEvent.DoesNotExist:
-            pass
-
-        try:
-            Lab.objects.get(pk=obj.membership.community.id)
+        elif has_instance(obj.membership.community, Lab):
             community_type = 'lab'
-        except Lab.DoesNotExist:
-            pass
 
         # If the first log
         if previous is None:
@@ -439,18 +462,22 @@ class MembershipLogSerializer(serializers.ModelSerializer):
 
 
 class AdvisorySerializer(serializers.ModelSerializer):
+    ''' Advisory serializer '''
     is_active = serializers.SerializerMethodField()
 
     class Meta:
+        ''' Meta '''
         model = Advisory
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
 
     def validate(self, data):
+        ''' Validate data '''
         if not data['advisor'].is_lecturer:
             raise serializers.ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor')
 
         advisors = Advisory.objects.filter(advisor_id=data['advisor'].id)
+
         for i in advisors:
             if data['start_date'] <= i.end_date or i.start_date <= data['end_date']:
                 raise serializers.ValidationError(_('Advisory time overlapped.'), code='advisory_overlap')
@@ -458,16 +485,20 @@ class AdvisorySerializer(serializers.ModelSerializer):
         return data
 
     def get_is_active(self, obj):
+        ''' Retrieve active status '''
         return obj.start_date <= datetime.now().date() <= obj.end_date
 
 
 class ExistingApprovalRequestSerializer(serializers.ModelSerializer):
+    ''' Existing approval request serializer '''
     class Meta:
+        ''' Meta '''
         model = ApprovalRequest
         fields = '__all__'
         read_only_fields = ('community', 'message', 'attached_file', 'created_by', 'updated_by')
 
     def validate(self, data):
+        ''' Validate data '''
         if data['status'] == 'W':
             raise serializers.ValidationError(
                 _('Approval request statuses are not able to be updated to waiting.'),
@@ -477,30 +508,27 @@ class ExistingApprovalRequestSerializer(serializers.ModelSerializer):
 
 
 class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
+    ''' Not existing approval request serializer '''
     class Meta:
+        ''' Meta '''
         model = ApprovalRequest
         fields = '__all__'
         read_only_fields = ('status', 'created_by', 'updated_by')
 
     def validate(self, data):
-        # Case 1: Must be not be a lab or a community event
-        try:
-            Lab.objects.get(pk=data['community'].id)
-            raise serializers.ValidationError(
-                _('Approval requests are not able to be made from labs.'),
-                code='approval_request_error'
-            )
-        except Lab.DoesNotExist:
-            pass
-
-        try:
-            CommunityEvent.objects.get(pk=data['community'].id)
+        ''' Validate data '''
+        # Case 1: Must be not be a community event or a lab
+        if has_instance(data['community'], CommunityEvent):
             raise serializers.ValidationError(
                 _('Approval requests are not able to be made from community events.'),
                 code='approval_request_error'
             )
-        except CommunityEvent.DoesNotExist:
-            pass
+
+        if has_instance(data['community'], Lab):
+            raise serializers.ValidationError(
+                _('Approval requests are not able to be made from labs.'),
+                code='approval_request_error'
+            )
 
         # Case 2: Must be an unofficial or renewable club, or an unapproved event
         try:

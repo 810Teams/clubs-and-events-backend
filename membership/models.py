@@ -1,3 +1,9 @@
+'''
+    Membership Application Models
+    membership/models.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -10,6 +16,7 @@ from clubs_and_events.settings import STORAGE_BASE_DIR
 
 
 class Request(models.Model):
+    ''' Request model '''
     STATUS = (
         ('W', 'Waiting'),
         ('A', 'Accepted'),
@@ -25,9 +32,11 @@ class Request(models.Model):
                                    related_name='request_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return '{}, {} ({})'.format(self.user.__str__(), self.community.__str__(), self.id)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -39,6 +48,7 @@ class Request(models.Model):
 
 
 class Invitation(models.Model):
+    ''' Invitation model '''
     STATUS = (
         ('W', 'Waiting'),
         ('A', 'Accepted'),
@@ -54,11 +64,13 @@ class Invitation(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
+        ''' String representation '''
         return '{}, {}, {} ({})'.format(
             self.invitor.__str__(), self.invitee.__str__(), self.community.__str__(), self.id
         )
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -69,6 +81,7 @@ class Invitation(models.Model):
 
 
 class Membership(models.Model):
+    ''' Membership model '''
     POSITION = (
         (0, '0'),
         (1, '1'),
@@ -95,9 +108,11 @@ class Membership(models.Model):
                                    related_name='membership_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return '{}, {}'.format(self.user.__str__(), self.community.__str__())
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -119,6 +134,7 @@ class Membership(models.Model):
 
 
     def clean(self):
+        ''' Validate on save '''
         errors = list()
 
         if self.position not in (0, 1, 2, 3):
@@ -129,6 +145,7 @@ class Membership(models.Model):
 
 
 class CustomMembershipLabel(models.Model):
+    ''' Custom membership label model '''
     membership = models.OneToOneField(Membership, on_delete=models.CASCADE)
     label = models.CharField(max_length=64)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -139,9 +156,11 @@ class CustomMembershipLabel(models.Model):
                                    related_name='custom_membership_label_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return '{}, {}'.format(self.membership.__str__(), self.label)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -153,6 +172,7 @@ class CustomMembershipLabel(models.Model):
 
 
 class MembershipLog(models.Model):
+    ''' Membership log model '''
     POSITION = (
         (0, '0'),
         (1, '1'),
@@ -178,9 +198,11 @@ class MembershipLog(models.Model):
                                    related_name='membership_log_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return '{}, {}, {} ({})'.format(self.membership.__str__(), self.position, self.status, self.id)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -192,6 +214,7 @@ class MembershipLog(models.Model):
 
 
 class Advisory(models.Model):
+    ''' Advisory model '''
     advisor = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
     start_date = models.DateField()
@@ -204,9 +227,11 @@ class Advisory(models.Model):
                                    related_name='advisory_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return '{}, {} ({})'.format(self.advisor.__str__(), self.community.__str__(), self.id)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -217,7 +242,20 @@ class Advisory(models.Model):
         super(Advisory, self).save(*args, **kwargs)
 
     def clean(self):
+        ''' Validate instance on save '''
         errors = list()
+
+        if not self.advisor.is_lecturer:
+            errors.append(ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor'))
+
+        advisors = Advisory.objects.filter(advisor_id=self.advisor.id)
+
+        if self.id is not None:
+            advisors = advisors.exclude(pk=self.id)
+
+        for i in advisors:
+            if self.start_date <= i.end_date or i.start_date <= self.end_date:
+                errors.append(ValidationError(_('Advisory time overlapped.'), code='advisory_overlap'))
 
         if self.start_date > self.end_date:
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
@@ -242,7 +280,9 @@ class Advisory(models.Model):
 
 
 class ApprovalRequest(models.Model):
+    ''' Approval request model '''
     def get_file_path(self, file_name):
+        ''' Get file path '''
         return '{}/approval_request/{}/{}'.format(STORAGE_BASE_DIR, self.id, file_name)
 
     STATUS = (
@@ -263,9 +303,11 @@ class ApprovalRequest(models.Model):
                                    related_name='approval_request_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return self.community.__str__()
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
