@@ -1,3 +1,9 @@
+'''
+    Generator Application Views
+    generator/views
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -14,10 +20,12 @@ import random
 
 
 class QRCodeViewSet(viewsets.ModelViewSet):
+    ''' QR code view set '''
     queryset = QRCode.objects.all()
     http_method_names = ('get', 'post', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (permissions.IsAuthenticated(), IsMemberOfCommunity())
         elif self.request.method == 'POST':
@@ -27,11 +35,13 @@ class QRCodeViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingQRCodeSerializer
         return ExistingQRCodeSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List QR codes '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -43,10 +53,12 @@ class QRCodeViewSet(viewsets.ModelViewSet):
 
 
 class JoinKeyViewSet(viewsets.ModelViewSet):
+    ''' Join key view set '''
     queryset = JoinKey.objects.all()
     http_method_names = ('get', 'post', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (permissions.IsAuthenticated(), IsMemberOfCommunity())
         elif self.request.method == 'POST':
@@ -56,11 +68,13 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingJoinKeySerializer
         return ExistingJoinKeySerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List join keys '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -73,19 +87,26 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 def generate_join_key(request):
+    ''' Generate join key API '''
     letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
 
+    # Validate join key's length
     query = request.query_params.get('length')
     if query is not None:
-        length = int(query)
-
-        if length < 8 or length > 64:
+        try:
+            length = int(query)
+            if length < 8 or length > 64:
+                return Response({
+                    'details': 'The length of the join key must be an integer from 8 to 64.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except ValueError:
             return Response({
-                 'details': 'The length of the join key must be at least 8 characters but not more than 64 characters.'
+                'details': 'The length of the join key must be an integer from 8 to 64.'
             }, status=status.HTTP_400_BAD_REQUEST)
     else:
         length = 32
 
+    # Generate join key, if duplicated, generate a new one
     while True:
         join_key = ''.join(random.choice(letters) for _ in range(length))
         try:
@@ -96,14 +117,18 @@ def generate_join_key(request):
 
 @api_view(['POST'])
 def use_join_key(request):
+    ''' Use join key API '''
+    # Check authentication
     if not request.user.is_authenticated:
         return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
 
+    # Check join key from POST request data
     try:
         key = request.data['key']
     except KeyError:
         return Response({'detail': 'Join key was not provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Validate join key
     try:
         join_key = JoinKey.objects.get(key=key)
 
@@ -127,10 +152,12 @@ def use_join_key(request):
 
 
 class GeneratedDocxViewSet(viewsets.ModelViewSet):
+    ''' Generated Microsoft Word document view set '''
     queryset = GeneratedDocx.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method in ('GET', 'PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
         elif self.request.method == 'POST':
@@ -140,11 +167,13 @@ class GeneratedDocxViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.method == 'POST':
             return NotExistingGeneratedDocxSerializer
         return ExistingGeneratedDocxSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List generated Microsoft Word documents '''
         queryset = self.get_queryset()
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())

@@ -1,4 +1,9 @@
-import os
+'''
+    Generator Application Generate Microsoft Word Document Script
+    generator/generate_docx.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from datetime import datetime
 
 from docx import Document
@@ -9,6 +14,7 @@ from membership.models import Membership
 
 def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, objective=str(), objective_list=tuple(),
                   room=str(), schedule=str(), plan_list=tuple(), merit=str(), save=False):
+    ''' Generate Microsoft Word document based on template '''
     # Init Document
     document = Document('generator/docx/{}'.format(file_name))
 
@@ -78,23 +84,25 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
     return document
 
 
-def get_date():
-    today = datetime.now().date()
+def get_date(date=datetime.now().date()):
+    ''' Get date in a formal format '''
     months = {
         1: 'มกราคม', 2: 'กุมภาพันธ์', 3: 'มีนาคม', 4: 'เมษายน', 5: 'พฤษภาคม', 6: 'มิถุนายน',
         7: 'กรกฎาคม', 8: 'สิงหาคม', 9: 'กันยายน', 10: 'ตุลาคม', 11: 'พฤศจิกายน', 12: 'ธันวาคม',
     }
 
-    return '{} {} {}'.format(today.day, months[today.month], today.year + 543)
+    return '{} {} {}'.format(date.day, months[date.month], date.year + 543)
 
 
 def get_club_president(club):
+    ''' Get club president's name '''
     membership = Membership.objects.get(community_id=club.id, position=3, status='A')
 
     return membership.user.name
 
 
 def get_staff_list(club):
+    ''' Get staff list names '''
     memberships = Membership.objects.filter(
         community_id=club.id, position__in=(1, 2, 3), status='A'
     ).order_by('-position')
@@ -113,6 +121,7 @@ def get_staff_list(club):
 
 
 def get_member_list(club):
+    ''' Get member list names '''
     memberships = Membership.objects.filter(community_id=club.id, status='A').order_by('-position')
 
     return [i.user.name for i in memberships]

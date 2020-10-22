@@ -1,4 +1,8 @@
-import os
+'''
+    Generator Application Models
+    generator/models.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
 
 from crum import get_current_user
 from django.contrib.auth import get_user_model
@@ -11,14 +15,16 @@ from PIL import Image
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Club, Event
-
-import qrcode
-
 from generator.generate_docx import generate_docx
+
+import os
+import qrcode
 
 
 class QRCode(models.Model):
+    ''' QR code model '''
     def get_image_path(self, file_name):
+        ''' Get image path '''
         return '{}/qr_code/{}'.format(STORAGE_BASE_DIR, file_name)
 
     url = models.CharField(max_length=255)
@@ -29,9 +35,11 @@ class QRCode(models.Model):
                                    related_name='qr_code_created_by')
 
     def __str__(self):
+        ''' String representation '''
         return self.url
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         qr_code_image = qrcode.make(self.url)
         canvas = Image.new('RGB', (qr_code_image.pixel_size, qr_code_image.pixel_size), 'white')
         canvas.paste(qr_code_image)
@@ -50,6 +58,7 @@ class QRCode(models.Model):
 
 
 class JoinKey(models.Model):
+    ''' Join key model '''
     key = models.CharField(max_length=64, unique=True)
     event = models.OneToOneField(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -57,9 +66,11 @@ class JoinKey(models.Model):
                                    related_name='join_key_created_by')
 
     def __str__(self):
+        ''' String representation '''
         return self.event.name_en
 
     def clean(self):
+        ''' Validate instance '''
         errors = list()
 
         if not self.key.isalnum():
@@ -71,6 +82,7 @@ class JoinKey(models.Model):
             raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -81,7 +93,9 @@ class JoinKey(models.Model):
 
 
 class GeneratedDocx(models.Model):
+    ''' Generated Microsoft Word document model '''
     def get_file_path(self, file_name):
+        ''' Get file path '''
         return '{}/generated_docx/{}/{}'.format(STORAGE_BASE_DIR, self.club.id, file_name)
 
     # Main Field
@@ -108,11 +122,14 @@ class GeneratedDocx(models.Model):
                                    related_name='docx_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return self.club.name_en
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         buffer = BytesIO()
 
+        # Template selection
         if not self.club.is_official:
             template_file_name = 'form-club-creation-template.docx'
             generated_file_name = 'generated-form-club-creation.docx'
@@ -120,15 +137,18 @@ class GeneratedDocx(models.Model):
             template_file_name = 'form-club-renewal-template.docx'
             generated_file_name = 'generated-form-club-renewal.docx'
 
+        # Remove old file if exists
         if os.path.isfile(self.get_file_path(generated_file_name)):
             os.remove(self.get_file_path(generated_file_name))
 
+        # Save an empty file as a path for model
         self.document.save(
             generated_file_name,
             File(buffer),
             save=False
         )
 
+        # Save an actual Microsoft Word document file
         generate_docx(
             template_file_name,
             generated_file_name=generated_file_name,
@@ -143,6 +163,7 @@ class GeneratedDocx(models.Model):
             save=True
         )
 
+        # Save updaters
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -150,4 +171,5 @@ class GeneratedDocx(models.Model):
             self.created_by = user
         self.updated_by = user
 
+        # Save
         super(GeneratedDocx, self).save(*args, **kwargs)
