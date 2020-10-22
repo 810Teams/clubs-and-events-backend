@@ -1,3 +1,9 @@
+'''
+    User Application Views
+    user/views.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, filters, status, generics
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -15,22 +21,26 @@ from user.serializers import StudentCommitteeAuthoritySerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    ''' User view set '''
     queryset = get_user_model().objects.all()
     http_method_names = ('get', 'put', 'patch', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username', 'name', 'nickname')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method in ('PUT', 'PATCH'):
             return (permissions.IsAuthenticated(), IsProfileOwner())
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         if self.request.user.is_authenticated:
             return UserSerializer
         return LimitedUserSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List users '''
         queryset = self.filter_queryset(self.get_queryset())
 
         if self.request.user.is_authenticated:
@@ -89,11 +99,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class MyUserView(generics.ListAPIView):
+    ''' My user view '''
     queryset = get_user_model().objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = UserSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' Retrieve own user '''
         user = self.get_queryset().get(pk=request.user.id)
         serializer = self.get_serializer(user, many=False)
 
@@ -101,16 +113,19 @@ class MyUserView(generics.ListAPIView):
 
 
 class LoginAPIView(ObtainAuthToken):
-   renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+    ''' Login view '''
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
 
 class EmailPreferenceViewSet(viewsets.ModelViewSet):
+    ''' Email preference view set '''
     queryset = EmailPreference.objects.all()
     permission_classes = (permissions.IsAuthenticated, IsEmailPreferenceOwner)
     serializer_class = EmailPreferenceSerializer
     http_method_names = ('get', 'put', 'patch', 'head', 'options')
 
     def list(self, request, *args, **kwargs):
+        ''' List email preferences '''
         return Response(
             {'detail': 'You do not have permission to perform this action.'},
             status=status.HTTP_403_FORBIDDEN
@@ -118,11 +133,13 @@ class EmailPreferenceViewSet(viewsets.ModelViewSet):
 
 
 class MyEmailPreferenceView(generics.ListAPIView):
+    ''' My email preference view '''
     queryset = EmailPreference.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = EmailPreferenceSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' Retrieve own email preference '''
         email_preference = self.get_queryset().get(user_id=request.user.id)
         serializer = self.get_serializer(email_preference, many=False)
 
@@ -130,6 +147,7 @@ class MyEmailPreferenceView(generics.ListAPIView):
 
 
 class StudentCommitteeAuthorityViewSet(viewsets.ModelViewSet):
+    ''' Student committee authority view set '''
     queryset = StudentCommitteeAuthority.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = StudentCommitteeAuthoritySerializer
@@ -137,11 +155,13 @@ class StudentCommitteeAuthorityViewSet(viewsets.ModelViewSet):
 
 
 class MyStudentCommitteeAuthorityView(generics.ListAPIView):
+    ''' My student committee authority view '''
     queryset = StudentCommitteeAuthority.objects.all()
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = StudentCommitteeAuthoritySerializer
 
     def list(self, request, *args, **kwargs):
+        ''' Retrieve own student committee authority '''
         try:
             student_committee_authority = self.get_queryset().get(user_id=request.user.id)
             serializer = self.get_serializer(student_committee_authority, many=False)
