@@ -1,3 +1,9 @@
+'''
+    User Application URLs
+    user/urls.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
@@ -10,7 +16,6 @@ router = DefaultRouter()
 router.register('user', UserViewSet)
 router.register('email-preference', EmailPreferenceViewSet)
 router.register('student-committee', StudentCommitteeAuthorityViewSet)
-
 
 urlpatterns = [
     path('login/', LoginAPIView.as_view()),

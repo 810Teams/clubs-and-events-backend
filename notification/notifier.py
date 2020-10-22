@@ -1,3 +1,9 @@
+'''
+    Notification Application Notifier
+    notification/notifier.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from crum import get_current_user
 from django.core.mail import send_mail
 from django.utils.translation import gettext as _
@@ -13,10 +19,12 @@ from user.models import EmailPreference
 
 
 class InvalidNotificationType(Exception):
+    ''' Invalid notification type exception '''
     pass
 
 
 def notify(users=tuple(), obj=None, mail=False):
+    ''' Notify users script '''
     for i in users:
         if isinstance(obj, Request):
             RequestNotification.objects.create(user_id=i.id, request_id=obj.id)
@@ -31,11 +39,13 @@ def notify(users=tuple(), obj=None, mail=False):
         else:
             raise InvalidNotificationType
 
+    # Send email notifications
     if mail and obj is not None:
         send_mail_notification(users=users, obj=obj, fail_silently=False)
 
 
 def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
+    ''' Send email notifications script '''
     email_preferences = EmailPreference.objects.all()
     subject, message, recipients = None, None, None
 
@@ -91,6 +101,7 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
 
 
 def notify_membership_log(obj):
+    ''' Notify membership log script '''
     if obj is None:
         return
 

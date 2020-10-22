@@ -1,15 +1,21 @@
+'''
+    User Application Models
+    user/models.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
-from email_validator import validate_email, EmailNotValidError
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from crum import get_current_user
 
 
 class UserManager(BaseUserManager):
+    ''' User manager '''
     def create_user(self, username, password=None, **kwargs):
         user = self.model(username=username, **kwargs)
         user.set_password(password)
@@ -27,11 +33,14 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    ''' User model '''
     def get_profile_picture_path(self, file_name):
+        ''' Get profile picture path '''
         file_extension = file_name.split('.')[1]
         return '{}/user/{}/profile_picture.{}'.format(STORAGE_BASE_DIR, self.username, file_extension)
 
     def get_cover_photo_path(self, file_name):
+        ''' Get cover photo path '''
         file_extension = file_name.split('.')[1]
         return '{}/user/{}/cover_photo.{}'.format(STORAGE_BASE_DIR, self.username, file_extension)
 
@@ -62,9 +71,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     def __str__(self):
+        ''' String representation '''
         return self.username
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.pk is None:
             user = None
@@ -76,6 +87,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class EmailPreference(models.Model):
+    ''' Email preference model '''
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     receive_request = models.BooleanField(default=True)
     receive_announcement = models.BooleanField(default=True)
@@ -83,10 +95,12 @@ class EmailPreference(models.Model):
     receive_event = models.BooleanField(default=True)
 
     def __str__(self):
+        ''' String representation '''
         return '{}'.format(self.user.username)
 
 
 class StudentCommitteeAuthority(models.Model):
+    ''' Student committee authority model '''
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -96,9 +110,11 @@ class StudentCommitteeAuthority(models.Model):
                                    related_name='student_committee_authority_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return '{}'.format(self.user.username)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.pk is None:
             user = None
@@ -109,6 +125,7 @@ class StudentCommitteeAuthority(models.Model):
         super(StudentCommitteeAuthority, self).save(*args, **kwargs)
 
     def clean(self):
+        ''' Validate instance on save '''
         errors = list()
 
         if self.start_date > self.end_date:

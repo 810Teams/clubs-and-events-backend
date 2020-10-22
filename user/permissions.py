@@ -1,21 +1,35 @@
+'''
+    User Application Permissions
+    user/permissions.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from datetime import datetime
+
+from django.contrib.auth import get_user_model
 from rest_framework import permissions
 
-from user.models import StudentCommitteeAuthority
+from user.models import StudentCommitteeAuthority, EmailPreference
 
 
 class IsStudent(permissions.BasePermission):
+    ''' Student permission '''
     def has_permission(self, request, view):
+        ''' Check permission on request '''
         return not request.user.is_lecturer
 
 
 class IsLecturer(permissions.BasePermission):
+    ''' Lecturer permission '''
     def has_permission(self, request, view):
+        ''' Check permission on request '''
         return request.user.is_lecturer
 
 
 class IsStudentCommittee(permissions.BasePermission):
+    ''' Student committee member permission '''
     def has_permission(self, request, view):
+        ''' Check permission on request '''
         try:
             authority = StudentCommitteeAuthority.objects.get(user_id=request.user.id)
             return authority.start_date <= datetime.now().date() <= authority.end_date
@@ -24,12 +38,18 @@ class IsStudentCommittee(permissions.BasePermission):
 
 
 class IsProfileOwner(permissions.BasePermission):
+    ''' Profile owner permission '''
     def has_object_permission(self, request, view, obj):
-        # Object class: User
-        return request.user.id == obj.id
+        ''' Check permission on object '''
+        if isinstance(obj, get_user_model()):
+            return request.user.id == obj.id
+        return False
 
 
 class IsEmailPreferenceOwner(permissions.BasePermission):
+    ''' Email preference owner permission '''
     def has_object_permission(self, request, view, obj):
-        # Object class: Email Preference
-        return request.user.id == obj.user.id
+        ''' Check permission on object '''
+        if isinstance(obj, EmailPreference):
+            return request.user.id == obj.user.id
+        return False
