@@ -1,7 +1,14 @@
+'''
+    Category Application
+    category/
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from category.views import ClubTypeViewSet, EventTypeViewSet, EventSeriesViewSet
+
 
 router = DefaultRouter()
 router.register('club-type', ClubTypeViewSet)
