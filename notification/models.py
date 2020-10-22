@@ -1,3 +1,9 @@
+'''
+    Notification Application Models
+    notification/models.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -19,9 +25,11 @@ class Notification(models.Model):
                                    related_name='notification_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return 'Notification Object ({}) [{}]'.format(self.id, self.user.__str__())
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -37,6 +45,7 @@ class RequestNotification(Notification):
     request = models.ForeignKey(Request, on_delete=models.CASCADE)
 
     def __str__(self):
+        ''' String representation '''
         return '{} [{}]'.format(self.request.__str__(), self.user.__str__())
 
 
@@ -45,6 +54,7 @@ class MembershipLogNotification(Notification):
     membership_log = models.ForeignKey(MembershipLog, on_delete=models.CASCADE)
 
     def __str__(self):
+        ''' String representation '''
         return '{} [{}]'.format(self.membership_log.__str__(), self.user.__str__())
 
 
@@ -53,6 +63,7 @@ class AnnouncementNotification(Notification):
     announcement = models.ForeignKey(Announcement, on_delete=models.CASCADE)
 
     def __str__(self):
+        ''' String representation '''
         return '{} [{}]'.format(self.announcement.community.__str__(), self.user.__str__())
 
 
@@ -69,4 +80,5 @@ class EventNotification(Notification):
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
     def __str__(self):
+        ''' String representation '''
         return '{} [{}]'.format(self.event.__str__(), self.user.__str__())
