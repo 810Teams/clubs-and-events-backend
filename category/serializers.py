@@ -1,6 +1,6 @@
 '''
-    Category Application
-    category/
+    Category Application Serializers
+    category/serializers.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 

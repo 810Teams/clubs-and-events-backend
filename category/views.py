@@ -1,6 +1,6 @@
 '''
-    Category Application
-    category/
+    Category Application Views
+    category/views.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 

@@ -1,3 +1,9 @@
+'''
+    Community Application Views
+    community/views.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.contrib.auth import get_user_model
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.response import Response
@@ -6,7 +12,7 @@ from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsPubliclyVisibleCommunity, IsAbleToUpdateClub, IsAbleToDeleteClub
 from community.permissions import IsAbleToDeleteEvent, IsAbleToUpdateCommunityEvent, IsAbleToDeleteCommunityEvent
 from community.permissions import IsAbleToUpdateLab, IsAbleToDeleteLab
-from community.serializers import OfficialClubSerializer, UnofficialClubSerializer, CommunitySerializer
+from community.serializers import CommunitySerializer, OfficialClubSerializer, UnofficialClubSerializer
 from community.serializers import ApprovedEventSerializer, UnapprovedEventSerializer
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
@@ -18,6 +24,7 @@ from user.permissions import IsStudent, IsLecturer
 
 
 class CommunityViewSet(viewsets.ModelViewSet):
+    ''' Community view set'''
     queryset = Community.objects.all()
     permission_classes = (IsPubliclyVisibleCommunity,)
     serializer_class = CommunitySerializer
@@ -26,6 +33,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
     search_fields = ('name_th', 'name_en', 'description')
 
     def list(self, request, *args, **kwargs):
+        ''' List communities '''
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -43,12 +51,14 @@ class CommunityViewSet(viewsets.ModelViewSet):
 
 
 class ClubViewSet(viewsets.ModelViewSet):
+    ''' Club view set '''
     queryset = Club.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
@@ -60,6 +70,7 @@ class ClubViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         try:
             if self.request.method == 'POST' or not self.get_object().is_official:
                 return UnofficialClubSerializer
@@ -68,6 +79,7 @@ class ClubViewSet(viewsets.ModelViewSet):
         return OfficialClubSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List clubs '''
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -86,22 +98,26 @@ class ClubViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        ''' Create club '''
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id,)
+        # Initial Membership
+        Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class EventViewSet(viewsets.ModelViewSet):
+    ''' Event view set '''
     queryset = Event.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description', 'location')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
@@ -113,6 +129,7 @@ class EventViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         try:
             if self.request.method == 'POST' or not self.get_object().is_approved:
                 return UnapprovedEventSerializer
@@ -121,6 +138,7 @@ class EventViewSet(viewsets.ModelViewSet):
         return ApprovedEventSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List events '''
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -149,6 +167,7 @@ class EventViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        ''' Create event '''
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
@@ -164,12 +183,14 @@ class EventViewSet(viewsets.ModelViewSet):
 
 
 class CommunityEventViewSet(viewsets.ModelViewSet):
+    ''' Community event view set '''
     queryset = CommunityEvent.objects.all()
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description', 'location')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
@@ -181,6 +202,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def get_serializer_class(self):
+        ''' Get serializer class '''
         try:
             if self.request.method == 'POST' or self.get_object() is None:
                 return NotExistingCommunityEventSerializer
@@ -189,6 +211,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         return ExistingCommunityEventSerializer
 
     def list(self, request, *args, **kwargs):
+        ''' List community events '''
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -210,6 +233,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        ''' Create community event '''
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save(is_approved=True)
@@ -225,6 +249,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
 
 
 class LabViewSet(viewsets.ModelViewSet):
+    ''' Lab view set '''
     queryset = Lab.objects.all()
     serializer_class = LabSerializer
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
@@ -232,6 +257,7 @@ class LabViewSet(viewsets.ModelViewSet):
     search_fields = ('name_th', 'name_en', 'description', 'tags')
 
     def get_permissions(self):
+        ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
@@ -243,6 +269,7 @@ class LabViewSet(viewsets.ModelViewSet):
         return tuple()
 
     def list(self, request, *args, **kwargs):
+        ''' List labs '''
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
@@ -259,10 +286,12 @@ class LabViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
+        ''' Create lab '''
         serializer = self.get_serializer(data=request.data, many=False)
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
+        # Initial Membership
         Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
