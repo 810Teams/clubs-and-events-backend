@@ -1,3 +1,9 @@
+'''
+    Asset Application Models
+    asset/models.py
+    @author Teerapat Kraisrisirikul (810Teams)
+'''
+
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -10,7 +16,9 @@ from crum import get_current_request, get_current_user
 
 
 class Announcement(models.Model):
+    ''' Announcement model '''
     def get_image_path(self, file_name):
+        ''' Retrieve image path '''
         return '{}/announcement/{}/{}'.format(STORAGE_BASE_DIR, self.id, file_name)
 
     text = models.TextField()
@@ -25,9 +33,11 @@ class Announcement(models.Model):
                                    related_name='announcement_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return '"{}", {}'.format(truncate(self.text, max_length=32), self.community.name_en)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -39,6 +49,7 @@ class Announcement(models.Model):
 
 
 class Album(models.Model):
+    ''' Album model '''
     name = models.CharField(max_length=128)
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='album_created_in')
     community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True,
@@ -51,9 +62,11 @@ class Album(models.Model):
                                    related_name='album_updated_by')
 
     def __str__(self):
+        ''' String representation '''
         return self.name
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -64,6 +77,7 @@ class Album(models.Model):
         super(Album, self).save(*args, **kwargs)
 
     def clean(self):
+        ''' Validate instance on save '''
         errors = list()
 
         try:
@@ -95,7 +109,9 @@ class Album(models.Model):
 
 
 class AlbumImage(models.Model):
+    ''' Album image model '''
     def get_image_path(self, file_name):
+        ''' Retrieve image path '''
         return '{}/album/{}/{}'.format(STORAGE_BASE_DIR, self.album.id, file_name)
 
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
@@ -105,9 +121,11 @@ class AlbumImage(models.Model):
                                    related_name='album_image_created_by')
 
     def __str__(self):
+        ''' String representation '''
         return '{} ({})'.format(self.album.__str__(), self.id)
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
@@ -118,17 +136,20 @@ class AlbumImage(models.Model):
 
 
 class Comment(models.Model):
+    ''' Comment model '''
     text = models.TextField()
-    written_by = models.CharField(max_length=255)
+    written_by = models.CharField(max_length=64)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
     ip_address = models.CharField(max_length=15)
 
     def __str__(self):
+        ''' String representation '''
         return '"{}", {}, {}'.format(truncate(self.text, max_length=32), self.written_by, self.event.__str__())
 
     def save(self, *args, **kwargs):
+        ''' Save instance '''
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
