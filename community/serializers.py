@@ -289,7 +289,7 @@ class LabSerializer(CommunitySerializerTemplate):
 
         characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-., '
 
-        if 'tags' in data.keys() and data['tag'] is not None:
+        if 'tags' in data.keys() and data['tags'] is not None:
             for i in data['tags']:
                 if i not in characters:
                     raise serializers.ValidationError(
