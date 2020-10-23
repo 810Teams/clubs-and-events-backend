@@ -15,6 +15,7 @@ class NotificationAdmin(admin.ModelAdmin):
     ''' Notification admin '''
     list_display = ('user', 'is_read', 'notification_type', 'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -30,13 +31,13 @@ class NotificationAdmin(admin.ModelAdmin):
         ''' Get notification type '''
         if has_instance(obj, RequestNotification):
             return 'Request'
-        elif has_instance(obj, MembershipLogNotification.objects):
+        elif has_instance(obj, MembershipLogNotification):
             return 'Membership Log'
         elif has_instance(obj, AnnouncementNotification):
             return 'Announcement'
         elif has_instance(obj, CommunityEventNotification):
             return 'Community Event'
-        elif has_instance(obj, EventNotification.objects):
+        elif has_instance(obj, EventNotification):
             return 'Event'
         return None
 
@@ -45,6 +46,7 @@ class RequestNotificationAdmin(admin.ModelAdmin):
     ''' Request notification admin '''
     list_display = ('user', 'request', 'is_read', 'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -57,6 +59,7 @@ class MembershipLogNotificationAdmin(admin.ModelAdmin):
     ''' Membership log notification admin '''
     list_display = ('user', 'membership_log', 'is_read', 'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -69,6 +72,7 @@ class AnnouncementNotificationAdmin(admin.ModelAdmin):
     ''' Announcement notification admin '''
     list_display = ('user', 'announcement', 'is_read', 'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -81,6 +85,7 @@ class CommunityEventNotificationAdmin(admin.ModelAdmin):
     ''' Community event notification admin '''
     list_display = ('user', 'community_event', 'is_read', 'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -93,6 +98,7 @@ class EventNotificationAdmin(admin.ModelAdmin):
     ''' Event notification admin '''
     list_display = ('user', 'event', 'is_read', 'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''

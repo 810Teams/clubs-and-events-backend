@@ -50,6 +50,7 @@ class ClubAdmin(admin.ModelAdmin):
                     'is_official', 'status', 'valid_through', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline)
+    list_per_page = 20
 
 
 class EventAdmin(admin.ModelAdmin):
@@ -59,6 +60,7 @@ class EventAdmin(admin.ModelAdmin):
                     'created_at', 'updated_at',)
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline)
+    list_per_page = 20
 
     def is_community_event(self, obj):
         ''' Return true if the event is a community event '''
@@ -78,6 +80,7 @@ class CommunityEventAdmin(admin.ModelAdmin):
                     'allows_outside_participators', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline)
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -92,6 +95,7 @@ class LabAdmin(admin.ModelAdmin):
                     'status', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline)
+    list_per_page = 20
 
     def main_tags(self, obj):
         ''' Get two first tags '''

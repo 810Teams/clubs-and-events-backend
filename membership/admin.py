@@ -18,6 +18,7 @@ class RequestAdmin(admin.ModelAdmin):
     ''' Request admin '''
     list_display = ('id', 'user', 'community', 'status', 'created_at', 'updated_at', 'updated_by')
     readonly_fields = ('updated_by',)
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -31,6 +32,7 @@ class RequestAdmin(admin.ModelAdmin):
 class InvitationAdmin(admin.ModelAdmin):
     ''' Invitation admin '''
     list_display = ('id', 'community', 'invitor', 'invitee', 'status', 'created_at', 'updated_at')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -46,6 +48,7 @@ class AdvisoryAdmin(admin.ModelAdmin):
     list_display = ('id', 'advisor', 'community', 'start_date', 'end_date', 'is_active', 'created_at', 'created_by',
                     'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by',)
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -72,6 +75,7 @@ class MembershipAdmin(admin.ModelAdmin):
                     'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by',)
     inlines = (CustomMembershipLabelInline,)
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -110,6 +114,7 @@ class MembershipLogAdmin(admin.ModelAdmin):
     list_display = ('id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime', 'created_by',
                     'updated_by')
     readonly_fields = ('start_datetime', 'end_datetime', 'created_by', 'updated_by',)
+    list_per_page = 20
 
 
 class ApprovalRequestAdmin(admin.ModelAdmin):
@@ -117,6 +122,7 @@ class ApprovalRequestAdmin(admin.ModelAdmin):
     list_display = ('id', 'community', 'partial_message', 'has_attached_file', 'status', 'created_at', 'created_by',
                     'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by',)
+    list_per_page = 20
 
     def partial_message(self, obj):
         ''' Get partial message '''
