@@ -15,6 +15,7 @@ class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ('id', 'partial_text', 'is_publicly_visible', 'community', 'created_at', 'created_by', 'updated_at',
                     'updated_by')
     readonly_fields = ('created_by', 'updated_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -40,6 +41,7 @@ class AlbumAdmin(admin.ModelAdmin):
                     'updated_by')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (AlbumImageInline,)
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -56,6 +58,7 @@ class CommentAdmin(admin.ModelAdmin):
     ''' Comment admin '''
     list_display = ('id', 'partial_text', 'written_by', 'event', 'created_at', 'created_by')
     readonly_fields = ('ip_address', 'created_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''

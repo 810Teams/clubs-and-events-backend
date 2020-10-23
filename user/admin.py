@@ -39,6 +39,7 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('id', 'username', 'name', 'is_lecturer', 'is_active', 'is_staff', 'is_superuser')
     inlines = (EmailPreferenceInline, StudentCommitteeAuthorityInline)
     readonly_fields = ('last_login', 'created_at', 'created_by', 'updated_at', 'updated_by')
+    list_per_page = 20
 
     fieldsets = (
         (None, {'fields': ('username', 'name', 'password')}),
@@ -58,6 +59,7 @@ class EmailPreferenceAdmin(admin.ModelAdmin):
     ''' Email preference admin '''
     list_display = ('id', 'user', 'name', 'receive_request', 'receive_announcement', 'receive_community_event',
                     'receive_event')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -74,6 +76,7 @@ class StudentCommitteeAuthorityAdmin(admin.ModelAdmin):
     ''' Student committee authority admin '''
     list_display = ('id', 'user', 'start_date', 'end_date', 'is_active')
     readonly_fields = ('created_by', 'updated_by')
+    list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
