@@ -10,9 +10,9 @@ No need to worry about the notification owner, the API will automatically filter
 
 ## Clicking the Notification
 
-There are 5 types of notifications, clicking them will redirect the user to the different pages. Look for the field `meta`, which will contains 3 sub-fields, including `notification_type`, `object_id`, and `community_id`.
+There are 5 types of notifications, clicking them will redirect the user to the different pages. Look for the field `meta`, which will contains 4 sub-fields, including `notification_type`, `object_id`, `community_id`, and `text`.
 
-Use the data from the fiend `community_id` to make redirections according to the following table.
+Take a look at the field `notification_type` to determine where the user should be redirected to, then use `community_id` to make redirections according to the following table.
 
 Notification Type|Redirect
 :-:|:-
@@ -22,12 +22,30 @@ announcement|Announcements tab of the community page
 community_event|Community event page
 event|Event page
 
-For displaying text, use `object_id` to retrieve the correct object, then display text according to the following table.
+For displaying text, use the field `text` to retrieve the text, which can be used to display it instantly.
 
-Notification Type|Use object ID to retrieve|Then use field|Then display
-:-:|:-:|:-:|:-
-request|Request|user, community|{user} has requested to join {community.name_en}.
-membership_log|MembershipLog|log_text|{log_text}
-announcement|Announcement|created_by, community|{created_by.name} has made an announcement in {community.name_en}
-community_event|CommunityEvent|name_en, created_under, created_by|{created_by.name} has created a community event {name_en} in {created_under.name_en}
-event|Event|name_en, created_by|{created_by.name} has started an event {name_en}
+## Reading Notifications
+
+Each notification object has a field `is_read` which determines that the user has already read this notification or not.
+
+Upon user reads the notification, or clicking "Mark As Read" or "Mark All As Read", call on of these two APIs to update the notification object.
+
+`PUT api/notification/notification/{int}`
+
+`PATCH api/notification/notification/{int}`
+
+```json
+{
+    "is_read": true
+}
+```
+
+Design this system like Facebook's read status marking.
+
+## Deleting Notifications
+
+Having several notifications can be messy, so users can easily delete their notifications. Call this API to delete the notification.
+
+`DELETE api/notification/notification/{int}`
+
+Design this system like Facebook's delete notification system.

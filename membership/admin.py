@@ -4,7 +4,6 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-
 from django.contrib import admin
 
 from community.models import Club, Event, Lab, CommunityEvent
@@ -82,15 +81,18 @@ class MembershipAdmin(admin.ModelAdmin):
 
     def position_name(self, obj):
         ''' Get position name '''
-        if has_instance(obj.community, Club):
-            return ('Member', 'Staff', 'Vice-President', 'President')[obj.position]
-        elif has_instance(obj.community, Event) and not has_instance(obj.community, CommunityEvent):
-            return ('Participator', 'Staff', 'Event Co-Creator', 'Event Creator')[obj.position]
-        elif has_instance(obj.community, CommunityEvent):
-            return ('Participator', 'Staff', 'Vice-President', 'President')[obj.position]
-        elif has_instance(obj.community, Lab):
-            return ('Lab Member', 'Lab Helper', 'Lab Co-Supervisor', 'Lab Supervisor')[obj.position]
-
+        try:
+            if has_instance(obj.community, Club):
+                return ('Member', 'Staff', 'Vice-President', 'President')[obj.position]
+            elif has_instance(obj.community, Event) and not has_instance(obj.community, CommunityEvent):
+                return ('Participator', 'Staff', 'Event Co-Creator', 'Event Creator')[obj.position]
+            elif has_instance(obj.community, CommunityEvent):
+                return ('Participator', 'Staff', 'Vice-President', 'President')[obj.position]
+            elif has_instance(obj.community, Lab):
+                return ('Lab Member', 'Lab Helper', 'Lab Co-Supervisor', 'Lab Supervisor')[obj.position]
+            return None
+        except IndexError:
+            return None
 
     def is_active(self, obj):
         ''' Get active status '''
