@@ -6,9 +6,16 @@
 
 from math import gcd
 
+import pathlib
 
-def load_key(path, many=False, decrypt=False):
+
+def load_project_path():
+    return str(pathlib.Path().absolute()).replace('\\', '/') + '/'
+
+
+def load_key(key=str(), decrypt=False):
     ''' Load key from file '''
+    path = '_keys/KEY_{}.txt'.format(key.upper())
     data = [i.replace('\n', '') for i in open(path)]
 
     if decrypt:
@@ -19,7 +26,7 @@ def load_key(path, many=False, decrypt=False):
 
     if len(data) == 0:
         return str()
-    if not many:
+    elif len(data) == 1:
         return data[0]
     return data
 

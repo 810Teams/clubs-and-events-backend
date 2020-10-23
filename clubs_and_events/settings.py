@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
-from core.loader import load_key
+from core.loader import load_key, load_project_path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = load_key('KEY_SECRET.txt', decrypt=True)
+SECRET_KEY = load_key(key='secret', decrypt=True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -96,10 +96,10 @@ WSGI_APPLICATION = 'clubs_and_events.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': load_key('KEY_DB.txt', many=True, decrypt=True)[0],
-        'USER': load_key('KEY_DB.txt', many=True, decrypt=True)[1],
-        'PASSWORD': load_key('KEY_DB.txt', many=True, decrypt=True)[2],
-        'HOST': load_key('KEY_DB.txt', many=True, decrypt=True)[3],
+        'NAME': load_key(key='db', decrypt=True)[0],
+        'USER': load_key(key='db', decrypt=True)[1],
+        'PASSWORD': load_key(key='db', decrypt=True)[2],
+        'HOST': load_key(key='db', decrypt=True)[3],
         'PORT': '3306'
     }
 }
@@ -154,16 +154,16 @@ AUTH_USER_MODEL = 'user.User'
 
 REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
-    # 'DEFAULT_AUTHENTICATION_CLASSES': [
-    #     'rest_framework.authentication.TokenAuthentication'
-    # ]
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication'
+    ]
 }
 
 
 # Media URL
 
-MEDIA_URL = 'media/'
-MEDIA_ROOT = load_key('MEDIA_ROOT.txt', decrypt=False)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = load_project_path()
 
 
 # Email Settings
@@ -171,7 +171,7 @@ MEDIA_ROOT = load_key('MEDIA_ROOT.txt', decrypt=False)
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'community.it.kmitl@gmail.com'
-EMAIL_HOST_PASSWORD = load_key('KEY_EMAIL.txt', decrypt=True)
+EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
 EMAIL_USE_TLS = True
 
 
