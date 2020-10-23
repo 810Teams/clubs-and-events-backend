@@ -27,7 +27,9 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
     def validate(self, data):
         ''' Validate data '''
         if 'external_links' in data.keys() and data['external_links'] is not None:
-            urls = [i.replace('\r', '') for i in data['external_links'].split('\n') if i.strip() != '']
+            urls = [
+                i.replace('\r', '') for i in data['external_links'].split('\n') if i.replace('\r', '').strip() != ''
+            ]
             validate = URLValidator()
 
             for i in urls:
