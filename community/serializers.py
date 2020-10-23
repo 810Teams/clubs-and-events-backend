@@ -201,7 +201,7 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
         ''' Meta '''
         model = Club
         exclude = ('url_id', 'is_publicly_visible', 'room')
-        read_only_fields = ('is_official', 'created_by', 'updated_by')
+        read_only_fields = ('is_official', 'valid_through', 'created_by', 'updated_by')
 
 
 class ApprovedEventSerializer(CommunitySerializerTemplate):

@@ -45,6 +45,15 @@ class Announcement(models.Model):
             self.created_by = user
         self.updated_by = user
 
+        if self.pk is None:
+            saved_image = self.image
+            self.image = None
+            super(Announcement, self).save(*args, **kwargs)
+            self.image = saved_image
+
+            if 'force_insert' in kwargs:
+                kwargs.pop('force_insert')
+
         super(Announcement, self).save(*args, **kwargs)
 
 

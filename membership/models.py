@@ -315,4 +315,13 @@ class ApprovalRequest(models.Model):
             self.created_by = user
         self.updated_by = user
 
+        if self.pk is None:
+            saved_attached_file = self.attached_file
+            self.attached_file = None
+            super(ApprovalRequest, self).save(*args, **kwargs)
+            self.attached_file = saved_attached_file
+
+            if 'force_insert' in kwargs:
+                kwargs.pop('force_insert')
+
         super(ApprovalRequest, self).save(*args, **kwargs)

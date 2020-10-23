@@ -86,6 +86,15 @@ class Community(models.Model):
             self.created_by = user
         self.updated_by = user
 
+        if self.pk is None:
+            saved_logo, saved_banner = self.logo, self.banner
+            self.logo, self.banner = None, None
+            super(Community, self).save(*args, **kwargs)
+            self.logo, self.banner = saved_logo, saved_banner
+
+            if 'force_insert' in kwargs:
+                kwargs.pop('force_insert')
+
         super(Community, self).save(*args, **kwargs)
 
 
