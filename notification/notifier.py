@@ -3,9 +3,10 @@
     notification/notifier.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
+from email.mime.image import MIMEImage
 
 from crum import get_current_user
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.utils.translation import gettext as _
 
 from asset.models import Announcement
@@ -17,6 +18,8 @@ from notification.models import RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 from user.models import EmailPreference
 
+import threading
+
 
 class InvalidNotificationType(Exception):
     ''' Invalid notification type exception '''
@@ -25,6 +28,11 @@ class InvalidNotificationType(Exception):
 
 def notify(users=tuple(), obj=None):
     ''' Send notification to users script '''
+    thread = threading.Thread(target=notify_process, args=[users, obj])
+    thread.start()
+
+
+def notify_process(users=tuple(), obj=None):
     for i in users:
         if isinstance(obj, Request):
             RequestNotification.objects.create(user_id=i.id, request_id=obj.id)
@@ -50,6 +58,11 @@ def notify(users=tuple(), obj=None):
 
 
 def notify_membership_log(obj):
+    thread = threading.Thread(target=notify_membership_log_process, args=[obj])
+    thread.start()
+
+
+def notify_membership_log_process(obj):
     ''' Send notification regarding membership log to users script '''
     if obj is None or not isinstance(obj, MembershipLog):
         return
@@ -75,7 +88,7 @@ def notify_membership_log(obj):
 def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
     ''' Send email notifications script '''
     email_preferences = EmailPreference.objects.all()
-    subject, message, recipients = None, None, None
+    subject, message, recipients, attachments = None, None, list(), list()
 
     if isinstance(obj, Request):
         subject = 'New Join Request in {}'.format(obj.community.name_en)
@@ -89,13 +102,13 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_request]
     elif isinstance(obj, Announcement):
         subject = 'New Announcement in {}'.format(obj.community.name_en)
-        message = 'A new announcement is created in {}.\n"{}". Sign in and visit the community\'s page to view ' + \
-                  'this announcement.'
+        message = 'A new announcement is created in {}.\n\n"{}"\n\n'
         message = message.format(
             obj.community.name_en,
             obj.text
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_announcement]
+        attachments = [obj.image.path]
     elif isinstance(obj, CommunityEvent):
         subject = 'New Community Event in {}'.format(obj.name_en)
         message = 'A new community event "{}" is created in {}. The event will take place on {} to {} during {} to {}.'
@@ -122,11 +135,22 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
     else:
         raise InvalidNotificationType
 
-    if subject is not None and message is not None and recipients is not None:
-        send_mail(
-            _(subject),
-            _(message),
-            EMAIL_HOST_USER,
-            [get_email(i) for i in recipients],
-            fail_silently=fail_silently,
-        )
+    if subject is not None and message is not None and len(recipients) > 0:
+        for i in recipients:
+            email = EmailMultiAlternatives(
+                _(subject),
+                _(message),
+                EMAIL_HOST_USER,
+                [get_email(i)],
+            )
+
+            for i in attachments:
+                with open(i, mode='rb') as f:
+                    image = MIMEImage(f.read())
+                    email.attach(image)
+
+            # TODO: Implements HTML content, this will entirely replace the original message part.
+            # html_content = str()
+            # email.attach_alternative(html_content, 'text/html')
+
+            email.send(fail_silently=fail_silently)
