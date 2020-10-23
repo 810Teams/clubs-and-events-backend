@@ -4,7 +4,6 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-
 from django.contrib import admin
 
 from community.models import Club, Event, Lab, CommunityEvent

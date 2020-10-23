@@ -115,7 +115,10 @@ class RequestViewSet(viewsets.ModelViewSet):
             except Membership.DoesNotExist:
                 membership = Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
 
-            # Notification
+            # Request accepted notification
+            notify(users=[request.user], obj=obj)
+
+            # New member joined notification
             notify_membership_log(get_latest_membership_log(membership))
 
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -4,9 +4,11 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from core.utils import has_instance
+from membership.serializers import MembershipLogSerializer
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 
@@ -26,29 +28,55 @@ class NotificationSerializer(serializers.ModelSerializer):
         notification_type = None
         object_id = None
         community_id = None
+        text = ''
 
         if has_instance(obj, RequestNotification):
+            notification = RequestNotification.objects.get(pk=obj.id)
             notification_type = 'request'
-            object_id = RequestNotification.objects.get(pk=obj.id).request.id
-            community_id = RequestNotification.objects.get(pk=obj.id).request.community.id
-        elif has_instance(obj, MembershipLogNotification):
-            notification_type = 'membership_log'
-            object_id = MembershipLogNotification.objects.get(pk=obj.id).membership_log.id
-            community_id = MembershipLogNotification.objects.get(pk=obj.id).membership_log.membership.community.id
-        elif has_instance(obj, AnnouncementNotification):
-            notification_type = 'announcement'
-            object_id = AnnouncementNotification.objects.get(pk=obj.id).announcement.id
-            community_id = AnnouncementNotification.objects.get(pk=obj.id).announcement.community.id
-        elif has_instance(obj, CommunityEventNotification):
-            notification_type = 'community_event'
-            object_id = CommunityEventNotification.objects.get(pk=obj.id).community_event.id
-            community_id = CommunityEventNotification.objects.get(pk=obj.id).community_event.id
-        elif has_instance(obj, EventNotification):
-            notification_type = 'event'
-            object_id = EventNotification.objects.get(pk=obj.id).event.id
-            community_id = EventNotification.objects.get(pk=obj.id).event.id
+            object_id = notification.request.id
+            community_id = notification.request.community.id
 
-        return {'notification_type': notification_type, 'object_id': object_id, 'community_id': community_id}
+            if self.context['request'].user.id != notification.request.user.id:
+                text = '{} has requested to join {}.'.format(
+                    notification.request.user.name, notification.request.community.name_en
+                )
+            else:
+                text = '{} has accepted your request to join {}.'.format(
+                    notification.request.user.name, notification.request.community.name_en
+                )
+        elif has_instance(obj, MembershipLogNotification):
+            notification = MembershipLogNotification.objects.get(pk=obj.id)
+            notification_type = 'membership_log'
+            object_id = notification.membership_log.id
+            community_id = notification.membership_log.membership.community.id
+            text = MembershipLogSerializer().get_log_text(notification.membership_log)
+        elif has_instance(obj, AnnouncementNotification):
+            notification = AnnouncementNotification.objects.get(pk=obj.id)
+            notification_type = 'announcement'
+            object_id = notification.announcement.id
+            community_id = notification.announcement.community.id
+            text = 'A new announcement is created in {}.'.format(notification.announcement.community.name_en)
+        elif has_instance(obj, CommunityEventNotification):
+            notification = CommunityEventNotification.objects.get(pk=obj.id)
+            notification_type = 'community_event'
+            object_id = notification.community_event.id
+            community_id = notification.community_event.id
+            text = 'A new event {} is created in {}.'.format(
+                notification.community_event.name_en, notification.community_event.created_under.name_en
+            )
+        elif has_instance(obj, EventNotification):
+            notification = EventNotification.objects.get(pk=obj.id)
+            notification_type = 'event'
+            object_id = notification.event.id
+            community_id = notification.event.id
+            text = 'A new event {} is created.'.format(notification.event.name_en)
+
+        return {
+            'notification_type': notification_type,
+            'object_id': object_id,
+            'community_id': community_id,
+            'text': _(text)
+        }
 
 
 class RequestNotificationSerializer(serializers.ModelSerializer):
