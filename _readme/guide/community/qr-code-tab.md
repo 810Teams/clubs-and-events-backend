@@ -8,7 +8,7 @@ The QR code tab is the 6th tab next to the requests tab. Members can view the QR
 
 First of all, call this API to retrieve QR code.
 
-`GET api/generator/qr-code?community={int}`
+`GET api/generator/qr-code?event={int}`
 
 The `{int}` is the ID of the community.
 
