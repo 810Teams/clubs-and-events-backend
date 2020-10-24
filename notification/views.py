@@ -7,7 +7,7 @@
 from rest_framework import permissions, viewsets
 from rest_framework.response import Response
 
-from core.utils import filter_queryset_permission
+from core.filters import filter_queryset_permission
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 from notification.permissions import IsNotificationOwner

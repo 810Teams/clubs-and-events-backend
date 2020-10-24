@@ -16,7 +16,7 @@ from community.models import Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub
 from core.permissions import IsDeputyLeaderOfCommunity
 from core.permissions import IsInPubliclyVisibleCommunity
-from core.utils import filter_queryset, filter_queryset_permission, get_latest_membership_log
+from core.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToRetrieveRequest, IsAbleToUpdateRequest, IsAbleToDeleteRequest

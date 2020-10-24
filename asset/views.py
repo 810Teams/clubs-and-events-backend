@@ -15,7 +15,7 @@ from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerialize
 from asset.serializers import AlbumImageSerializer, CommentSerializer
 from community.models import Community
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity
-from core.utils import filter_queryset, limit_queryset, filter_queryset_permission
+from core.filters import filter_queryset, filter_queryset_permission, limit_queryset
 from membership.models import Membership
 from notification.notifier import notify
 

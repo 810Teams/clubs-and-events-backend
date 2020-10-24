@@ -12,7 +12,8 @@ from django.utils.translation import gettext as _
 from asset.models import Announcement
 from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS
 from community.models import CommunityEvent, Event
-from core.utils import get_email, get_previous_membership_log
+from core.utils import get_email
+from core.filters import get_previous_membership_log
 from membership.models import Request, MembershipLog, Membership
 from notification.models import RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification

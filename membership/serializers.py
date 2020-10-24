@@ -12,7 +12,8 @@ from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
 from community.permissions import IsRenewableClub
-from core.utils import get_previous_membership_log, has_instance
+from core.utils import has_instance
+from core.filters import get_previous_membership_log
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToDeleteInvitation

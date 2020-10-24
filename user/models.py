@@ -4,6 +4,7 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
+from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.exceptions import ValidationError
@@ -11,7 +12,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
-from crum import get_current_user
+from core.utils import get_file_extension
 
 
 class UserManager(BaseUserManager):
@@ -36,13 +37,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     ''' User model '''
     def get_profile_picture_path(self, file_name):
         ''' Get profile picture path '''
-        file_extension = file_name.split('.')[1]
-        return '{}/user/{}/profile_picture.{}'.format(STORAGE_BASE_DIR, self.username, file_extension)
+        return '{}/user/{}/profile_picture.{}'.format(STORAGE_BASE_DIR, self.username, get_file_extension(file_name))
 
     def get_cover_photo_path(self, file_name):
         ''' Get cover photo path '''
-        file_extension = file_name.split('.')[1]
-        return '{}/user/{}/cover_photo.{}'.format(STORAGE_BASE_DIR, self.username, file_extension)
+        return '{}/user/{}/cover_photo.{}'.format(STORAGE_BASE_DIR, self.username, get_file_extension(file_name))
 
     # Personal Information
     username = models.CharField(max_length=64, unique=True)
