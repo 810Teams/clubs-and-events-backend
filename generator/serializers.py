@@ -47,7 +47,7 @@ class NotExistingQRCodeSerializer(QRCodeSerializerTemplate):
     def validate(self, data):
         ''' Validate data '''
         membership = Membership.objects.filter(
-            user_id=self.context['request'].user.id, position__in=(2, 3), community_id=data['community'].id, status='A'
+            user_id=self.context['request'].user.id, position__in=(2, 3), community_id=data['event'].id, status='A'
         )
         if len(membership) == 0:
             raise serializers.ValidationError(
