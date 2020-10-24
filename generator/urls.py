@@ -16,7 +16,7 @@ router.register('join-key', JoinKeyViewSet)
 router.register('docx', GeneratedDocxViewSet)
 
 urlpatterns = [
-    path('join-key/generate', generate_join_key),
-    path('join-key/use', use_join_key),
+    path('join-key/generate/', generate_join_key),
+    path('join-key/use/', use_join_key),
     path('', include(router.urls))
 ]
