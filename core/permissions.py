@@ -80,12 +80,12 @@ def get_community_reference(obj):
     ''' Retrieve a reference to community from an object '''
     if isinstance(obj, Community):
         return obj.id
-    elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership, ApprovalRequest, QRCode)):
+    elif isinstance(obj, (Announcement, Album, Request, Invitation, Advisory, Membership, ApprovalRequest)):
         return obj.community.id
     elif isinstance(obj, AlbumImage):
         return obj.album.community.id
-    elif isinstance(obj, (Comment, JoinKey)):
-        return  obj.event.id
+    elif isinstance(obj, (Comment, QRCode, JoinKey)):
+        return obj.event.id
     elif isinstance(obj, (CustomMembershipLabel, MembershipLog)):
         return obj.membership.community.id
     elif isinstance(obj, GeneratedDocx):

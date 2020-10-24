@@ -4,6 +4,7 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
+from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -12,20 +13,19 @@ from django.utils.translation import gettext as _
 
 from category.models import ClubType, EventType, EventSeries
 from clubs_and_events.settings import STORAGE_BASE_DIR
-from crum import get_current_user
+from core.utils import get_file_extension
 
 
 class Community(models.Model):
     ''' Community model '''
     def get_logo_path(self, file_name):
         ''' Get logo path '''
-        file_extension = file_name.split('.')[1]
-        return '{}/community/{}/logo.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
+        return '{}/community/{}/logo.{}'.format(STORAGE_BASE_DIR, self.id, get_file_extension(file_name))
 
     def get_banner_path(self, file_name):
         ''' Get banner path '''
         file_extension = file_name.split('.')[1]
-        return '{}/community/{}/banner.{}'.format(STORAGE_BASE_DIR, self.id, file_extension)
+        return '{}/community/{}/banner.{}'.format(STORAGE_BASE_DIR, self.id, get_file_extension(file_name))
 
     # Required Information
     name_th = models.CharField(max_length=128, unique=True)
@@ -85,6 +85,15 @@ class Community(models.Model):
         if self.id is None:
             self.created_by = user
         self.updated_by = user
+
+        if self.pk is None:
+            saved_logo, saved_banner = self.logo, self.banner
+            self.logo, self.banner = None, None
+            super(Community, self).save(*args, **kwargs)
+            self.logo, self.banner = saved_logo, saved_banner
+
+            if 'force_insert' in kwargs:
+                kwargs.pop('force_insert')
 
         super(Community, self).save(*args, **kwargs)
 

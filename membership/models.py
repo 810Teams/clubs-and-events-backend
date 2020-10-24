@@ -11,8 +11,9 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from community.models import Community, Lab, CommunityEvent, Club
 from clubs_and_events.settings import STORAGE_BASE_DIR
+from community.models import Community, Lab, CommunityEvent, Club
+from core.utils import get_file_extension
 
 
 class Request(models.Model):
@@ -283,7 +284,7 @@ class ApprovalRequest(models.Model):
     ''' Approval request model '''
     def get_file_path(self, file_name):
         ''' Get file path '''
-        return '{}/approval_request/{}/{}'.format(STORAGE_BASE_DIR, self.id, file_name)
+        return '{}/approval_request/{}.{}'.format(STORAGE_BASE_DIR, self.id, get_file_extension(file_name))
 
     STATUS = (
         ('W', 'Waiting'),
@@ -314,5 +315,14 @@ class ApprovalRequest(models.Model):
         if self.id is None:
             self.created_by = user
         self.updated_by = user
+
+        if self.pk is None:
+            saved_attached_file = self.attached_file
+            self.attached_file = None
+            super(ApprovalRequest, self).save(*args, **kwargs)
+            self.attached_file = saved_attached_file
+
+            if 'force_insert' in kwargs:
+                kwargs.pop('force_insert')
 
         super(ApprovalRequest, self).save(*args, **kwargs)

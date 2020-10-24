@@ -4,6 +4,7 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
+from crum import get_current_request, get_current_user
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -11,15 +12,14 @@ from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, Event, CommunityEvent
-from core.utils import truncate, get_client_ip
-from crum import get_current_request, get_current_user
+from core.utils import truncate, get_client_ip, get_file_extension
 
 
 class Announcement(models.Model):
     ''' Announcement model '''
     def get_image_path(self, file_name):
         ''' Retrieve image path '''
-        return '{}/announcement/{}/{}'.format(STORAGE_BASE_DIR, self.id, file_name)
+        return '{}/announcement/{}.{}'.format(STORAGE_BASE_DIR, self.id, get_file_extension(file_name))
 
     text = models.TextField()
     image = models.ImageField(null=True, blank=True, upload_to=get_image_path)
@@ -44,6 +44,15 @@ class Announcement(models.Model):
         if self.id is None:
             self.created_by = user
         self.updated_by = user
+
+        if self.pk is None:
+            saved_image = self.image
+            self.image = None
+            super(Announcement, self).save(*args, **kwargs)
+            self.image = saved_image
+
+            if 'force_insert' in kwargs:
+                kwargs.pop('force_insert')
 
         super(Announcement, self).save(*args, **kwargs)
 
@@ -112,7 +121,9 @@ class AlbumImage(models.Model):
     ''' Album image model '''
     def get_image_path(self, file_name):
         ''' Retrieve image path '''
-        return '{}/album/{}/{}'.format(STORAGE_BASE_DIR, self.album.id, file_name)
+        return '{}/album/{}/img_{}.{}'.format(
+            STORAGE_BASE_DIR, self.album.id, self.id, get_file_extension(file_name)
+        )
 
     album = models.ForeignKey(Album, on_delete=models.CASCADE)
     image = models.ImageField(upload_to=get_image_path)
@@ -131,6 +142,15 @@ class AlbumImage(models.Model):
             user = None
         if self.id is None:
             self.created_by = user
+
+        if self.pk is None:
+            saved_image = self.image
+            self.image = None
+            super(AlbumImage, self).save(*args, **kwargs)
+            self.image = saved_image
+
+            if 'force_insert' in kwargs:
+                kwargs.pop('force_insert')
 
         super(AlbumImage, self).save(*args, **kwargs)
 

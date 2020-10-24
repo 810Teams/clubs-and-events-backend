@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
-from core.utils import filter_queryset, filter_queryset_permission
+from core.filters import filter_queryset, filter_queryset_permission
 from generator.models import QRCode, JoinKey, GeneratedDocx
 from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSerializer
 from generator.serializers import ExistingJoinKeySerializer, NotExistingJoinKeySerializer

@@ -27,7 +27,9 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
     def validate(self, data):
         ''' Validate data '''
         if 'external_links' in data.keys() and data['external_links'] is not None:
-            urls = [i.replace('\r', '') for i in data['external_links'].split('\n') if i.strip() != '']
+            urls = [
+                i.replace('\r', '') for i in data['external_links'].split('\n') if i.replace('\r', '').strip() != ''
+            ]
             validate = URLValidator()
 
             for i in urls:
@@ -199,7 +201,7 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
         ''' Meta '''
         model = Club
         exclude = ('url_id', 'is_publicly_visible', 'room')
-        read_only_fields = ('is_official', 'created_by', 'updated_by')
+        read_only_fields = ('is_official', 'valid_through', 'created_by', 'updated_by')
 
 
 class ApprovedEventSerializer(CommunitySerializerTemplate):
@@ -287,7 +289,7 @@ class LabSerializer(CommunitySerializerTemplate):
 
         characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-., '
 
-        if 'tags' in data.keys() and data['tag'] is not None:
+        if 'tags' in data.keys() and data['tags'] is not None:
             for i in data['tags']:
                 if i not in characters:
                     raise serializers.ValidationError(
