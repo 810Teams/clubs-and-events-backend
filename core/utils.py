@@ -77,6 +77,8 @@ def validate_profanity_serializer(data, key, errors, field_name=str()):
         validate_profanity(data[key])
     except ValidationError:
         add_error_message(errors, key=key, message='{} contains profanity.'.format(field_name))
+    except KeyError:
+        pass
 
     return errors
 

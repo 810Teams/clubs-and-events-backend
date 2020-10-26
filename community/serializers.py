@@ -13,7 +13,8 @@ from asset.models import Comment
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent
 from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
-from core.utils import get_client_ip, has_instance, raise_validation_errors, add_error_message
+from core.utils import get_client_ip, has_instance, raise_validation_errors, add_error_message, \
+    validate_profanity_serializer
 from membership.models import Membership, ApprovalRequest
 
 
@@ -33,6 +34,11 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
     def validate(self, data, get_errors=False):
         ''' Validate data '''
         errors = dict()
+
+        validate_profanity_serializer(data, 'name_th', errors, 'Community\'s Thai name')
+        validate_profanity_serializer(data, 'name_en', errors, 'Community\'s English name')
+        validate_profanity_serializer(data, 'url_id', errors, 'URL ID')
+        validate_profanity_serializer(data, 'description', errors, 'Community description')
 
         if 'external_links' in data.keys() and data['external_links'] is not None:
             urls = [

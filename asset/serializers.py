@@ -22,13 +22,18 @@ class AnnouncementSerializerTemplate(serializers.ModelSerializer):
         fields = '__all__'
         abstract = True
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
         errors = dict()
 
         validate_profanity_serializer(data, 'text', errors, field_name='Announcement text')
 
-        return errors
+        if get_errors:
+            return errors
+
+        raise_validation_errors(errors)
+
+        return data
 
 
 class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
@@ -41,9 +46,9 @@ class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
         fields = '__all__'
         read_only_fields = ('community', 'created_by', 'updated_by')
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
-        errors = super(ExistingAnnouncementSerializer, self).validate(data)
+        errors = super(ExistingAnnouncementSerializer, self).validate(data, get_errors=True)
 
         raise_validation_errors(errors)
 
@@ -71,9 +76,9 @@ class NotExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
-        errors = super(NotExistingAnnouncementSerializer, self).validate(data)
+        errors = super(NotExistingAnnouncementSerializer, self).validate(data, get_errors=True)
 
         membership = Membership.objects.filter(
             user_id=self.context['request'].user.id,
@@ -98,7 +103,7 @@ class AlbumSerializerTemplate(serializers.ModelSerializer):
         fields = '__all__'
         abstract = True
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
         errors = dict()
 
@@ -119,7 +124,12 @@ class AlbumSerializerTemplate(serializers.ModelSerializer):
                     message='Albums are not able to be linked to community events created under other communities.'
                 )
 
-        return errors
+        if get_errors:
+            return errors
+
+        raise_validation_errors(errors)
+
+        return data
 
 
 class ExistingAlbumSerializer(AlbumSerializerTemplate):
@@ -133,9 +143,9 @@ class ExistingAlbumSerializer(AlbumSerializerTemplate):
         fields = '__all__'
         read_only_fields = ('community', 'created_by', 'updated_by')
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
-        errors = super(ExistingAlbumSerializer, self).validate(data)
+        errors = super(ExistingAlbumSerializer, self).validate(data, get_errors=True)
 
         raise_validation_errors(errors)
 
@@ -167,9 +177,9 @@ class NotExistingAlbumSerializer(AlbumSerializerTemplate):
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
-        errors = super(NotExistingAlbumSerializer, self).validate(data)
+        errors = super(NotExistingAlbumSerializer, self).validate(data, get_errors=True)
 
         if has_instance(data['community'], CommunityEvent):
             errors['community'] = (_('Albums are not able to be created under community events.'))
