@@ -13,8 +13,8 @@ from asset.models import Comment
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent
 from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
-from core.utils import get_client_ip, has_instance, raise_validation_errors, add_error_message, \
-    validate_profanity_serializer
+from core.utils import get_client_ip, has_instance
+from core.utils import add_error_message, validate_profanity_serializer, raise_validation_errors
 from membership.models import Membership, ApprovalRequest
 
 

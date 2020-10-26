@@ -8,9 +8,9 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
-from email_validator import validate_email, EmailNotValidError
 from rest_framework import serializers
 
+from core.utils import raise_validation_errors, add_error_message, validate_profanity_serializer
 from user.models import EmailPreference, StudentCommitteeAuthority
 
 
@@ -26,17 +26,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
-        if 'birthdate' in data.keys() and data['birthdate'] is not None and data['birthdate'] > datetime.now().date():
-            raise serializers.ValidationError(
-                _('Birthdates are not able to be set as a future date.'),
-                code='date_error'
-            )
+        errors = dict()
 
-        if 'email' in data.keys():
-            try:
-                validate_email(data['email'], check_deliverability=False)
-            except EmailNotValidError:
-                raise serializers.ValidationError(_('Invalid email.'), code='invalid_email')
+        if 'birthdate' in data.keys() and data['birthdate'] is not None and data['birthdate'] > datetime.now().date():
+            add_error_message(errors, key='birthdate', message='Birthdates are not able to be set as a future date.')
+
+        validate_profanity_serializer(data, 'nickname', errors, field_name='Nickname')
+        validate_profanity_serializer(data, 'bio', errors, field_name='Bio')
+
+        raise_validation_errors(errors)
 
         return data
 

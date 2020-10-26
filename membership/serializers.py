@@ -12,7 +12,7 @@ from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
 from community.permissions import IsRenewableClub
-from core.utils import has_instance, raise_validation_errors, add_error_message
+from core.utils import has_instance, raise_validation_errors, add_error_message, validate_profanity_serializer
 from core.filters import get_previous_membership_log
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
@@ -33,7 +33,7 @@ class ExistingRequestSerializer(serializers.ModelSerializer):
         errors = dict()
 
         if data['status'] == 'W':
-            errors['status'] = _('Requests statuses are not able to be updated to waiting.')
+            add_error_message(errors, key='status', message='Requests statuses are not able to be updated to waiting.')
 
         raise_validation_errors(errors)
 
@@ -404,6 +404,8 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
                 message='Custom membership labels are only applicable on staff and deputy leader.'
             )
 
+        validate_profanity_serializer(data, 'label', errors, field_name='Custom membership label')
+
         raise_validation_errors(errors)
 
         return data
@@ -600,6 +602,8 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
                 message='Approval requests are not able to be made if the community already has a pending approval ' +
                         'request.'
             )
+
+        validate_profanity_serializer(data, 'message', errors, field_name='Approval request message')
 
         raise_validation_errors(errors)
 
