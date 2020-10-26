@@ -217,7 +217,8 @@ class CommentSerializer(serializers.ModelSerializer):
         # Restricts anonymous users from commenting on non-publicly visible events
         if not user.is_authenticated and not event.is_publicly_visible:
             add_error_message(
-                errors, message='Comments are not able to be made by an anonymous user in non-publicly visible events.'
+                errors, key='event',
+                message='Comments are not able to be made by an anonymous user in non-publicly visible events.'
             )
 
         # Restricts event non-member users from commenting on community events that does not allow outside participators
@@ -226,7 +227,7 @@ class CommentSerializer(serializers.ModelSerializer):
                 Membership.objects.get(community_id=event.id, user_id=user.id, status__in=('A', 'R'))
             except Membership.DoesNotExist:
                 add_error_message(
-                    errors,
+                    errors, key='event',
                     message='Comments are not able to be made by non-members in community events that does not allow ' +
                             'outside participators.'
                 )
@@ -236,11 +237,13 @@ class CommentSerializer(serializers.ModelSerializer):
 
         # Restricts user making duplicated comments based on user ID if authenticated
         if user.is_authenticated and user.id in [i.created_by.id for i in comments.exclude(created_by=None)]:
-            add_error_message(errors, message='Comment from this user is already made in this event.')
+            add_error_message(errors, key='event', message='Comment from this user is already made in this event.')
 
         # Restricts user making duplicated comments based on IP address if not authenticated
         if not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in comments]:
-            add_error_message(errors, message='Comment from this IP Address is already made in this event.')
+            add_error_message(
+                errors, key='event', message='Comment from this IP Address is already made in this event.'
+            )
 
         # Check profanity
         validate_profanity_serializer(data, 'text', errors, field_name='Comment text')
