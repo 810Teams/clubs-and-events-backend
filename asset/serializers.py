@@ -9,11 +9,29 @@ from rest_framework import serializers
 
 from asset.models import Announcement, Album, Comment, AlbumImage
 from community.models import Event, CommunityEvent
-from core.utils import get_client_ip
+from core.utils import get_client_ip, has_instance
+from core.utils import add_error_message, validate_profanity_serializer, raise_validation_errors
 from membership.models import Membership
 
 
-class ExistingAnnouncementSerializer(serializers.ModelSerializer):
+class AnnouncementSerializerTemplate(serializers.ModelSerializer):
+    ''' Announcement serializer template '''
+    class Meta:
+        ''' Meta '''
+        model = Announcement
+        fields = '__all__'
+        abstract = True
+
+    def validate(self, data):
+        ''' Validate data '''
+        errors = dict()
+
+        validate_profanity_serializer(data, 'text', errors, field_name='Announcement text')
+
+        return errors
+
+
+class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     ''' Existing announcement serializer '''
     is_able_to_edit = serializers.SerializerMethodField()
 
@@ -22,6 +40,14 @@ class ExistingAnnouncementSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = '__all__'
         read_only_fields = ('community', 'created_by', 'updated_by')
+
+    def validate(self, data):
+        ''' Validate data '''
+        errors = super(ExistingAnnouncementSerializer, self).validate(data)
+
+        raise_validation_errors(errors)
+
+        return data
 
     def get_is_able_to_edit(self, obj):
         ''' Retrieve edit-ability '''
@@ -37,7 +63,7 @@ class ExistingAnnouncementSerializer(serializers.ModelSerializer):
             return False
 
 
-class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
+class NotExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     ''' Not existing announcement serializer '''
     class Meta:
         ''' Meta'''
@@ -47,6 +73,8 @@ class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = super(NotExistingAnnouncementSerializer, self).validate(data)
+
         membership = Membership.objects.filter(
             user_id=self.context['request'].user.id,
             position__in=(1, 2, 3),
@@ -55,15 +83,46 @@ class NotExistingAnnouncementSerializer(serializers.ModelSerializer):
         )
 
         if len(membership) == 0:
-            raise serializers.ValidationError(
-                _('Announcements are not able to be created in communities the user is not a staff.'),
-                code='permission_denied'
-            )
+            errors['community'] = _('Announcements are not able to be created in communities the user is not a staff.')
+
+        raise_validation_errors(errors)
 
         return data
 
 
-class ExistingAlbumSerializer(serializers.ModelSerializer):
+class AlbumSerializerTemplate(serializers.ModelSerializer):
+    ''' Album serializer template '''
+    class Meta:
+        ''' Meta '''
+        model = Album
+        fields = '__all__'
+        abstract = True
+
+    def validate(self, data):
+        ''' Validate data '''
+        errors = dict()
+
+        validate_profanity_serializer(data, 'name', errors, field_name='Album name')
+
+        if data['community_event'] is not None:
+            if has_instance(data['community'], Event):
+                add_error_message(
+                    errors,
+                    key='community_event',
+                    message='Albums are not able to be linked to community events if created under an event.'
+                )
+
+            if data['community_event'].created_under.id != data['community'].id:
+                add_error_message(
+                    errors,
+                    key='community_event',
+                    message='Albums are not able to be linked to community events created under other communities.'
+                )
+
+        return errors
+
+
+class ExistingAlbumSerializer(AlbumSerializerTemplate):
     ''' Existing album serializer '''
     photo_amount = serializers.SerializerMethodField()
     is_able_to_edit = serializers.SerializerMethodField()
@@ -76,21 +135,9 @@ class ExistingAlbumSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
-        if data['community_event'] is not None:
-            try:
-                if Event.objects.get(pk=data['community'].id) is not None:
-                    raise serializers.ValidationError(
-                        _('Albums are not able to be linked to community events if created under an event.'),
-                        code='hierarchy_error'
-                    )
-            except Event.DoesNotExist:
-                pass
+        errors = super(ExistingAlbumSerializer, self).validate(data)
 
-            if data['community_event'].created_under.id != data['community'].id:
-                raise serializers.ValidationError(
-                    _('Albums are not able to be linked to community events created under other communities.'),
-                    code='hierarchy_error'
-                )
+        raise_validation_errors(errors)
 
         return data
 
@@ -112,7 +159,7 @@ class ExistingAlbumSerializer(serializers.ModelSerializer):
             return False
 
 
-class NotExistingAlbumSerializer(serializers.ModelSerializer):
+class NotExistingAlbumSerializer(AlbumSerializerTemplate):
     ''' Not existing album serializer'''
     class Meta:
         ''' Meta '''
@@ -122,29 +169,12 @@ class NotExistingAlbumSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
-        try:
-            if CommunityEvent.objects.get(pk=data['community'].id):
-                raise serializers.ValidationError(
-                    _('Albums are not able to be created under community events.'), code='hierarchy_error'
-                )
-        except CommunityEvent.DoesNotExist:
-            pass
+        errors = super(NotExistingAlbumSerializer, self).validate(data)
 
-        if data['community_event'] is not None:
-            try:
-                if Event.objects.get(pk=data['community'].id) is not None:
-                    raise serializers.ValidationError(
-                        _('Albums are not able to be linked to community events if created under an event.'),
-                        code='hierarchy_error'
-                    )
-            except Event.DoesNotExist:
-                pass
+        if has_instance(data['community'], CommunityEvent):
+            errors['community'] = (_('Albums are not able to be created under community events.'))
 
-            if data['community_event'].created_under.id != data['community'].id:
-                raise serializers.ValidationError(
-                    _('Albums are not able to be linked to community events created under other communities.'),
-                    code='hierarchy_error'
-                )
+        raise_validation_errors(errors)
 
         return data
 
@@ -168,15 +198,16 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         request = self.context['request']
         user = request.user
         event = data['event']
 
         # Restricts anonymous users from commenting on non-publicly visible events
         if not user.is_authenticated and not event.is_publicly_visible:
-            raise serializers.ValidationError(
-                _('Comments are not able to be made by an anonymous user in non-publicly visible events.'),
-                code='comment_permission_error'
+            add_error_message(
+                errors, message='Comments are not able to be made by an anonymous user in non-publicly visible events.'
             )
 
         # Restricts event non-member users from commenting on community events that does not allow outside participators
@@ -184,10 +215,10 @@ class CommentSerializer(serializers.ModelSerializer):
             try:
                 Membership.objects.get(community_id=event.id, user_id=user.id, status__in=('A', 'R'))
             except Membership.DoesNotExist:
-                raise serializers.ValidationError(
-                    _('Comments are not able to be made by non-members in community events that does not allow ' +
-                      'outside participators.'),
-                    code='comment_permission_error'
+                add_error_message(
+                    errors,
+                    message='Comments are not able to be made by non-members in community events that does not allow ' +
+                            'outside participators.'
                 )
 
         # Retrieve comments from a specific event
@@ -195,14 +226,17 @@ class CommentSerializer(serializers.ModelSerializer):
 
         # Restricts user making duplicated comments based on user ID if authenticated
         if user.is_authenticated and user.id in [i.created_by.id for i in comments.exclude(created_by=None)]:
-            raise serializers.ValidationError(
-                _('Comment from this user is already made in this event.'), code='comment_already_exists'
-            )
+            add_error_message(errors, message='Comment from this user is already made in this event.')
 
         # Restricts user making duplicated comments based on IP address if not authenticated
-        elif not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in comments]:
-            raise serializers.ValidationError(
-                _('Comment from this IP Address is already made in this event.'), code='comment_already_exists'
-            )
+        if not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in comments]:
+            add_error_message(errors, message='Comment from this IP Address is already made in this event.')
+
+        # Check profanity
+        validate_profanity_serializer(data, 'text', errors, field_name='Comment text')
+        validate_profanity_serializer(data, 'written_by', errors, field_name='Writer\'s name')
+
+        # Raise errors
+        raise_validation_errors(errors)
 
         return data
