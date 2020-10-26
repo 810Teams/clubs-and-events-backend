@@ -83,7 +83,13 @@ The field `own_membership_position` is expected, if at least `2`, and the [previ
 
 ### Delete QR Code
 
-Deleting the QR code also means disabling the join key, so delete both.
+Deleting the QR code also means disabling the join key, so delete both. First, call these two APIs to retrieve both QR code and the join key.
+
+`GET api/generator/qr-code?event={int}`
+
+`GET api/generator/join-key?event={int}`
+
+Then call these two APIs to delete the QR code and the join key.
 
 `DELETE api/generator/qr-code/{int}`
 

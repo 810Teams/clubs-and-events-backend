@@ -10,19 +10,33 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from core.permissions import IsDeputyLeaderOfCommunity
+from core.utils import raise_validation_errors, add_error_message
 from generator.models import QRCode, JoinKey, GeneratedDocx
 from membership.models import Membership
 
 
 class QRCodeSerializerTemplate(serializers.ModelSerializer):
     ''' QR code serializer template '''
-    def validate(self, data):
+    class Meta:
+        ''' Meta '''
+        model = QRCode
+        fields = '__all__'
+        abstract = True
+
+    def validate(self, data, get_errors=False):
         ''' Validate data'''
+        errors = dict()
+
         try:
             validator = URLValidator()
             validator(data['url'])
         except ValidationError:
-            raise serializers.ValidationError(_('Invalid URL.'),code='invalid_url')
+            errors['url'] = _('Invalid URL.')
+
+        if get_errors:
+            return errors
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -44,18 +58,17 @@ class NotExistingQRCodeSerializer(QRCodeSerializerTemplate):
         fields = '__all__'
         read_only_fields = ('image', 'created_by')
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
+        errors = super(NotExistingQRCodeSerializer, self).validate(data, get_errors=True)
+
         membership = Membership.objects.filter(
-            user_id=self.context['request'].user.id, position__in=(2, 3), community_id=data['community'].id, status='A'
+            user_id=self.context['request'].user.id, position__in=(2, 3), community_id=data['event'].id, status='A'
         )
         if len(membership) == 0:
-            raise serializers.ValidationError(
-                _('QRCodes must only be created by a deputy leader of the community.'),
-                code='permission_denied'
-            )
+            add_error_message(errors, message='QRCodes must only be created by a deputy leader of the community.')
 
-        super(NotExistingQRCodeSerializer, self).validate(data)
+        raise_validation_errors(errors)
 
         return data
 
@@ -79,37 +92,47 @@ class NotExistingJoinKeySerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         membership = Membership.objects.filter(
             user_id=self.context['request'].user.id, position__in=(2, 3), community_id=data['event'].id, status='A'
         )
         if len(membership) == 0:
-            raise serializers.ValidationError(
-                _('Join keys must only be created by a deputy leader of the community.'),
-                code='permission_denied'
-            )
+            add_error_message(errors, message='Join keys must only be created by a deputy leader of the community.')
 
         if not data['key'].isalnum():
-            raise serializers.ValidationError(
-                _('Join keys must only contain alphabetical characters and numbers.'), code='invalid_join_key'
-            )
+            errors['key'] = _('Join keys must only contain alphabetical characters and numbers.')
+
+        raise_validation_errors(errors)
 
         return data
 
 
 class GeneratedDocxSerializerTemplate(serializers.ModelSerializer):
     ''' Generated Microsoft Word document serializer template '''
-    def validate(self, data):
+    class Meta:
+        ''' Meta '''
+        model = GeneratedDocx
+        fields = '__all__'
+        abstract = True
+
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
+        errors = dict()
+
         if not data['advisor'].is_lecturer:
-            raise serializers.ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor')
+            errors['advisor'] = _('Advisor must be a lecturer.')
 
         if '\n' in data['objective']:
-            raise serializers.ValidationError(
-                _('Club brief objective must be a single line.'), code='invalid_brief_objective'
-            )
+            errors['objective'] = _('Club brief objective must be a single line.')
 
         if '\n' in data['room']:
-            raise serializers.ValidationError(_('Room must be a single line.'), code='invalid_room')
+            errors['room'] = _('Room must be a single line.')
+
+        if get_errors:
+            return errors
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -131,14 +154,16 @@ class NotExistingGeneratedDocxSerializer(GeneratedDocxSerializerTemplate):
         fields = '__all__'
         read_only_fields = ('document', 'created_by', 'updated_by')
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
+        errors = super(NotExistingGeneratedDocxSerializer, self).validate(data, get_errors=True)
+
         if not IsDeputyLeaderOfCommunity().has_object_permission(self.context['request'], None, data['club']):
-            raise serializers.ValidationError(
-                _('Club approval and renewal documents can only be generated by deputy leaders of the club.'),
-                code='permission_denied'
+            add_error_message(
+                errors,
+                message = 'Club approval and renewal documents can only be generated by deputy leaders of the club.'
             )
 
-        super(NotExistingGeneratedDocxSerializer, self).validate(data)
+        raise_validation_errors(errors)
 
         return data
