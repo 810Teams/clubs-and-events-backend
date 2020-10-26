@@ -13,7 +13,7 @@ from asset.models import Comment
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent
 from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
-from core.utils import get_client_ip, has_instance
+from core.utils import get_client_ip, has_instance, raise_validation_errors, add_error_message
 from membership.models import Membership, ApprovalRequest
 
 
@@ -24,8 +24,16 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
     own_membership_position = serializers.SerializerMethodField()
     available_actions = serializers.SerializerMethodField()
 
-    def validate(self, data):
+    class Meta:
+        ''' Meta '''
+        model = Community
+        fields = '__all__'
+        abstract = True
+
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
+        errors = dict()
+
         if 'external_links' in data.keys() and data['external_links'] is not None:
             urls = [
                 i.replace('\r', '') for i in data['external_links'].split('\n') if i.replace('\r', '').strip() != ''
@@ -36,10 +44,14 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                 try:
                     validate(i)
                 except ValidationError:
-                    raise serializers.ValidationError(
-                        _('External links contains an invalid URL. Each URL must be written on a new line.'),
-                        code='invalid_url'
+                    errors['external_links'] = _(
+                        'External links contains an invalid URL. Each URL must be written on a new line.'
                     )
+
+        if get_errors:
+            return errors
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -239,9 +251,9 @@ class NotExistingCommunityEventSerializer(ExistingCommunityEventSerializer):
         fields = '__all__'
         read_only_fields = ('is_approved', 'created_by', 'updated_by')
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
-        super(NotExistingCommunityEventSerializer, self).validate(data)
+        errors = super(NotExistingCommunityEventSerializer, self).validate(data, get_errors=True)
 
         base_community = Community.objects.get(pk=data['created_under'].id)
         base_membership = Membership.objects.filter(
@@ -249,28 +261,28 @@ class NotExistingCommunityEventSerializer(ExistingCommunityEventSerializer):
         )
 
         if len(base_membership) != 1:
-            raise serializers.ValidationError(
-                _('Community events are not able to be created under communities you are not a staff.'),
-                code='permission_denied'
+            add_error_message(
+                errors, message='Community events are not able to be created under communities you are not a staff.'
             )
 
         try:
             if not Club.objects.get(pk=data['created_under']).is_official:
-                raise serializers.ValidationError(
-                    _('Community events are not able to be created under unofficial clubs.'),
-                    code='unofficial_club_limitations'
+                add_error_message(
+                    errors,
+                    key='created_under',
+                    message='Community events are not able to be created under communities you are not a staff.'
                 )
         except Club.DoesNotExist:
             pass
 
-        try:
-            Event.objects.get(pk=data['created_under'])
-            raise serializers.ValidationError(
-                _('Community events are not able to be created under events.'),
-                code='hierarchy_error'
+        if has_instance(data['created_under'], Event):
+            add_error_message(
+                errors,
+                key='created_under',
+                message='Community events are not able to be created under events.'
             )
-        except Event.DoesNotExist:
-            pass
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -283,20 +295,24 @@ class LabSerializer(CommunitySerializerTemplate):
         fields = '__all__'
         read_only_fields = ('created_by', 'updated_by')
 
-    def validate(self, data):
+    def validate(self, data, get_errors=False):
         ''' Validate data '''
-        super(LabSerializer, self).validate(data)
+        errors = super(LabSerializer, self).validate(data, get_errors=True)
 
         characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-., '
 
         if 'tags' in data.keys() and data['tags'] is not None:
             for i in data['tags']:
                 if i not in characters:
-                    raise serializers.ValidationError(
-                        _('Tags must only consist of alphabetical characters, numbers, dashes, dots, and spaces. ' +
-                          'Each tag are separated by commas.'),
-                        code='invalid_tags'
+                    add_error_message(
+                        errors,
+                        key='tags',
+                        message='Tags must only consist of alphabetical characters, numbers, dashes, dots, and ' +
+                                'spaces. Each tag are separated by commas.'
                     )
+                    break
+
+        raise_validation_errors(errors)
 
         return data
 

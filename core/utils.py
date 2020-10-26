@@ -68,12 +68,6 @@ def add_error_message(errors, key='non_field_errors', message=str(), wrap=True):
         errors[key] = message
 
 
-def raise_validation_errors(errors):
-    ''' Raise validation errors if exist '''
-    if len(errors) > 0:
-        raise ValidationError(errors)
-
-
 def validate_profanity_serializer(data, key, errors, field_name=str()):
     ''' Validate profanity of data in the field, then add the error message to the errors list '''
     if field_name.strip == '':
@@ -85,3 +79,9 @@ def validate_profanity_serializer(data, key, errors, field_name=str()):
         add_error_message(errors, key=key, message='{} contains profanity.'.format(field_name))
 
     return errors
+
+
+def raise_validation_errors(errors):
+    ''' Raise validation errors if exist '''
+    if len(errors) > 0:
+        raise ValidationError(errors)
