@@ -138,8 +138,5 @@ dmypy.json
 # Project Specific
 */migrations/*
 !*/migrations/__init__.py
+_keys/
 _storage/
-KEY_DB.txt
-KEY_EMAIL.txt
-KEY_SECRET.txt
-MEDIA_ROOT.txt
