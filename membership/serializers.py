@@ -12,7 +12,7 @@ from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
 from community.permissions import IsRenewableClub
-from core.utils import has_instance
+from core.utils import has_instance, raise_validation_errors, add_error_message
 from core.filters import get_previous_membership_log
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
@@ -30,10 +30,13 @@ class ExistingRequestSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         if data['status'] == 'W':
-            raise serializers.ValidationError(
-                _('Requests statuses are not able to be updated to waiting.'), code='request_status_error'
-            )
+            errors['status'] = _('Requests statuses are not able to be updated to waiting.')
+
+        raise_validation_errors(errors)
+
         return data
 
 
@@ -47,21 +50,24 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
+        request = self.context['request']
         community_id = data['community'].id
-        user_id = self.context['request'].user.id
+        user_id = request.user.id
 
         # Case 1: Lecturer trying to request to join the club
-        if IsLecturer().has_permission(self.context['request'], None):
-            raise serializers.ValidationError(
-                _('Requests are not able to be made to the club by a lecturer.'), code='lecturer_limits'
+        if IsLecturer().has_permission(request, None):
+            add_error_message(
+                errors, key='community', message='Requests are not able to be made to the club by a lecturer.'
             )
 
         # Case 2: Community does not accept requests
-        community = Community.objects.get(pk=community_id)
-        if not community.is_accepting_requests:
-            raise serializers.ValidationError(
-                _('Requests are not able to be made to the community which doesn\'t accept requests.'),
-                code='community_not_accepting_requests'
+        if not data['community'].is_accepting_requests:
+            add_error_message(
+                errors,
+                key='community',
+                message='Requests are not able to be made to the community which doesn\'t accept requests.'
             )
 
         # Case 3: Community is community event and doesn't allow outside participators
@@ -69,41 +75,47 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
             community_event = CommunityEvent.objects.get(pk=community_id)
             base_community = Community.objects.get(pk=community_event.created_under.id)
             base_membership = Membership.objects.filter(
-                user_id=self.context['request'].user.id, position__in=[1, 2, 3], community_id=base_community.id,
-                status='A'
+                user_id=user_id, position__in=[1, 2, 3], community_id=base_community.id, status='A'
             )
             if not community_event.allows_outside_participators and len(base_membership) != 1:
-                raise serializers.ValidationError(
-                    _('Requests are not able to be made to the community event that does not allow outside ' +
-                      'participators.'),
-                    code='outside_participator_disallowed'
+                add_error_message(
+                    errors,
+                    key='community',
+                    message='Requests are not able to be made to the community event that does not allow outside ' +
+                            'participators.'
                 )
+
         except CommunityEvent.DoesNotExist:
             pass
 
         # Case 4: Already a member
         membership = Membership.objects.filter(community_id=community_id, user_id=user_id, status__in=('A', 'R'))
         if len(membership) >= 1:
-            raise serializers.ValidationError(
-                _('Requests are not able to be made to the community which the user is already a member.'),
-                code='member_already_exists'
+            add_error_message(
+                errors,
+                key='community',
+                message='Requests are not able to be made to the community which the user is already a member.'
             )
 
         # Case 5: Already has a pending request
         request = Request.objects.filter(community_id=community_id, user_id=user_id, status='W')
         if len(request) >= 1:
-            raise serializers.ValidationError(
-                _('Requests are not able to be made to the community if the user already has a pending request.'),
-                code='request_already_exists'
+            add_error_message(
+                errors,
+                key='community',
+                message='Requests are not able to be made to the community if the user already has a pending request.'
             )
 
         # Case 6: Already has a pending invitation
         invitation = Invitation.objects.filter(community_id=community_id, invitee_id=user_id, status='W')
         if len(invitation) >= 1:
-            raise serializers.ValidationError(
-                _('Requests are not able to be made if the pending invitation to the community exists.'),
-                code='invitation_already_exists'
+            add_error_message(
+                errors,
+                key='community',
+                message='Requests are not able to be made if the pending invitation to the community exists.'
             )
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -120,10 +132,13 @@ class ExistingInvitationSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         if data['status'] == 'W':
-            raise serializers.ValidationError(
-                _('Invitation statuses are not able to be updated to waiting.'), code='invitation_status_error'
-            )
+            errors['status'] = _('Invitation statuses are not able to be updated to waiting.')
+
+        raise_validation_errors(errors)
+
         return data
 
     def get_is_able_to_cancel(self, obj):
@@ -141,6 +156,8 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         community_id = data['community'].id
         invitor_id = self.context['request'].user.id
         invitee_id = data['invitee'].id
@@ -149,8 +166,9 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         try:
             Club.objects.get(pk=community_id)
             if get_user_model().objects.get(pk=invitee_id).is_lecturer:
-                raise serializers.ValidationError(
-                    _('Invitation to join the club are not able to be made to lecturers.'), code='lecturer_limits'
+                add_error_message(
+                    errors, key='invitee',
+                    message='Invitation to join the club are not able to be made to lecturers.'
                 )
         except Club.DoesNotExist:
             pass
@@ -160,14 +178,15 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
             community_event = CommunityEvent.objects.get(pk=community_id)
             base_community = Community.objects.get(pk=community_event.created_under.id)
             base_membership = Membership.objects.filter(
-                user_id=data['invitee'].id, community_id=base_community.id, status__in=('A', 'R')
+                user_id=invitee_id, community_id=base_community.id, status__in=('A', 'R')
             )
             if not community_event.allows_outside_participators and len(base_membership) != 1:
-                raise serializers.ValidationError(
-                    _('Invitation are not able to be made from the community event that does not allow outside ' +
-                      'participators.'),
-                    code='outside_participator_disallowed'
+                add_error_message(
+                    errors,
+                    message='Invitation are not able to be made from the community event that does not allow outside ' +
+                            'participators.'
                 )
+
         except CommunityEvent.DoesNotExist:
             pass
 
@@ -176,9 +195,8 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
             community_id=community_id, user_id=invitor_id, position__in=[1, 2, 3],status='A'
         )
         if len(invitor_membership) == 0:
-            raise serializers.ValidationError(
-                _('Invitation are not able to be made from the community if the invitor is not a staff.'),
-                code='permission_denied'
+            add_error_message(
+                errors, message='Invitation are not able to be made from the community if the invitor is not a staff.'
             )
 
         # Case 4: Already a member
@@ -186,27 +204,30 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
             community_id=community_id, user_id=invitee_id, status__in=('A', 'R')
         )
         if len(invitee_membership) >= 1:
-            raise serializers.ValidationError(
-                _('Invitation are not able to be made from the community which the invitee is already a member.'),
-                code='member_already_exists'
+            add_error_message(
+                errors, key='invitee',
+                message='Invitation are not able to be made from the community which the invitee is already a member.'
             )
 
         # Case 5: Already has a pending request
         invitation = Invitation.objects.filter(community_id=community_id, invitee_id=invitee_id, status='W')
         if len(invitation) >= 1:
-            raise serializers.ValidationError(
-                _('Invitations are not able to be made from the community if the user already has a pending ' +
-                  'invitation.'),
-                code='invitation_already_exists'
+            add_error_message(
+                errors, key='invitee',
+                message='Invitations are not able to be made from the community if the user already has a pending ' +
+                        'invitation.'
             )
 
         # Case 6: Already has a pending invitation
         request = Request.objects.filter(community_id=community_id, user_id=invitee_id, status='W')
         if len(request) >= 1:
-            raise serializers.ValidationError(
-                _('Invitations are not able to be made from the community if the user already has a pending request.'),
-                code='request_already_exists'
+            add_error_message(
+                errors, key='invitee',
+                message='Invitations are not able to be made from the community if the user already has a pending ' +
+                        'request.'
             )
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -226,6 +247,8 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         # Loads Original Membership
         original_membership = Membership.objects.get(pk=self.instance.id)
 
@@ -244,61 +267,56 @@ class MembershipSerializer(serializers.ModelSerializer):
         }
         status = {'old': original_membership.status, 'new': data['status']}
 
-        # Validation
-        if position['new'] not in (0, 1, 2, 3):
-            raise serializers.ValidationError(
-                _('Membership position must be a number from 0 to 3.'), code='membership_error'
-            )
-
         # Case 1: Leaving and Retiring
         if user_id['new'] == user_id['own']:
             if position['old'] != position['new']:
-                raise serializers.ValidationError(
-                    _('Membership owners are not able to change their own position.'),
-                    code='membership_error'
+                add_error_message(
+                    errors, key='position', message='Membership owners are not able to change their own position.'
                 )
             elif status['old'] != status['new'] and status['old'] + status['new'] not in ('AR', 'RA', 'AL', 'RL'):
-                raise serializers.ValidationError(
-                    _('Membership owners are only able to switch their own membership status from active and ' +
-                    'retired to left, or between active and retired.'),
-                    code='membership_error'
+                add_error_message(
+                    errors, key='status',
+                    message='Membership owners are only able to switch their own membership status from active and ' +
+                            'retired to left, or between active and retired.'
                 )
 
         # Case 2: Member Removal
         elif position['old'] == position['new'] and status['old'] != status['new']:
             if not status['old'] in ('A', 'R') or not status['new'] == 'X':
-                raise serializers.ValidationError(
-                    _('Membership statuses are only meant to be updated from active or retired to removed if ' +
-                      'attempted by other members in the community.'),
-                    code='membership_error'
+                add_error_message(
+                    errors, key='status',
+                    message='Membership statuses are only meant to be updated from active or retired to removed if ' +
+                            'attempted by other members in the community.'
                 )
             elif position['own'] in (0, 1) or position['own'] <= position['new']:
-                raise serializers.ValidationError(
-                    _('Membership statuses can only be set to removed on memberships with a lower position by the ' +
-                    'leader or the deputy leader of the community.'),
-                    code='membership_error'
+                add_error_message(
+                    errors, key='status',
+                    message='Membership statuses can only be set to removed on memberships with a lower position by ' +
+                            'the leader or the deputy leader of the community.'
                 )
 
         # Case 3: Position Assignation
         elif position['old'] != position['new'] and status['old'] == status['new']:
             if position['own'] in (0, 1):
-                raise serializers.ValidationError(
-                    _('Membership positions are not able to be updated by a normal member or a staff.'),
-                    code='membership_error'
+                add_error_message(
+                    errors, key='position',
+                    message='Membership positions are not able to be updated by a normal member or a staff.'
                 )
             elif position['own'] == 2 and position['new'] in (2, 3):
-                raise serializers.ValidationError(
-                    _('Membership positions are not able to be updated to the position equal to or higher than your ' +
-                      'own position.'),
-                    code='membership_error'
+                add_error_message(
+                    errors, key='position',
+                    message='Membership positions are not able to be updated to the position equal to or higher than ' +
+                            'your own position.'
                 )
 
         # Case 4: Error
         elif position['old'] != position['new'] and status['old'] != status['new']:
-            raise serializers.ValidationError(
-                _('Memberships are not able to be updated both position and status at the same time.'),
-                code='membership_error'
+            add_error_message(
+                errors,
+                message='Memberships are not able to be updated both position and status at the same time.'
             )
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -362,29 +380,31 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         membership = Membership.objects.filter(
             user_id=self.context['request'].user.id,
             position__in=(2, 3),
-            community_id=Community.objects.get(
-                pk=data['membership'].community.id
-            ),
+            community_id=Community.objects.get(pk=data['membership'].community.id),
             status='A'
         )
 
         # Case 1: Creator is not a deputy leader
         if len(membership) == 0:
-            raise serializers.ValidationError(
-                _('Custom membership labels are only able to be created, updated, or deleted by deputy leader of ' +
-                  'the community.'),
-                code='permission_denied'
+            add_error_message(
+                errors,
+                message='Custom membership labels are only able to be created, updated, or deleted by deputy leader ' +
+                        'of the community.'
             )
 
         # Case 2: Labeled member is not staff or deputy leader
         if data['membership'].position not in (1, 2):
-            raise serializers.ValidationError(
-                _('Custom membership labels are only applicable on staff and deputy leader.'),
-                code='custom_membership_label_limitations'
+            add_error_message(
+                errors, key='membership',
+                message='Custom membership labels are only applicable on staff and deputy leader.'
             )
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -474,14 +494,24 @@ class AdvisorySerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         if not data['advisor'].is_lecturer:
-            raise serializers.ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor')
+            add_error_message(errors, key='advisor', message='Advisor must be a lecturer.')
 
-        advisors = Advisory.objects.filter(advisor_id=data['advisor'].id)
+        if data['start_date'] > data['end_date']:
+            add_error_message(errors, key='start_date', message='Start date must come before end date.')
+            add_error_message(errors, key='end_date', message='End date must come after start date.')
 
-        for i in advisors:
+        advisories = Advisory.objects.filter(community_id=data['community'].id)
+
+        for i in advisories:
             if data['start_date'] <= i.end_date or i.start_date <= data['end_date']:
-                raise serializers.ValidationError(_('Advisory time overlapped.'), code='advisory_overlap')
+                add_error_message(
+                    errors, message='Advisory time overlapped. A community can only have one advisor at a time.'
+                )
+
+        raise_validation_errors(errors)
 
         return data
 
@@ -500,11 +530,13 @@ class ExistingApprovalRequestSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
         if data['status'] == 'W':
-            raise serializers.ValidationError(
-                _('Approval request statuses are not able to be updated to waiting.'),
-                code='approval_request_status_error'
-            )
+            errors['status'] = _('Approval request statuses are not able to be updated to waiting.')
+
+        raise_validation_errors(errors)
+
         return data
 
 
@@ -518,52 +550,57 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         ''' Validate data '''
+        errors = dict()
+
+        request = self.context['request']
+        community = data['community']
+
         # Case 1: Must be not be a community event or a lab
-        if has_instance(data['community'], CommunityEvent):
-            raise serializers.ValidationError(
-                _('Approval requests are not able to be made from community events.'),
-                code='approval_request_error'
+        if has_instance(community, CommunityEvent):
+            add_error_message(
+                errors, key='community', message='Approval requests are not able to be made from community events.'
             )
 
-        if has_instance(data['community'], Lab):
-            raise serializers.ValidationError(
-                _('Approval requests are not able to be made from labs.'),
-                code='approval_request_error'
+        if has_instance(community, Lab):
+            add_error_message(
+                errors, key='community', message='Approval requests are not able to be made from labs.'
             )
 
         # Case 2: Must be an unofficial or renewable club, or an unapproved event
         try:
-            club = Club.objects.get(pk=data['community'].id)
-            if not IsRenewableClub().has_object_permission(self.context['request'], None, club):
-                raise serializers.ValidationError(
-                    _('The club is still valid and not ready for renewal yet.'), code='already_approved'
+            club = Club.objects.get(pk=community.id)
+            if not IsRenewableClub().has_object_permission(request, None, club):
+                add_error_message(
+                    errors, key='community', message='The club is still valid and not ready for renewal yet.'
                 )
         except Club.DoesNotExist:
             pass
 
         try:
-            event = Event.objects.get(pk=data['community'].id)
-            if event.is_approved:
-                raise serializers.ValidationError(_('The event is already approved.'), code='already_approved')
+            if Event.objects.get(pk=community.id).is_approved:
+                add_error_message(errors, key='community', message='The event is already approved.')
         except Event.DoesNotExist:
             pass
 
         # Case 3: Approval request sender must be the president of the club or event
         membership = Membership.objects.filter(
-            user_id=self.context['request'].user.id, community_id=data['community'].id, status='A', position=3
+            user_id=request.user.id, community_id=community.id, status='A', position=3
         )
         if len(membership) == 0:
-            raise serializers.ValidationError(
-                _('Approval requests can only be made by the leader of the community.'),
-                code='permission_denied'
+            add_error_message(
+                errors, key='community',
+                message='Approval requests can only be made by the leader of the community.'
             )
 
         # Case 4: Already has pending approval request
-        approval_request = ApprovalRequest.objects.filter(community_id=data['community'].id, status='W')
+        approval_request = ApprovalRequest.objects.filter(community_id=community.id, status='W')
         if len(approval_request) >= 1:
-            raise serializers.ValidationError(
-                _('Approval requests are not able to be made if the community already has a pending approval request.'),
-                code='approval_request_already_exists'
+            add_error_message(
+                errors, key='community',
+                message='Approval requests are not able to be made if the community already has a pending approval ' +
+                        'request.'
             )
+
+        raise_validation_errors(errors)
 
         return data
