@@ -102,7 +102,7 @@ Make sure to pass the current community's ID automatically in to this request.
 
 If the album is going to be created in the event, the field `community_event` must be `null` automatically, otherwise, a status code of `400` will be returned.
 
-If the album is going to be created in the community event, the field `community` must be set to its parent community automatically, otherwise, a status code of `400` will be returned.
+If the album is going to be created in the community event, the field `community` must be set to its parent community automatically, otherwise, a status code of `400` will be returned. The community event will be put into the field `community_event` instead, meaning, the album is actually created in the club or the lab, and linked to the community event.
 
 ### Community Event Linking Choices
 
