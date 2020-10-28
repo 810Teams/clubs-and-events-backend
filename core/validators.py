@@ -53,9 +53,6 @@ def is_profane_th(text):
     dictionary = open('core/dictionary/profanity_th.txt', encoding='utf-8')
     dictionary = [i.replace('\n', '').replace('\r', '').strip() for i in dictionary if i[0] != '#']
 
-    print('Words:', words)
-    print('Dictionary:', dictionary)
-
     for i in words:
         if i in dictionary:
             return True

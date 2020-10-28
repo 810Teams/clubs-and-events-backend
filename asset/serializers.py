@@ -121,7 +121,7 @@ class AlbumSerializerTemplate(serializers.ModelSerializer):
         if 'community_event' in data.keys() and data['community_event'] is not None:
             # In case of PATCH request, the community field might not be sent.
             if 'community' not in data.keys():
-                data['community'] = Album.objects.get(pk=data['id']).community
+                data['community'] = Album.objects.get(pk=self.instance.id).community
 
             if has_instance(data['community'], Event):
                 add_error_message(
