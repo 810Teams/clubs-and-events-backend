@@ -20,8 +20,8 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = Notification
-        fields = '__all__'
-        read_only_fields = ('user', 'created_by', 'updated_by')
+        exclude = ('updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('user',)
 
     def get_meta(self, obj):
         ''' Retrieve meta data '''
@@ -84,8 +84,8 @@ class RequestNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = RequestNotification
-        fields = '__all__'
-        read_only_fields = ('user', 'request', 'created_by', 'updated_by')
+        exclude = ('updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('user', 'request')
 
 
 class MembershipLogNotificationSerializer(serializers.ModelSerializer):
@@ -93,8 +93,8 @@ class MembershipLogNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = MembershipLogNotification
-        fields = '__all__'
-        read_only_fields = ('user', 'membership_log', 'created_by', 'updated_by')
+        exclude = ('updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('user', 'membership_log')
 
 
 class AnnouncementNotificationSerializer(serializers.ModelSerializer):
@@ -102,8 +102,8 @@ class AnnouncementNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = AnnouncementNotification
-        fields = '__all__'
-        read_only_fields = ('user', 'announcement', 'created_by', 'updated_by')
+        exclude = ('updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('user', 'announcement')
 
 
 class CommunityEventNotificationSerializer(serializers.ModelSerializer):
@@ -111,8 +111,8 @@ class CommunityEventNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = CommunityEventNotification
-        fields = '__all__'
-        read_only_fields = ('user', 'community_event', 'created_by', 'updated_by')
+        exclude = ('updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('user', 'community_event')
 
 
 class EventNotificationSerializer(serializers.ModelSerializer):
@@ -120,5 +120,5 @@ class EventNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = EventNotification
-        fields = '__all__'
-        read_only_fields = ('user', 'event', 'created_by', 'updated_by')
+        exclude = ('updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('user', 'event')

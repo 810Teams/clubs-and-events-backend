@@ -14,7 +14,7 @@ class ClubTypeSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = ClubType
-        fields = '__all__'
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class EventTypeSerializer(serializers.ModelSerializer):
@@ -22,7 +22,7 @@ class EventTypeSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = EventType
-        fields = '__all__'
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
 
 class EventSeriesSerializer(serializers.ModelSerializer):
@@ -30,4 +30,4 @@ class EventSeriesSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = EventSeries
-        fields = '__all__'
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')

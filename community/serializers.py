@@ -20,10 +20,7 @@ from membership.models import Membership, ApprovalRequest
 
 class CommunitySerializerTemplate(serializers.ModelSerializer):
     ''' Community serializer template'''
-    community_type = serializers.SerializerMethodField()
-    own_membership_id = serializers.SerializerMethodField()
-    own_membership_position = serializers.SerializerMethodField()
-    available_actions = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
@@ -61,6 +58,15 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
         return data
 
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'community_type': self.get_community_type(obj),
+            'own_membership_id': self.get_own_membership_id(obj),
+            'own_membership_position': self.get_own_membership_position(obj),
+            'available_actions': self.get_available_actions(obj)
+        }
 
     def get_community_type(self, obj):
         ''' Retrieve community type '''
@@ -194,14 +200,16 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
 class CommunitySerializer(CommunitySerializerTemplate):
     ''' Community serializer '''
-    own_membership_id = None
-    own_membership_position = None
-    available_actions = None
-
     class Meta:
         ''' Meta '''
         model = Community
-        fields = '__all__'
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'community_type': self.get_community_type(obj)
+        }
 
 
 class OfficialClubSerializer(CommunitySerializerTemplate):
@@ -209,8 +217,8 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Club
-        fields = '__all__'
-        read_only_fields = ('is_official', 'valid_through', 'created_by', 'updated_by')
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('is_official', 'valid_through')
 
 
 class UnofficialClubSerializer(CommunitySerializerTemplate):
@@ -218,8 +226,8 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Club
-        exclude = ('url_id', 'is_publicly_visible', 'room')
-        read_only_fields = ('is_official', 'valid_through', 'created_by', 'updated_by')
+        exclude = ('url_id', 'is_publicly_visible', 'room', 'created_at', 'updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('is_official', 'valid_through')
 
 
 class ApprovedEventSerializer(CommunitySerializerTemplate):
@@ -227,8 +235,8 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Event
-        fields = '__all__'
-        read_only_fields = ('is_approved', 'created_by', 'updated_by')
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('is_approved',)
 
 
 class UnapprovedEventSerializer(CommunitySerializerTemplate):
@@ -236,8 +244,8 @@ class UnapprovedEventSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Event
-        exclude = ('url_id', 'is_publicly_visible')
-        read_only_fields = ('is_approved', 'created_by', 'updated_by')
+        exclude = ('url_id', 'is_publicly_visible', 'created_at', 'updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('is_approved',)
 
 
 class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
@@ -245,8 +253,8 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = CommunityEvent
-        fields = '__all__'
-        read_only_fields = ('is_approved', 'created_under', 'created_by', 'updated_by')
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('is_approved', 'created_under')
 
 
 class NotExistingCommunityEventSerializer(ExistingCommunityEventSerializer):
@@ -254,8 +262,8 @@ class NotExistingCommunityEventSerializer(ExistingCommunityEventSerializer):
     class Meta:
         ''' Meta '''
         model = CommunityEvent
-        fields = '__all__'
-        read_only_fields = ('is_approved', 'created_by', 'updated_by')
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('is_approved',)
 
     def validate(self, data, get_errors=False):
         ''' Validate data '''
@@ -298,8 +306,7 @@ class LabSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Lab
-        fields = '__all__'
-        read_only_fields = ('created_by', 'updated_by')
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
     def validate(self, data, get_errors=False):
         ''' Validate data '''

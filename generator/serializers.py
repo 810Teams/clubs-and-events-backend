@@ -78,8 +78,8 @@ class ExistingJoinKeySerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = JoinKey
-        fields = '__all__'
-        read_only_fields = ('key', 'event', 'created_by')
+        exclude = ('created_at', 'created_by')
+        read_only_fields = ('key', 'event')
 
 
 class NotExistingJoinKeySerializer(serializers.ModelSerializer):
@@ -87,8 +87,7 @@ class NotExistingJoinKeySerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = JoinKey
-        fields = '__all__'
-        read_only_fields = ('created_by',)
+        exclude = ('created_at', 'created_by')
 
     def validate(self, data):
         ''' Validate data '''

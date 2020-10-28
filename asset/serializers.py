@@ -38,7 +38,7 @@ class AnnouncementSerializerTemplate(serializers.ModelSerializer):
 
 class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     ''' Existing announcement serializer '''
-    is_able_to_edit = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
@@ -53,6 +53,12 @@ class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'is_able_to_edit': self.get_is_able_to_edit(obj)
+        }
 
     def get_is_able_to_edit(self, obj):
         ''' Retrieve edit-ability '''
@@ -134,8 +140,7 @@ class AlbumSerializerTemplate(serializers.ModelSerializer):
 
 class ExistingAlbumSerializer(AlbumSerializerTemplate):
     ''' Existing album serializer '''
-    photo_amount = serializers.SerializerMethodField()
-    is_able_to_edit = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
@@ -150,6 +155,13 @@ class ExistingAlbumSerializer(AlbumSerializerTemplate):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'photo_amount': self.get_photo_amount(obj),
+            'is_able_to_edit': self.get_is_able_to_edit(obj)
+        }
 
     def get_photo_amount(self, obj):
         ''' Retrieve photos amount '''
@@ -203,8 +215,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = Comment
-        fields = '__all__'
-        read_only_fields = ('ip_address', 'created_by')
+        exclude = ('created_by', 'ip_address')
 
     def validate(self, data):
         ''' Validate data '''
