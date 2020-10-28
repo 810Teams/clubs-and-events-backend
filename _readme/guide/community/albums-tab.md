@@ -36,9 +36,9 @@ The `{int}` is the ID of the album. Then, load all album images using this API.
 
 The `{int}` is the ID of the album, must be made auto.
 
-### Edit Album and Upload Image Button
+### Edit Album, Upload Images, and Delete Album Buttons
 
-Upon retrieving album, the field `is_able_to_edit` is expected. If is `true`, then render the edit album button. After clicking that button, it will switch to the album edit mode, which the upload image button will also appear.
+Upon retrieving album, the field `is_able_to_edit` is expected. If is `true`, then render the edit album button. After clicking that button, it will switch to the album edit mode, which the upload images button and the delete button will also appear.
 
 ### Update Album and Images
 
@@ -73,6 +73,12 @@ For any images deleted, a `DELETE` request of album image must be called.
 `DELETE api/asset/album/image/{int}`
 
 To summarize, users can only add or delete images in the album, no updating.
+
+### Delete Album
+
+Albums can be edited along with updating the album and deleting images. Call this API to delete the album. No need to worry about the images since they will be deleted along with the album automatically.
+
+`DELETE api/asset/album/{int}`
 
 ### Create Album Button
 
