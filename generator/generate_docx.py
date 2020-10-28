@@ -8,7 +8,7 @@ from datetime import datetime
 
 from docx import Document
 
-from clubs_and_events.settings import STORAGE_BASE_DIR
+from clubs_and_events.settings import STORAGE_BASE_DIR, STUDENT_COMMITTEE_PRESIDENT_NAME, STUDENT_COMMITTEE_ADVISOR_NAME
 from membership.models import Membership
 
 
@@ -29,7 +29,8 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
     data = {
         'date': get_date(),
         'club_name': club.name_th.replace('ชุมนุม', ''),
-        'student_committee_president': '',
+        'student_committee_advisor': STUDENT_COMMITTEE_ADVISOR_NAME,
+        'student_committee_president': STUDENT_COMMITTEE_PRESIDENT_NAME,
         'president': get_club_president(club),
         'advisor': advisor.name,
         'staff_list': get_staff_list(club),
@@ -42,23 +43,28 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
         'member_list': get_member_list(club)
     }
 
-    # Formatting Data
-    data['objective_list'] = data['objective_list'].split('\n') # Always a list
-    data['plan_list'] = data['plan_list'].split('\n')           # Always a list
+    # Formatting Data - Always List
+    data['objective_list'] = data['objective_list'].replace('\r', '').split('\n')
+    data['plan_list'] = data['plan_list'].replace('\r', '').split('\n')
 
+    # Formatting Data - Depends
     for i in ('schedule', 'merit'):
         if '\n' in data[i]:
-            data[i] = data[i].split('\n') # Able to be a list
+            data[i] = data[i].split('\n')
         else:
-            data[i] = '\t' + data[i]      # Not a list, add a tab
+            data[i] = '\t' + data[i]
+
+    # Formatting Data - Indented String
+    for i in ('advisor', 'room'):
+        data[i] = '\t' + data[i]
 
     # Replace Paragraphs
     for paragraph in document.paragraphs:
         for inline in paragraph.runs:
             for j in data:
-                if not isinstance(data[j], list):
+                if isinstance(data[j], str):
                     inline.text = inline.text.replace('{%s}' % j, data[j])
-                else:
+                elif isinstance(data[j], list):
                     inline.text = inline.text.replace(
                         '{%s}' % j,
                         '\n'.join(['\t{}. {}'.format(
@@ -73,7 +79,7 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
                 for paragraph in cell.paragraphs:
                     for inline in paragraph.runs:
                         for j in data:
-                            if not isinstance(data[j], list):
+                            if isinstance(data[j], str):
                                 inline.text = inline.text.replace('{%s}' % j, data[j])
 
     # Document Saving
@@ -111,11 +117,13 @@ def get_staff_list(club):
 
     for i in memberships:
         if i.position == 3:
-            staff_list.append('{}\tรหัสนักศึกษา {}\tประธานชุมนุม'.format(i.user.name, i.user.username.replace('it', '')))
+            staff_list.append('{}\t\tรหัสนักศึกษา {}\t\tประธานชุมนุม'.format(i.user.name, i.user.username.replace('it', '')))
         elif i.position == 2:
-            staff_list.append('{}\tรหัสนักศึกษา {}\tรองประธานชุมนุม'.format(i.user.name, i.user.username.replace('it', '')))
+            staff_list.append(
+                '{}\t\tรหัสนักศึกษา {}\t\tรองประธานชุมนุม'.format(i.user.name, i.user.username.replace('it', ''))
+            )
         elif i.position == 1:
-            staff_list.append('{}\tรหัสนักศึกษา {}\tกรรมการ'.format(i.user.name, i.user.username.replace('it', '')))
+            staff_list.append('{}\t\tรหัสนักศึกษา {}\t\tกรรมการ'.format(i.user.name, i.user.username.replace('it', '')))
 
     return staff_list
 
