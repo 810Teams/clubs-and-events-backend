@@ -24,16 +24,16 @@ def get_lang(text):
         return None
 
 
-def tokenize(text, engine='newmm'):
+def tokenize(text, engine='newmm', keep_whitespace=False):
     ''' Tokenize words from a sentence in the Thai language '''
-    return word_tokenize(text, engine=engine)
+    return word_tokenize(text, engine=engine, keep_whitespace=keep_whitespace)
 
 
 def validate_profanity(text):
     ''' Validates profanity of the text '''
-    if get_lang(text) == 'en' and is_profane_en(text):
+    if is_profane_en(text):
         raise ValidationError(_('Text contains profanity in English.'), code='profanity_detected')
-    elif get_lang(text) == 'th' and is_profane_th(text):
+    elif is_profane_th(text):
         raise ValidationError(_('Text contains profanity in Thai.'), code='profanity_detected')
     return True
 
@@ -49,8 +49,15 @@ def is_profane_en(text):
 
 def is_profane_th(text):
     ''' Check if the Thai text contains profanity '''
-    text = tokenize(text)
+    words = tokenize(text)
+    dictionary = open('core/dictionary/profanity_th.txt', encoding='utf-8')
+    dictionary = [i.replace('\n', '').replace('\r', '').strip() for i in dictionary if i[0] != '#']
 
-    # TODO: Implements profanity checking for the Thai language
+    print('Words:', words)
+    print('Dictionary:', dictionary)
+
+    for i in words:
+        if i in dictionary:
+            return True
 
     return False
