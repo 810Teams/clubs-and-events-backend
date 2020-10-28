@@ -38,7 +38,7 @@ class AnnouncementSerializerTemplate(serializers.ModelSerializer):
 
 class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     ''' Existing announcement serializer '''
-    meta = serializers.SerializerMethodField()
+    is_able_to_edit = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
