@@ -7,7 +7,6 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from core.utils import raise_validation_errors, add_error_message, validate_profanity_serializer
