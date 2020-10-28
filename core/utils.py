@@ -55,7 +55,7 @@ def has_instance(obj, model):
 
 
 def add_error_message(errors, key='non_field_errors', message=str(), wrap=True):
-    ''' Add error message to dict'''
+    ''' Add error message to dictionary in the correct format of the ValidationError class '''
     if wrap:
         message = _(message)
 
@@ -70,7 +70,7 @@ def add_error_message(errors, key='non_field_errors', message=str(), wrap=True):
 
 def validate_profanity_serializer(data, key, errors, field_name=str()):
     ''' Validate profanity of data in the field, then add the error message to the errors list '''
-    if field_name.strip == '':
+    if field_name.strip() == '':
         field_name = key.replace('_', ' ').capitalize()
 
     try:

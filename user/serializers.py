@@ -7,7 +7,6 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from core.utils import raise_validation_errors, add_error_message, validate_profanity_serializer
@@ -22,7 +21,7 @@ class UserSerializer(serializers.ModelSerializer):
         ''' Meta '''
         model = get_user_model()
         exclude = ('password', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'groups', 'user_permissions')
-        read_only_fields = ('username', 'name', 'created_by', 'updated_by')
+        read_only_fields = ('username', 'name', 'is_lecturer', 'created_by', 'updated_by')
 
     def validate(self, data):
         ''' Validate data '''

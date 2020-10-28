@@ -38,6 +38,8 @@ class AnnouncementSerializerTemplate(serializers.ModelSerializer):
 
 class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     ''' Existing announcement serializer '''
+    # TODO: Remove `is_able_to_edit` when the front-end is able to fix the bug where calling `meta` is undefined.
+    meta = serializers.SerializerMethodField()
     is_able_to_edit = serializers.SerializerMethodField()
 
     class Meta:
@@ -53,6 +55,12 @@ class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'is_able_to_edit': self.get_is_able_to_edit(obj)
+        }
 
     def get_is_able_to_edit(self, obj):
         ''' Retrieve edit-ability '''
@@ -109,18 +117,21 @@ class AlbumSerializerTemplate(serializers.ModelSerializer):
 
         validate_profanity_serializer(data, 'name', errors, field_name='Album name')
 
-        if data['community_event'] is not None:
+        # Validates community event linking
+        if 'community_event' in data.keys() and data['community_event'] is not None:
+            # In case of PATCH request, the community field might not be sent.
+            if 'community' not in data.keys():
+                data['community'] = Album.objects.get(pk=self.instance.id).community
+
             if has_instance(data['community'], Event):
                 add_error_message(
-                    errors,
-                    key='community_event',
+                    errors, key='community_event',
                     message='Albums are not able to be linked to community events if created under an event.'
                 )
 
             if data['community_event'].created_under.id != data['community'].id:
                 add_error_message(
-                    errors,
-                    key='community_event',
+                    errors, key='community_event',
                     message='Albums are not able to be linked to community events created under other communities.'
                 )
 
@@ -134,8 +145,7 @@ class AlbumSerializerTemplate(serializers.ModelSerializer):
 
 class ExistingAlbumSerializer(AlbumSerializerTemplate):
     ''' Existing album serializer '''
-    photo_amount = serializers.SerializerMethodField()
-    is_able_to_edit = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
@@ -150,6 +160,13 @@ class ExistingAlbumSerializer(AlbumSerializerTemplate):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'photo_amount': self.get_photo_amount(obj),
+            'is_able_to_edit': self.get_is_able_to_edit(obj)
+        }
 
     def get_photo_amount(self, obj):
         ''' Retrieve photos amount '''
@@ -203,8 +220,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = Comment
-        fields = '__all__'
-        read_only_fields = ('ip_address', 'created_by')
+        exclude = ('created_by', 'ip_address')
 
     def validate(self, data):
         ''' Validate data '''
@@ -217,7 +233,8 @@ class CommentSerializer(serializers.ModelSerializer):
         # Restricts anonymous users from commenting on non-publicly visible events
         if not user.is_authenticated and not event.is_publicly_visible:
             add_error_message(
-                errors, message='Comments are not able to be made by an anonymous user in non-publicly visible events.'
+                errors, key='event',
+                message='Comments are not able to be made by an anonymous user in non-publicly visible events.'
             )
 
         # Restricts event non-member users from commenting on community events that does not allow outside participators
@@ -226,7 +243,7 @@ class CommentSerializer(serializers.ModelSerializer):
                 Membership.objects.get(community_id=event.id, user_id=user.id, status__in=('A', 'R'))
             except Membership.DoesNotExist:
                 add_error_message(
-                    errors,
+                    errors, key='event',
                     message='Comments are not able to be made by non-members in community events that does not allow ' +
                             'outside participators.'
                 )
@@ -236,11 +253,13 @@ class CommentSerializer(serializers.ModelSerializer):
 
         # Restricts user making duplicated comments based on user ID if authenticated
         if user.is_authenticated and user.id in [i.created_by.id for i in comments.exclude(created_by=None)]:
-            add_error_message(errors, message='Comment from this user is already made in this event.')
+            add_error_message(errors, key='event', message='Comment from this user is already made in this event.')
 
         # Restricts user making duplicated comments based on IP address if not authenticated
         if not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in comments]:
-            add_error_message(errors, message='Comment from this IP Address is already made in this event.')
+            add_error_message(
+                errors, key='event', message='Comment from this IP Address is already made in this event.'
+            )
 
         # Check profanity
         validate_profanity_serializer(data, 'text', errors, field_name='Comment text')

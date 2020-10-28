@@ -11,19 +11,19 @@ from category.models import ClubType, EventType, EventSeries
 
 class ClubTypeAdmin(admin.ModelAdmin):
     ''' Club type admin '''
-    list_display = ('id', 'title_th', 'title_en', 'created_at', 'updated_at')
+    list_display = ('id', 'title_th', 'title_en', 'created_at', 'created_by', 'updated_at', 'updated_by')
     list_per_page = 20
 
 
 class EventTypeAdmin(admin.ModelAdmin):
     ''' Event type admin '''
-    list_display = ('id', 'title_th', 'title_en', 'created_at', 'updated_at')
+    list_display = ('id', 'title_th', 'title_en', 'created_at', 'created_by', 'updated_at', 'updated_by')
     list_per_page = 20
 
 
 class EventSeriesAdmin(admin.ModelAdmin):
     ''' Event series admin '''
-    list_display = ('id', 'title_th', 'title_en', 'created_at', 'updated_at')
+    list_display = ('id', 'title_th', 'title_en', 'created_at', 'created_by', 'updated_at', 'updated_by')
     list_per_page = 20
 
 

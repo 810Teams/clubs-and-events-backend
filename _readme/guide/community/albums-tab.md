@@ -36,9 +36,9 @@ The `{int}` is the ID of the album. Then, load all album images using this API.
 
 The `{int}` is the ID of the album, must be made auto.
 
-### Edit Album and Upload Image Button
+### Edit Album, Upload Images, and Delete Album Buttons
 
-Upon retrieving album, the field `is_able_to_edit` is expected. If is `true`, then render the edit album button. After clicking that button, it will switch to the album edit mode, which the upload image button will also appear.
+Upon retrieving album, the field `is_able_to_edit` is expected. If is `true`, then render the edit album button. After clicking that button, it will switch to the album edit mode, which the upload images button and the delete button will also appear.
 
 ### Update Album and Images
 
@@ -59,7 +59,7 @@ Starting with updating the album itself.
 
 For any new images added, a `POST` request of album image must be called.
 
-`POST api/asset/album`
+`POST api/asset/album/image`
 
 ```json
 {
@@ -70,25 +70,33 @@ For any new images added, a `POST` request of album image must be called.
 
 For any images deleted, a `DELETE` request of album image must be called.
 
-`DELETE api/asset/album/{int}`
+`DELETE api/asset/album/image/{int}`
 
 To summarize, users can only add or delete images in the album, no updating.
 
+### Delete Album
+
+Albums can be edited along with updating the album and deleting images. Call this API to delete the album. No need to worry about the images since they will be deleted along with the album automatically.
+
+`DELETE api/asset/album/{int}`
+
 ### Create Album Button
 
-`GET api/commununity/club/{int}`
+`GET api/community/club/{int}`
 
-`GET api/commununity/event/{int}`
+`GET api/community/event/{int}`
 
-`GET api/commununity/event/community/{int}`
+`GET api/community/event/community/{int}`
 
-`GET api/commununity/lab/{int}`
+`GET api/community/lab/{int}`
 
 After retrieving the community data by one of these APIs, a field `own_membership_position` is expected. If is at least `1`, then render the create album button, meaning the current user is able to create albums in the certain community.
 
 ### Create Album
 
 Make sure to pass the current community's ID automatically in to this request.
+
+`POST api/asset/album`
 
 ```json
 {
@@ -97,6 +105,10 @@ Make sure to pass the current community's ID automatically in to this request.
     "community_event": "int"
 }
 ```
+
+If the album is going to be created in the event, the field `community_event` must be `null` automatically, otherwise, a status code of `400` will be returned.
+
+If the album is going to be created in the community event, the field `community` must be set to its parent community automatically, otherwise, a status code of `400` will be returned. The community event will be put into the field `community_event` instead, meaning, the album is actually created in the club or the lab, and linked to the community event.
 
 ### Community Event Linking Choices
 

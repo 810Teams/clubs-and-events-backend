@@ -4,7 +4,7 @@
 
 ### List Communities
 
-`GET api/community`
+`GET api/community/community`
 
 - Token is optional.
 - If a token is present, non-publicly visible clubs will also be shown.
@@ -19,7 +19,7 @@
 
 ### Retrieve Community
 
-`GET api/community/{int}`
+`GET api/community/community/{int}`
 
 - Token is optional.
 - If a token is present, non-publicly visible clubs will also be retrievable.

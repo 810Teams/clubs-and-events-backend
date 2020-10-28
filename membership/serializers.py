@@ -122,7 +122,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
 
 class ExistingInvitationSerializer(serializers.ModelSerializer):
     ''' Existing invitation serializer '''
-    is_able_to_cancel = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
@@ -140,6 +140,12 @@ class ExistingInvitationSerializer(serializers.ModelSerializer):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'is_able_to_cancel': self.get_is_able_to_cancel(obj)
+        }
 
     def get_is_able_to_cancel(self, obj):
         ''' Retrieve cancellable status '''
@@ -234,16 +240,13 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
 
 class MembershipSerializer(serializers.ModelSerializer):
     ''' Membership serializer '''
-    is_able_to_assign = serializers.SerializerMethodField()
-    is_able_to_remove = serializers.SerializerMethodField()
-    is_able_to_leave = serializers.SerializerMethodField()
-    custom_membership_label = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
         model = Membership
-        fields = '__all__'
-        read_only_fields = ('user', 'community', 'created_by', 'updated_by')
+        exclude = ('updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('user', 'community')
 
     def validate(self, data):
         ''' Validate data '''
@@ -320,6 +323,15 @@ class MembershipSerializer(serializers.ModelSerializer):
 
         return data
 
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'is_able_to_assign': self.get_is_able_to_assign(obj),
+            'is_able_to_remove': self.get_is_able_to_remove(obj),
+            'is_able_to_leave': self.get_is_able_to_leave(obj),
+            'custom_membership_label': self.get_custom_membership_label(obj)
+        }
+
     def get_is_able_to_assign(self, obj):
         ''' Retrieve assignable positions '''
         try:
@@ -366,8 +378,8 @@ class ExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = CustomMembershipLabel
-        fields = '__all__'
-        read_only_fields = ('membership', 'created_by', 'updated_by')
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('membership',)
 
 
 class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
@@ -375,8 +387,7 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = CustomMembershipLabel
-        fields = '__all__'
-        read_only_fields = ('created_by', 'updated_by')
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
     def validate(self, data):
         ''' Validate data '''
@@ -413,15 +424,21 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
 
 class MembershipLogSerializer(serializers.ModelSerializer):
     ''' Membership log serializer '''
-    user = serializers.SerializerMethodField()
-    community = serializers.SerializerMethodField()
-    log_text = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
         model = MembershipLog
-        fields = '__all__'
+        exclude = ('created_by', 'updated_by')
         read_only_fields = ('membership', 'position', 'status', 'start_date', 'end_date')
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'user': self.get_user(obj),
+            'community': self.get_community(obj),
+            'log_text': self.get_log_text(obj)
+        }
 
     def get_user(self, obj):
         ''' Retrieve user ID '''
@@ -486,13 +503,12 @@ class MembershipLogSerializer(serializers.ModelSerializer):
 
 class AdvisorySerializer(serializers.ModelSerializer):
     ''' Advisory serializer '''
-    is_active = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
         model = Advisory
-        fields = '__all__'
-        read_only_fields = ('created_by', 'updated_by')
+        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
 
     def validate(self, data):
         ''' Validate data '''
@@ -516,6 +532,12 @@ class AdvisorySerializer(serializers.ModelSerializer):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'is_active': self.get_is_active(obj)
+        }
 
     def get_is_active(self, obj):
         ''' Retrieve active status '''

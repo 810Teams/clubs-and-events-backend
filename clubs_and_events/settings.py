@@ -160,12 +160,6 @@ REST_FRAMEWORK = {
 }
 
 
-# Media URL
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = load_project_path()
-
-
 # Email Settings
 
 EMAIL_HOST = 'smtp.gmail.com'
@@ -175,12 +169,31 @@ EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
 EMAIL_USE_TLS = True
 
 
-# Custom Settings
+# Media Path Settings
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = load_project_path()
+
+
+# Storage Settings
 
 STORAGE_BASE_DIR = '_storage'
+
+
+# Notification Settings
+
 EMAIL_NOTIFICATIONS = False
+
+
+# Club Approval and Renewal Settings
+
 CLUB_VALID_MONTH = 7
 CLUB_VALID_DAY = 31
 CLUB_ADVANCED_RENEWAL = timedelta(days=60)
+STUDENT_COMMITTEE_ADVISOR_NAME = 'ดร.อนันตพัฒน์ อนันตชัย'
+STUDENT_COMMITTEE_PRESIDENT_NAME = 'นายธนพนธ์ วงศ์ประเสริฐ'
+
+
+# NLP Settings
 
 NLP_EN_MODEL = 'en_core_web_sm'
