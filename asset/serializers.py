@@ -117,18 +117,21 @@ class AlbumSerializerTemplate(serializers.ModelSerializer):
 
         validate_profanity_serializer(data, 'name', errors, field_name='Album name')
 
-        if data['community_event'] is not None:
+        # Validates community event linking
+        if 'community_event' in data.keys() and data['community_event'] is not None:
+            # In case of PATCH request, the community field might not be sent.
+            if 'community' not in data.keys():
+                data['community'] = Album.objects.get(pk=data['id']).community
+
             if has_instance(data['community'], Event):
                 add_error_message(
-                    errors,
-                    key='community_event',
+                    errors, key='community_event',
                     message='Albums are not able to be linked to community events if created under an event.'
                 )
 
             if data['community_event'].created_under.id != data['community'].id:
                 add_error_message(
-                    errors,
-                    key='community_event',
+                    errors, key='community_event',
                     message='Albums are not able to be linked to community events created under other communities.'
                 )
 
