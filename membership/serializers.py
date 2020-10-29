@@ -17,7 +17,7 @@ from core.filters import get_previous_membership_log
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToDeleteInvitation
-from user.permissions import IsLecturer
+from user.permissions import IsLecturer, IsLecturerObject
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
@@ -171,7 +171,7 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         # Case 1: Trying to invite a lecturer to join the club
         try:
             Club.objects.get(pk=community_id)
-            if get_user_model().objects.get(pk=invitee_id).is_lecturer:
+            if IsLecturerObject().has_object_permission(self.context['request'], None, data['invitee']):
                 add_error_message(
                     errors, key='invitee',
                     message='Invitation to join the club are not able to be made to lecturers.'
@@ -514,7 +514,7 @@ class AdvisorySerializer(serializers.ModelSerializer):
         ''' Validate data '''
         errors = dict()
 
-        if not data['advisor'].is_lecturer:
+        if not IsLecturerObject().has_object_permission(self.context['request'], None, data['advisor']):
             add_error_message(errors, key='advisor', message='Advisor must be a lecturer.')
 
         if data['start_date'] > data['end_date']:

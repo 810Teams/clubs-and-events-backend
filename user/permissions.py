@@ -16,14 +16,48 @@ class IsStudent(permissions.BasePermission):
     ''' Student permission '''
     def has_permission(self, request, view):
         ''' Check permission on request '''
-        return not request.user.is_lecturer
+        return request.user.user_group == 'student'
 
 
 class IsLecturer(permissions.BasePermission):
     ''' Lecturer permission '''
     def has_permission(self, request, view):
         ''' Check permission on request '''
-        return request.user.is_lecturer
+        return request.user.user_group == 'lecturer'
+
+
+class IsSupportStaff(permissions.BasePermission):
+    ''' Lecturer permission '''
+    def has_permission(self, request, view):
+        ''' Check permission on request '''
+        return request.user.user_group == 'support'
+
+
+class IsStudentObject(permissions.BasePermission):
+    ''' Student object permission '''
+    def has_object_permission(self, request, view, obj):
+        ''' Check permission on object '''
+        if isinstance(obj, get_user_model()):
+            return obj.user_group == 'student'
+        return False
+
+
+class IsLecturerObject(permissions.BasePermission):
+    ''' Lecturer object permission '''
+    def has_object_permission(self, request, view, obj):
+        ''' Check permission on object '''
+        if isinstance(obj, get_user_model()):
+            return obj.user_group == 'lecturer'
+        return False
+
+
+class IsSupportStaffObject(permissions.BasePermission):
+    ''' Support staff object permission '''
+    def has_object_permission(self, request, view, obj):
+        ''' Check permission on object '''
+        if isinstance(obj, get_user_model()):
+            return obj.user_group == 'support'
+        return False
 
 
 class IsStudentCommittee(permissions.BasePermission):

@@ -3,7 +3,7 @@
     user/views.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
-
+from crum import get_current_request
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, filters, status, generics
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -15,7 +15,7 @@ from community.models import Club, CommunityEvent, Community
 from core.filters import filter_queryset
 from membership.models import Membership, Invitation, Request
 from user.models import EmailPreference, StudentCommitteeAuthority
-from user.permissions import IsProfileOwner, IsEmailPreferenceOwner
+from user.permissions import IsProfileOwner, IsEmailPreferenceOwner, IsLecturerObject
 from user.serializers import UserSerializer, LimitedUserSerializer, EmailPreferenceSerializer
 from user.serializers import StudentCommitteeAuthoritySerializer
 
@@ -60,7 +60,11 @@ class UserViewSet(viewsets.ModelViewSet):
                     # Case 1: Exclude lecturers if the community is club
                     try:
                         Club.objects.get(pk=community_id)
-                        excluded_ids += [i.id for i in get_user_model().objects.all() if i.is_lecturer]
+                        excluded_ids += [
+                            i.id for i in get_user_model().objects.all() if IsLecturerObject().has_object_permission(
+                                get_current_request(), None, i
+                            )
+                        ]
                     except Club.DoesNotExist:
                         pass
 
