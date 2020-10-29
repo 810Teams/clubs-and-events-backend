@@ -3,12 +3,13 @@
     user/ldap.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
-
+from crum import get_current_request
 from ldap3 import Server, Connection, ALL
-from ldap3.core.exceptions import LDAPBindError
+from ldap3.core.exceptions import LDAPBindError, LDAPSocketOpenError
 
 from clubs_and_events.settings import LDAP_URL, LDAP_BIND_USERNAME, LDAP_BIND_PASSWORD, LDAP_BASE
 from clubs_and_events.settings import LDAP_USER_GROUPS, LDAP_USERNAME_FIELD
+from core.utils import get_client_ip, error
 
 
 def get_LDAP_user(username, password, display_response=False):
@@ -17,23 +18,28 @@ def get_LDAP_user(username, password, display_response=False):
     server = Server(LDAP_URL, get_info=ALL)
 
     # LDAP Server Binding
-    connection = Connection(
-        server,
-        user=LDAP_BIND_USERNAME,
-        password=LDAP_BIND_PASSWORD,
-        auto_bind=True
-    )
+    try:
+        connection = Connection(
+            server,
+            user=LDAP_BIND_USERNAME,
+            password=LDAP_BIND_PASSWORD,
+            auto_bind=True
+        )
+    except (LDAPBindError, LDAPSocketOpenError) as e:
+        error(e.__str__().capitalize())
+        error('Switching to Django default authentication for user "{}" ({})'.format(
+            username, get_client_ip(get_current_request())
+        ))
+        return None
 
     # Search User in each Group
     user_group = None
-
     for group in LDAP_USER_GROUPS:
         connection.search(
             '{},{}'.format(group['sub_base'], LDAP_BASE),
             '({}={})'.format(LDAP_USERNAME_FIELD, username),
-            attributes=['cn']
+            attributes=('cn',)
         )
-
         if len(connection.response) != 0 and 'dn' in connection.response[0].keys():
             user_group = group
             break
