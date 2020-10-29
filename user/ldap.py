@@ -4,13 +4,12 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from crum import get_current_request
 from ldap3 import Server, Connection, ALL
 from ldap3.core.exceptions import LDAPBindError, LDAPSocketOpenError
 
 from clubs_and_events.settings import LDAP_URL, LDAP_BIND_USERNAME, LDAP_BIND_PASSWORD, LDAP_BASE
 from clubs_and_events.settings import LDAP_USER_GROUPS, LDAP_USERNAME_FIELD, LDAP_DISPLAY_NAME_FIELD
-from core.utils import get_client_ip, error
+from core.utils import error
 
 
 def get_LDAP_user(username, password, display_response=False):
