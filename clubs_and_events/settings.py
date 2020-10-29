@@ -161,6 +161,7 @@ LDAP_USER_GROUPS = (
     {'sub_base': 'OU=Support',  'user_group': 'support',  'display_name': 'Support Staff', 'is_staff': True}
 )
 LDAP_USERNAME_FIELD = 'sAMAccountName'
+LDAP_DISPLAY_NAME_FIELD = 'displayName'
 
 
 # Django REST Framework Configuration

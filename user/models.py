@@ -129,6 +129,11 @@ class StudentCommitteeAuthority(models.Model):
         ''' Validate instance on save '''
         errors = list()
 
+        if self.user.user_group != 'student':
+            errors.append(ValidationError(
+                _('Student committee authority can only be granted to students.'), code='student_committee_error'
+            ))
+
         if self.start_date > self.end_date:
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
 
