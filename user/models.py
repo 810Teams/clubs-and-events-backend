@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
-from clubs_and_events.settings import STORAGE_BASE_DIR
+from clubs_and_events.settings import STORAGE_BASE_DIR, LDAP_USER_GROUPS
 from core.utils import get_file_extension
 
 
@@ -53,7 +53,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     birthdate = models.DateField(null=True, blank=True)
 
     # Statuses
-    is_lecturer = models.BooleanField(default=False)
+    USER_GROUPS = tuple([(i['user_group'], i['display_name']) for i in LDAP_USER_GROUPS])
+
+    user_group = models.CharField(max_length=8, choices=USER_GROUPS, default='student')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
