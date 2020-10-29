@@ -144,10 +144,24 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
-# Auth User Model
-# Custom user model for authentication, delete to revert back to default.
+# Authentication Settings
 
 AUTH_USER_MODEL = 'user.User'
+AUTHENTICATION_BACKENDS = [
+   'user.authentication.AuthenticationBackend',
+]
+
+LDAP_URL = load_key(key='ldap', decrypt=True)[0]
+LDAP_BIND_USERNAME = load_key(key='ldap', decrypt=True)[1]
+LDAP_BIND_PASSWORD = load_key(key='ldap', decrypt=True)[2]
+LDAP_BASE = 'DC=it,DC=kmitl,DC=ac,DC=th'
+LDAP_USER_GROUPS = (
+    {'sub_base': 'OU=Student',  'user_group': 'student',  'display_name': 'Student',       'is_staff': False},
+    {'sub_base': 'OU=Lecturer', 'user_group': 'lecturer', 'display_name': 'Lecturer',      'is_staff': True},
+    {'sub_base': 'OU=Support',  'user_group': 'support',  'display_name': 'Support Staff', 'is_staff': True}
+)
+LDAP_USERNAME_FIELD = 'sAMAccountName'
+LDAP_DISPLAY_NAME_FIELD = 'displayName'
 
 
 # Django REST Framework Configuration

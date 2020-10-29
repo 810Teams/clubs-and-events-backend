@@ -30,13 +30,14 @@ class EmailPreferenceInline(admin.StackedInline):
 class StudentCommitteeAuthorityInline(admin.StackedInline):
     ''' Student committee authority inline '''
     model = StudentCommitteeAuthority
+    readonly_fields = ('created_by', 'updated_by')
     extra = 0
     fk_name = 'user'
 
 
 class UserAdmin(BaseUserAdmin):
     ''' User admin '''
-    list_display = ('id', 'username', 'name', 'is_lecturer', 'is_active', 'is_staff', 'is_superuser')
+    list_display = ('id', 'username', 'name', 'user_group', 'is_active', 'is_staff', 'is_superuser')
     inlines = (EmailPreferenceInline, StudentCommitteeAuthorityInline)
     readonly_fields = ('last_login', 'created_at', 'created_by', 'updated_at', 'updated_by')
     list_per_page = 20
@@ -45,13 +46,13 @@ class UserAdmin(BaseUserAdmin):
         (None, {'fields': ('username', 'name', 'password')}),
         (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
         (_('Timestamps'), {'fields': ('last_login', 'created_at', 'created_by', 'updated_at', 'updated_by')}),
-        (_('Permissions'), {'fields': ('is_lecturer', 'is_active', 'is_staff', 'is_superuser', 'groups')}),
+        (_('Permissions'), {'fields': ('user_group', 'is_active', 'is_staff', 'is_superuser')}),
     )
 
     add_fieldsets = (
         (None, {'fields': ('username', 'name', 'password1', 'password2')}),
         (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
-        (_('Permissions'), {'fields': ('is_lecturer', 'is_active', 'is_staff', 'is_superuser', 'groups')}),
+        (_('Permissions'), {'fields': ('user_group', 'is_active', 'is_staff', 'is_superuser')}),
     )
 
 

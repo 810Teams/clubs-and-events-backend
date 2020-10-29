@@ -20,7 +20,7 @@ In the club tab, a create club button should appear for the student users. First
 
 `GET api/user/user/me`
 
-The field `is_lecturer` is expected, if is `false`, it means that the user is student. Meaning, the user can create clubs, so render the create club button.
+The field `user_group` is expected, if is `"student"`, it means that the user is student. Meaning, the user can create clubs, so render the create club button.
 
 ### Create Clubs
 
@@ -109,7 +109,7 @@ In the lab tab, a create lab button should appear for the users. First, call thi
 
 `GET api/user/user/me`
 
-The field `is_lecturer` is expected, if is `false`, it means that the user is student. Meaning, the user can create clubs, so render the create lab button.
+The field `user_group` is expected, if is `"lecturer"`, it means that the user is student. Meaning, the user can create clubs, so render the create lab button.
 
 ### Create Labs
 

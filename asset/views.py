@@ -97,6 +97,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='community_event', is_foreign_key=True)
 
         serializer = self.get_serializer(queryset, many=True)
 

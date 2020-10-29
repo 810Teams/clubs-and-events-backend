@@ -15,13 +15,14 @@ from user.models import EmailPreference, StudentCommitteeAuthority
 
 class UserSerializer(serializers.ModelSerializer):
     ''' User serializer '''
-    is_student_committee = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''
         model = get_user_model()
-        exclude = ('password', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'groups', 'user_permissions')
-        read_only_fields = ('username', 'name', 'is_lecturer', 'created_by', 'updated_by')
+        exclude = ('password', 'is_active', 'is_staff', 'is_superuser', 'last_login', 'groups', 'user_permissions',
+                   'created_at', 'updated_at', 'created_by', 'updated_by')
+        read_only_fields = ('username', 'name', 'user_group', 'created_by', 'updated_by')
 
     def validate(self, data):
         ''' Validate data '''
@@ -36,6 +37,12 @@ class UserSerializer(serializers.ModelSerializer):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'is_student_committee': self.get_is_student_committee(obj)
+        }
 
     def get_is_student_committee(self, obj):
         ''' Retrieve student committee member status '''

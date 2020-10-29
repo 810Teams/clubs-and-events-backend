@@ -13,6 +13,7 @@ from core.permissions import IsDeputyLeaderOfCommunity
 from core.utils import raise_validation_errors, add_error_message
 from generator.models import QRCode, JoinKey, GeneratedDocx
 from membership.models import Membership
+from user.permissions import IsLecturerObject
 
 
 class QRCodeSerializerTemplate(serializers.ModelSerializer):
@@ -119,7 +120,7 @@ class GeneratedDocxSerializerTemplate(serializers.ModelSerializer):
         ''' Validate data '''
         errors = dict()
 
-        if not data['advisor'].is_lecturer:
+        if not IsLecturerObject().has_object_permission(self.context['request'], None, data['advisor']):
             errors['advisor'] = _('Advisor must be a lecturer.')
 
         if '\n' in data['objective']:

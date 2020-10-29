@@ -9,6 +9,7 @@ from rest_framework import serializers
 
 from asset.models import Announcement, Album, Comment, AlbumImage
 from community.models import Event, CommunityEvent
+from core.permissions import IsStaffOfCommunity
 from core.utils import get_client_ip, has_instance
 from core.utils import add_error_message, validate_profanity_serializer, raise_validation_errors
 from membership.models import Membership
@@ -213,6 +214,20 @@ class AlbumImageSerializer(serializers.ModelSerializer):
         model = AlbumImage
         fields = '__all__'
         read_only_fields = ('created_by',)
+
+    def validate(self, data):
+        ''' Validate data '''
+        errors = dict()
+
+        if not IsStaffOfCommunity().has_object_permission(self.context['request'], None, data['album']):
+            add_error_message(
+                errors, key='album',
+                message='Album images can only be created or deleted by staff of the community the album is created in.'
+            )
+
+        raise_validation_errors(errors)
+
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):

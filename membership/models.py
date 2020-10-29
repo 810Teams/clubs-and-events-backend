@@ -4,7 +4,7 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from crum import get_current_user
+from crum import get_current_user, get_current_request
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, Lab, CommunityEvent, Club
 from core.utils import get_file_extension
+from user.permissions import IsLecturerObject
 
 
 class Request(models.Model):
@@ -246,7 +247,7 @@ class Advisory(models.Model):
         ''' Validate instance on save '''
         errors = list()
 
-        if not self.advisor.is_lecturer:
+        if not IsLecturerObject().has_object_permission(get_current_request(), None, self.advisor):
             errors.append(ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor'))
 
         advisors = Advisory.objects.filter(advisor_id=self.advisor.id)
