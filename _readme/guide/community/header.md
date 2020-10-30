@@ -131,6 +131,10 @@ The community must be auto.
 
 ### Cancel Approval Request
 
+If this action appears, meaning the club or the event is having a pending approval request. Retrieve the approval request by calling this API.
+
+`GET api/membership/approval-request?community={int}`
+
 Upon the leader of the unofficial club or unapproved event clicked the "Cancel Approval Request", display a confirmation dialog, if the user confirmed, call this API to cancel the approval request.
 
 `DELETE api/membership/approval-request/{int}`
