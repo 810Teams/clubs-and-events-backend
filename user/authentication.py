@@ -31,12 +31,9 @@ class AuthenticationBackend(ModelBackend):
                 user.set_password(password)
                 user.save()
 
-                email_preference = EmailPreference.objects.create(
-                    user_id=user.id
-                )
+                email_preference = EmailPreference.objects.create(user_id=user.id)
                 email_preference.save()
             return user
-
         else:
             try:
                 user = get_user_model().objects.get(username=username)

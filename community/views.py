@@ -3,8 +3,8 @@
     community/views.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
+from datetime import datetime
 
-from django.contrib.auth import get_user_model
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.response import Response
 
@@ -175,10 +175,6 @@ class EventViewSet(viewsets.ModelViewSet):
         # Initial Membership
         Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
-        # Notification
-        users = get_user_model().objects.exclude(pk=request.user.id)
-        notify(users=users, obj=obj)
-
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -242,8 +238,13 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
         # Notification
-        users = [i.user for i in Membership.objects.filter(community_id=obj.created_under.id, status='A')]
-        notify(users=users, obj=obj)
+        if datetime.today().date() <= obj.end_date:
+            users = [
+                i.user for i in Membership.objects.filter(
+                    community_id=obj.created_under.id, status='A'
+                ).exclude(user_id=request.user.id)
+            ]
+            notify(users=users, obj=obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 

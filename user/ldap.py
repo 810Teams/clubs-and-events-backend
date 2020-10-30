@@ -12,19 +12,14 @@ from clubs_and_events.settings import LDAP_USER_GROUPS, LDAP_USERNAME_FIELD, LDA
 from core.utils import error
 
 
-def get_LDAP_user(username, password, display_response=False):
+def get_LDAP_user(username, password):
     ''' Check user authentication in the LDAP server and return the information '''
     # LDAP Server Set-up
     server = Server(LDAP_URL, get_info=ALL)
 
     # LDAP Server Binding
     try:
-        connection = Connection(
-            server,
-            user=LDAP_BIND_USERNAME,
-            password=LDAP_BIND_PASSWORD,
-            auto_bind=True
-        )
+        connection = Connection(server, user=LDAP_BIND_USERNAME, password=LDAP_BIND_PASSWORD, auto_bind=True)
     except (LDAPBindError, LDAPSocketOpenError) as e:
         error(e.__str__().capitalize())
         return None
@@ -45,20 +40,9 @@ def get_LDAP_user(username, password, display_response=False):
     if user_group is None:
         return None
 
-    # Display Response Log
-    if display_response:
-        for i in connection.response[0]:
-            if "raw" not in i:
-                print('[LOG] "{}": {}'.format(i, connection.response[0][i]))
-
     # Login Attempt
     try:
-        Connection(
-            server,
-            user=connection.response[0]['dn'],
-            password=password,
-            auto_bind=True
-        )
+        Connection(server, user=connection.response[0]['dn'], password=password, auto_bind=True)
     except (LDAPBindError, IndexError, KeyError):
         return None
 
