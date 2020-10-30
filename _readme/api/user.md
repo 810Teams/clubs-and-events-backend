@@ -26,6 +26,8 @@
 
 `search={string}`
 
+`user_group={string}`
+
 `is_active={boolean}`
 
 `is_staff={boolean}`
