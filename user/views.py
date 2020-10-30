@@ -44,7 +44,7 @@ class UserViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         if self.request.user.is_authenticated:
-            queryset = filter_queryset(queryset, request, target_param='is_lecturer', is_foreign_key=False)
+            queryset = filter_queryset(queryset, request, target_param='user_group', is_foreign_key=False)
             queryset = filter_queryset(queryset, request, target_param='is_active', is_foreign_key=False)
             queryset = filter_queryset(queryset, request, target_param='is_staff', is_foreign_key=False)
             queryset = filter_queryset(queryset, request, target_param='is_superuser', is_foreign_key=False)
