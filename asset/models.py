@@ -21,7 +21,7 @@ class Announcement(models.Model):
         ''' Retrieve image path '''
         return '{}/announcement/{}.{}'.format(STORAGE_BASE_DIR, self.id, get_file_extension(file_name))
 
-    text = models.TextField()
+    text = models.TextField(max_length=2048)
     image = models.ImageField(null=True, blank=True, upload_to=get_image_path)
     is_publicly_visible = models.BooleanField(default=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE)
@@ -157,7 +157,7 @@ class AlbumImage(models.Model):
 
 class Comment(models.Model):
     ''' Comment model '''
-    text = models.TextField()
+    text = models.TextField(max_length=1024)
     written_by = models.CharField(max_length=64)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -33,8 +33,8 @@ class Community(models.Model):
 
     # General Information
     url_id = models.CharField(max_length=32, null=True, blank=True, unique=True, default=None)
-    description = models.TextField(null=True, blank=True)
-    external_links = models.TextField(null=True, blank=True)
+    description = models.TextField(max_length=1024, null=True, blank=True)
+    external_links = models.TextField(max_length=512, null=True, blank=True)
     logo = models.ImageField(null=True, blank=True, upload_to=get_logo_path)
     banner = models.ImageField(null=True, blank=True, upload_to=get_banner_path)
 
