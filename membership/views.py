@@ -6,6 +6,7 @@
 
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
@@ -17,6 +18,7 @@ from community.permissions import IsRenewableClub
 from core.permissions import IsDeputyLeaderOfCommunity
 from core.permissions import IsInPubliclyVisibleCommunity
 from core.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
+from core.utils import has_instance
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToRetrieveRequest, IsAbleToUpdateRequest, IsAbleToDeleteRequest
@@ -419,7 +421,7 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
         obj = serializer.save()
 
         if obj.status == 'A':
-            try:
+            if has_instance(obj.community, Club):
                 club = Club.objects.get(pk=obj.community.id)
                 club.is_official = True
 
@@ -434,15 +436,15 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
                     club.valid_through = valid_through
 
                 club.save()
-            except Club.DoesNotExist:
-                pass
 
-            try:
+            elif has_instance(obj.community, Event) and not has_instance(obj.community, CommunityEvent):
                 event = Event.objects.get(pk=obj.community.id)
                 event.is_approved = True
                 event.save()
-            except Event.DoesNotExist:
-                pass
+
+                # Notification
+                if datetime.today().date() <= event.end_date:
+                    notify(get_user_model().objects.all(), event)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

@@ -15,6 +15,7 @@ from pathlib import Path
 
 from core.loader import load_key, load_project_path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -24,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = load_key(key='secret', decrypt=True)
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -73,8 +75,7 @@ ROOT_URLCONF = 'clubs_and_events.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -151,6 +152,9 @@ AUTHENTICATION_BACKENDS = [
    'user.authentication.AuthenticationBackend',
 ]
 
+
+# LDAP Settings
+
 LDAP_URL = load_key(key='ldap', decrypt=True)[0]
 LDAP_BIND_USERNAME = load_key(key='ldap', decrypt=True)[1]
 LDAP_BIND_PASSWORD = load_key(key='ldap', decrypt=True)[2]
@@ -208,6 +212,6 @@ STUDENT_COMMITTEE_ADVISOR_NAME = 'ดร.อนันตพัฒน์ อน�
 STUDENT_COMMITTEE_PRESIDENT_NAME = 'นายธนพนธ์ วงศ์ประเสริฐ'
 
 
-# NLP Settings
+# Natural Language Processing (NLP) Settings
 
 NLP_EN_MODEL = 'en_core_web_sm'

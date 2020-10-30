@@ -55,6 +55,12 @@ If the object already exist, call one of these APIs.
 }
 ```
 
+#### Notes: Advisors Choice
+
+Obtaining list of lecturers by calling this API, which is required to be used for choices in the advisor field.
+
+`GET api/user/user?user_group=lecturer`
+
 ### Deleting the Generated Microsoft Word Document
 
 If the object exists, render the delete button. Upon the user clicked the button, display a confirmation dialog, if the user confirmed, call this API.

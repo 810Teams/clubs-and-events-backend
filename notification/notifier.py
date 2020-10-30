@@ -3,11 +3,11 @@
     notification/notifier.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
-from email.mime.image import MIMEImage
 
 from crum import get_current_user
 from django.core.mail import EmailMultiAlternatives
 from django.utils.translation import gettext as _
+from email.mime.image import MIMEImage
 
 from asset.models import Announcement
 from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS
@@ -28,12 +28,13 @@ class InvalidNotificationType(Exception):
 
 
 def notify(users=tuple(), obj=None):
-    ''' Send notification to users script '''
+    ''' Send notification to users function '''
     thread = threading.Thread(target=notify_process, args=[users, obj])
     thread.start()
 
 
 def notify_process(users=tuple(), obj=None):
+    ''' Send notification to users process '''
     for i in users:
         if isinstance(obj, Request):
             RequestNotification.objects.create(user_id=i.id, request_id=obj.id)
@@ -59,12 +60,13 @@ def notify_process(users=tuple(), obj=None):
 
 
 def notify_membership_log(obj):
+    ''' Send notification regarding membership log to users function '''
     thread = threading.Thread(target=notify_membership_log_process, args=[obj])
     thread.start()
 
 
 def notify_membership_log_process(obj):
-    ''' Send notification regarding membership log to users script '''
+    ''' Send notification regarding membership log to users process '''
     if obj is None or not isinstance(obj, MembershipLog):
         return
 
@@ -88,9 +90,11 @@ def notify_membership_log_process(obj):
 
 def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
     ''' Send email notifications script '''
+    # Initialization
     email_preferences = EmailPreference.objects.all()
     subject, message, recipients, attachments = None, None, list(), list()
 
+    # Email Content
     if isinstance(obj, Request):
         subject = 'New Join Request in {}'.format(obj.community.name_en)
         message = '{} ({}) has requested to join {}. Sign in and visit the community\'s requests tab to respond ' + \
@@ -112,7 +116,7 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
         attachments = [obj.image.path]
     elif isinstance(obj, CommunityEvent):
         subject = 'New Community Event in {}'.format(obj.name_en)
-        message = 'A new community event "{}" is created in {}. The event will take place on {} to {} during {} to {}.'
+        message = 'A new event "{}" is from {} is announced! The event will take place on {} to {} during {} to {}.'
         message = message.format(
             obj.name_en,
             obj.created_under.name_en,
@@ -123,8 +127,8 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_community_event]
     elif isinstance(obj, Event):
-        subject = 'New Event: {}'
-        message = 'A new event "{}" is created. The event will take place on {} to {} during {} to {}.'
+        subject = 'New Event: {}'.format(obj.name_en)
+        message = 'A new event "{}" is announced! The event will take place on {} to {} during {} to {}.'
         message = message.format(
             obj.name_en,
             obj.start_time,
@@ -135,15 +139,11 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_event]
     else:
         raise InvalidNotificationType
-
+    
+    # Email Delivery
     if subject is not None and message is not None and len(recipients) > 0:
         for i in recipients:
-            email = EmailMultiAlternatives(
-                _(subject),
-                _(message),
-                EMAIL_HOST_USER,
-                [get_email(i)],
-            )
+            email = EmailMultiAlternatives(_(subject), _(message), EMAIL_HOST_USER, [get_email(i)],)
 
             for i in attachments:
                 with open(i, mode='rb') as f:

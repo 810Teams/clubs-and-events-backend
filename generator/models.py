@@ -103,12 +103,12 @@ class GeneratedDocx(models.Model):
 
     # Fill-in Fields
     advisor = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=False)
-    objective = models.TextField()
-    objective_list = models.TextField()
+    objective = models.TextField(max_length=512)
+    objective_list = models.TextField(max_length=1024)
     room = models.CharField(max_length=32)
     schedule = models.CharField(max_length=128)
-    plan_list = models.TextField()
-    merit = models.TextField()
+    plan_list = models.TextField(max_length=1024)
+    merit = models.TextField(max_length=1024)
 
     # Generated Field
     document = models.FileField(upload_to=get_file_path)
