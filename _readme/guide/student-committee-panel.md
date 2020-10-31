@@ -28,7 +28,7 @@ Implements a button that let student committee members add the advisory to the c
 
 In the form, the student committee member can choose the lecturer as an advisor, a filter of choice is required. Call this API to implement this as choices for advisor of the advisory.
 
-`GET api/user/user?is_lecturer=1`
+`GET api/user/user?user_group=lecturer`
 
 As well as the community choices. The community is needed to be either a club or an event. Call these 2 APIs and concatenate them, then implement this as choices for community of the advisory.
 
