@@ -201,6 +201,7 @@ STORAGE_BASE_DIR = '_storage'
 # Notification Settings
 
 EMAIL_NOTIFICATIONS = False
+SEND_IMAGES_AS_ATTACHMENTS = False
 
 
 # Club Approval and Renewal Settings

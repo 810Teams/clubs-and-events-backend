@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from email.mime.image import MIMEImage
 
 from asset.models import Announcement
-from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS
+from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS, SEND_IMAGES_AS_ATTACHMENTS
 from community.models import CommunityEvent, Event
 from core.utils import get_email
 from core.filters import get_previous_membership_log
@@ -92,13 +92,14 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
     ''' Send email notifications script '''
     # Initialization
     email_preferences = EmailPreference.objects.all()
-    subject, message, recipients, attachments = None, None, list(), list()
+    subject, title, message, recipients, attachments = None, None, None, list(), list()
 
     # Email Content
     if isinstance(obj, Request):
-        subject = 'New Join Request in {}'.format(obj.community.name_en)
-        message = '{} ({}) has requested to join {}. Sign in and visit the community\'s requests tab to respond ' + \
-                  'to this join request.'
+        subject = 'New join request: {}'.format(obj.community.name_en)
+        title = 'New Join Request in {}'.format(obj.community.name_en)
+        message = '{} ({}) has requested to join <b>{}</b>. Sign in and visit the requests tab of the community ' + \
+                  'page to respond to this request.'
         message = message.format(
             obj.user.name,
             obj.user.username,
@@ -106,52 +107,66 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_request]
     elif isinstance(obj, Announcement):
-        subject = 'New Announcement in {}'.format(obj.community.name_en)
-        message = 'A new announcement is created in {}.\n\n"{}"\n\n'
+        subject = 'New announcement: {}'.format(obj.community.name_en)
+        title = 'New Announcement in {}'.format(obj.community.name_en)
+        message = 'A new announcement is created in {}. The announcement message is as follows.<br><br>{}'
         message = message.format(
             obj.community.name_en,
             obj.text
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_announcement]
-        attachments = [obj.image.path]
+        try:
+            attachments.append(obj.image.path)
+        except ValueError:
+            pass
     elif isinstance(obj, CommunityEvent):
-        subject = 'New Community Event in {}'.format(obj.name_en)
-        message = 'A new event "{}" is from {} is announced! The event will take place on {} to {} during {} to {}.'
+        subject = 'New community event: {}'.format(obj.name_en)
+        title = 'New Community Event: {}'.format(obj.name_en)
+        message = 'A new event <b>{}</b> from {} is created! The event will take place on {} to {} during {} to {}. ' +\
+                  'Apply yourself as a participator by signing in and send a join request to this event.'
         message = message.format(
             obj.name_en,
             obj.created_under.name_en,
-            obj.start_date,
-            obj.end_date,
             obj.start_time,
-            obj.end_date,
+            obj.end_time,
+            obj.start_date,
+            obj.end_date
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_community_event]
-    elif isinstance(obj, Event):
-        subject = 'New Event: {}'.format(obj.name_en)
-        message = 'A new event "{}" is announced! The event will take place on {} to {} during {} to {}.'
+    elif isinstance(obj, Event) and not isinstance(obj, CommunityEvent):
+        subject = 'New event: {}'.format(obj.name_en)
+        title = 'New Event: {}'.format(obj.name_en)
+        message = 'A new event <b>{}</b> is announced! The event will take place on {} to {} during {} to {}.' + \
+                  'Apply yourself as a participator by signing in and send a join request to this event.'
         message = message.format(
             obj.name_en,
             obj.start_time,
-            obj.end_date,
+            obj.end_time,
             obj.start_date,
             obj.end_date
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_event]
     else:
         raise InvalidNotificationType
-    
-    # Email Delivery
-    if subject is not None and message is not None and len(recipients) > 0:
-        for i in recipients:
-            email = EmailMultiAlternatives(_(subject), _(message), EMAIL_HOST_USER, [get_email(i)],)
 
-            for i in attachments:
-                with open(i, mode='rb') as f:
+    # Email Delivery
+    for i in recipients:
+        email = EmailMultiAlternatives(_(subject), _(message), EMAIL_HOST_USER, [get_email(i)])
+
+        html_content = str().join(list(open('notification/templates/mail.html')))
+        html_content = html_content.replace('{title}', title)
+        html_content = html_content.replace('{message}', message)
+
+        if SEND_IMAGES_AS_ATTACHMENTS:
+            for j in attachments:
+                with open(j, mode='rb') as f:
                     image = MIMEImage(f.read())
                     email.attach(image)
+            html_content = html_content.replace('{images}', str())
+        else:
+            html_image_component = str().join(list(open('notification/templates/image.html')))
+            html_image_content = '\n'.join([html_image_component.replace('{path}', j) for j in attachments])
+            html_content = html_content.replace('{images}', html_image_content)
 
-            # TODO: Implements HTML content, this will entirely replace the original message part.
-            # html_content = str()
-            # email.attach_alternative(html_content, 'text/html')
-
-            email.send(fail_silently=fail_silently)
+        email.attach_alternative(html_content, 'text/html')
+        email.send(fail_silently=fail_silently)

@@ -37,7 +37,7 @@ def _log(text, color=str()):
 
     now = datetime.now()
     formatted_datetime = '{}/{}/{} {}:{}:{}'.format(
-        now.day, months[now.month + 1], now.year, now.hour, now.minute, now.second
+        now.day, months[now.month - 1], now.year, now.hour, now.minute, now.second
     )
 
     print(colored('[{}] {}'.format(formatted_datetime, text), color))
