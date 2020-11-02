@@ -5,7 +5,7 @@
 '''
 from datetime import datetime
 
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets, generics
 from rest_framework.response import Response
 
 from community.models import Community, Club, Event, CommunityEvent, Lab
@@ -296,3 +296,59 @@ class LabViewSet(viewsets.ModelViewSet):
         Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class MyCommunityView(generics.ListAPIView):
+    ''' My community view '''
+    queryset = Community.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = CommunitySerializer
+
+    def list(self, request, *args, **kwargs):
+        ''' Retrieve own communities '''
+        memberships = Membership.objects.filter(status__in=('A', 'R'), user_id=self.request.user.id)
+        queryset = self.get_queryset().filter(id__in=[i.community.id for i in memberships])
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class MyClubView(MyCommunityView):
+    ''' My club view '''
+    queryset = Club.objects.all()
+    serializer_class = OfficialClubSerializer
+
+
+class MyEventView(generics.ListAPIView):
+    ''' My event view '''
+    queryset = Event.objects.all()
+    serializer_class = ApprovedEventSerializer
+
+    def list(self, request, *args, **kwargs):
+        ''' Retrieve own events '''
+        memberships = Membership.objects.filter(status__in=('A', 'R'), user_id=self.request.user.id)
+        queryset = self.get_queryset().filter(id__in=[i.community.id for i in memberships])
+
+        try:
+            query = request.query_params.get('exclude_community_events')
+            if query is not None and eval(query):
+                community_event_list = [i.id for i in CommunityEvent.objects.all()]
+                queryset = queryset.exclude(pk__in=community_event_list)
+        except ValueError:
+            queryset = None
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class MyCommunityEventView(MyCommunityView):
+    ''' My community event view '''
+    queryset = CommunityEvent.objects.all()
+    serializer_class = ExistingCommunityEventSerializer
+
+
+class MyLabView(MyCommunityView):
+    ''' My lab view '''
+    queryset = Lab.objects.all()
+    serializer_class = LabSerializer
