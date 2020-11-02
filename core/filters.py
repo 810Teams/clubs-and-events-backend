@@ -6,6 +6,7 @@
 
 from django.core.exceptions import ValidationError
 
+from core.permissions import IsMemberOfCommunity
 from membership.models import MembershipLog
 
 
@@ -28,6 +29,21 @@ def filter_queryset_permission(queryset, request, permissions):
             j.id for j in queryset if i.has_permission(request, None) and i.has_object_permission(request, None, j)
         ]
         queryset = queryset.filter(pk__in=visible_ids)
+
+    return queryset
+
+
+def filter_queryset_exclude_own(queryset, request, target_param='exclude_own'):
+    ''' Filters queryset by excluding communities which the user is the member '''
+    try:
+        query = request.query_params.get(target_param)
+        if query is not None and eval(query):
+            queryset = queryset.exclude(
+                id__in=[i.id for i in queryset if IsMemberOfCommunity().has_object_permission(request, None, i)]
+            )
+    except ValueError:
+        queryset = None
+
     return queryset
 
 

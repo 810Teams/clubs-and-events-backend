@@ -18,7 +18,7 @@ from community.serializers import ApprovedEventSerializer, UnapprovedEventSerial
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
 from core.permissions import IsDeputyLeaderOfCommunity, IsMemberOfCommunity
-from core.filters import filter_queryset, filter_queryset_permission
+from core.filters import filter_queryset, filter_queryset_permission, filter_queryset_exclude_own
 from membership.models import Membership
 from notification.notifier import notify
 from user.permissions import IsStudent, IsLecturer
@@ -40,15 +40,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
-
-        try:
-            query = request.query_params.get('exclude_own')
-            if query is not None and eval(query):
-                queryset = queryset.exclude(
-                    id__in=[i.id for i in queryset if IsMemberOfCommunity().has_object_permission(request, None, i)]
-                )
-        except ValueError:
-            queryset = None
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -97,15 +89,7 @@ class ClubViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='is_official', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
-
-        try:
-            query = request.query_params.get('exclude_own')
-            if query is not None and eval(query):
-                queryset = queryset.exclude(
-                    id__in=[i.id for i in queryset if IsMemberOfCommunity().has_object_permission(request, None, i)]
-                )
-        except ValueError:
-            queryset = None
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -166,15 +150,7 @@ class EventViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='is_approved', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='is_cancelled', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
-
-        try:
-            query = request.query_params.get('exclude_own')
-            if query is not None and eval(query):
-                queryset = queryset.exclude(
-                    id__in=[i.id for i in queryset if IsMemberOfCommunity().has_object_permission(request, None, i)]
-                )
-        except ValueError:
-            queryset = None
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         try:
             query = request.query_params.get('exclude_community_events')
@@ -245,15 +221,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='created_under', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='allows_outside_participators', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
-
-        try:
-            query = request.query_params.get('exclude_own')
-            if query is not None and eval(query):
-                queryset = queryset.exclude(
-                    id__in=[i.id for i in queryset if IsMemberOfCommunity().has_object_permission(request, None, i)]
-                )
-        except ValueError:
-            queryset = None
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -312,15 +280,7 @@ class LabViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
-
-        try:
-            query = request.query_params.get('exclude_own')
-            if query is not None and eval(query):
-                queryset = queryset.exclude(
-                    id__in=[i.id for i in queryset if IsMemberOfCommunity().has_object_permission(request, None, i)]
-                )
-        except ValueError:
-            queryset = None
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
