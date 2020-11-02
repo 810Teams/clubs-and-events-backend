@@ -59,7 +59,7 @@ class UserAdmin(BaseUserAdmin):
 class EmailPreferenceAdmin(admin.ModelAdmin):
     ''' Email preference admin '''
     list_display = ('id', 'user', 'name', 'receive_request', 'receive_announcement', 'receive_community_event',
-                    'receive_event')
+                    'receive_event', 'receive_invitation')
     list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):

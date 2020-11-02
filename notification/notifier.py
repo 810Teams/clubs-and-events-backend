@@ -14,7 +14,7 @@ from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS, SEND
 from community.models import CommunityEvent, Event
 from core.utils import get_email
 from core.filters import get_previous_membership_log
-from membership.models import Request, MembershipLog, Membership
+from membership.models import Request, MembershipLog, Membership, Invitation
 from notification.models import RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 from user.models import EmailPreference
@@ -46,10 +46,12 @@ def notify_process(users=tuple(), obj=None):
             CommunityEventNotification.objects.create(user_id=i.id, community_event_id=obj.id)
         elif isinstance(obj, Event):
             EventNotification.objects.create(user_id=i.id, event_id=obj.id)
+        elif isinstance(obj, Invitation):
+            pass
         else:
             raise InvalidNotificationType
 
-    if isinstance(obj, (Request, Announcement, CommunityEvent, Event)):
+    if isinstance(obj, (Request, Announcement, CommunityEvent, Event, Invitation)):
         mail = EMAIL_NOTIFICATIONS
     else:
         mail = False
@@ -146,6 +148,15 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
             obj.end_date
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_event]
+    elif isinstance(obj, Invitation):
+        subject = 'New invitation: {}'.format(obj.community.name_en)
+        title = 'New Invitation: {}'.format(obj.community.name_en)
+        message = '<b>{}</b> has invited you to join <b>{}</b>. Sign in to respond to this invitation.'
+        message = message.format(
+            obj.invitor.name,
+            obj.community.name_en
+        )
+        recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_invitation]
     else:
         raise InvalidNotificationType
 

@@ -94,6 +94,7 @@ class EmailPreference(models.Model):
     receive_announcement = models.BooleanField(default=True)
     receive_community_event = models.BooleanField(default=True)
     receive_event = models.BooleanField(default=True)
+    receive_invitation = models.BooleanField(default=True)
 
     def __str__(self):
         ''' String representation '''

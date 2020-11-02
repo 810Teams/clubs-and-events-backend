@@ -163,6 +163,16 @@ class InvitationViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        ''' Create invitation '''
+        serializer = self.get_serializer(data=request.data, many=False)
+        serializer.is_valid(raise_exception=True)
+        obj = serializer.save()
+
+        notify([obj.invitee], obj)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
     def update(self, request, *args, **kwargs):
         ''' Update invitation '''
         serializer = self.get_serializer(self.get_object(), data=request.data, many=False)
@@ -249,7 +259,6 @@ class MembershipViewSet(viewsets.ModelViewSet):
             membership.position = 2
             membership.updated_by = request.user
             membership.save()
-
 
         # If the status is set to retired, get demoted to a normal member.
         if old_status != obj.status and obj.status == 'R':
