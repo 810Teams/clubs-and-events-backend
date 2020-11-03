@@ -24,7 +24,7 @@ def get_LDAP_user(username, password):
         error(e.__str__().capitalize())
         return None
 
-    # Search User in each Group
+    # User Searching
     user_group = None
     for group in LDAP_USER_GROUPS:
         connection.search(
