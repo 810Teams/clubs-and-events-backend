@@ -98,15 +98,26 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
 
     # Email Content
     if isinstance(obj, Request):
-        subject = 'New join request: {}'.format(obj.community.name_en)
-        title = 'New Join Request in {}'.format(obj.community.name_en)
-        message = '{} ({}) has requested to join <b>{}</b>. Sign in and visit the requests tab of the community ' + \
-                  'page to respond to this request.'
-        message = message.format(
-            obj.user.name,
-            obj.user.username,
-            obj.community.name_en
-        )
+        if obj.status == 'W':
+            subject = 'New join request: {}'.format(obj.community.name_en)
+            title = 'New Join Request in {}'.format(obj.community.name_en)
+            message = '{} ({}) has requested to join <b>{}</b>. Sign in and visit the requests tab of the ' + \
+                      'community page to respond to this request.'
+            message = message.format(
+                obj.user.name,
+                obj.user.username,
+                obj.community.name_en
+            )
+        elif obj.status == 'A':
+            subject = 'Join request accepted: {}'.format(obj.community.name_en)
+            title = 'Your Request to Join {} is Accepted'.format(obj.community.name_en)
+            message = 'Your request to join <b>{}</b> sent on {} is accepted by {}. You can now view all ' + \
+                      'community-private content by signing in and visit the community page.'
+            message = message.format(
+                obj.community.name_en,
+                obj.created_at,
+                obj.updated_by.name
+            )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_request]
     elif isinstance(obj, Announcement):
         subject = 'New announcement: {}'.format(obj.community.name_en)

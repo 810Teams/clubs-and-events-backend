@@ -118,7 +118,7 @@ class RequestViewSet(viewsets.ModelViewSet):
                 membership = Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
 
             # Request accepted notification
-            notify(users=[request.user], obj=obj)
+            notify(users=[obj.user], obj=obj)
 
             # New member joined notification
             notify_membership_log(get_latest_membership_log(membership))
