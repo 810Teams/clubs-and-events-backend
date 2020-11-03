@@ -24,7 +24,6 @@ class Community(models.Model):
 
     def get_banner_path(self, file_name):
         ''' Get banner path '''
-        file_extension = file_name.split('.')[1]
         return '{}/community/{}/banner.{}'.format(STORAGE_BASE_DIR, self.id, get_file_extension(file_name))
 
     # Required Information

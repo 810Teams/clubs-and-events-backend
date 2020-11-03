@@ -37,6 +37,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         validate_profanity_serializer(data, 'url_id', errors, 'URL ID')
         validate_profanity_serializer(data, 'description', errors, 'Community description')
 
+        # External links validation
         if 'external_links' in data.keys() and data['external_links'] is not None:
             urls = [
                 i.replace('\r', '') for i in data['external_links'].split('\n') if i.replace('\r', '').strip() != ''
@@ -50,6 +51,32 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                     errors['external_links'] = _(
                         'External links contains an invalid URL. Each URL must be written on a new line.'
                     )
+
+        if 'url_id' in data.keys() and data['url_id'] is not None and len(data['url_id']) > 0:
+            allowed_characters = 'abcdefghijklmnopqrsstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'
+
+            for i in data['url_id']:
+                if i not in allowed_characters:
+                    add_error_message(
+                        errors, key='url_id',
+                        message='URL ID must only contain alphabetical characters, numbers, and dots'
+                    )
+                    break
+
+            if data['url_id'][0] == '.' or data['url_id'][-1] in '.':
+                add_error_message(
+                    errors, key='url_id', message='URL ID must start and end with an alphanumerical character.'
+                )
+
+            if len(data['url_id']) < 4:
+                add_error_message(errors, key='url_id', message='URL ID must be at least 4 characters in length.')
+
+            if '..' in data['url_id']:
+                add_error_message(
+                    errors, key='url_id', message='URL ID is not able to contain consecutive special characters.'
+                )
+        elif 'url_id' in data.keys() and data['url_id'] is not None and data['url_id'].strip() == str():
+            data['url_id'] = None
 
         if get_errors:
             return errors
@@ -220,6 +247,16 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_official', 'valid_through')
 
+    def validate(self, data, get_errors=False):
+        errors = super(OfficialClubSerializer, self).validate(data, get_errors=True)
+
+        raise_validation_errors(errors)
+
+        if 'room' in data.keys() and data['room'] is not None and data['room'].strip() == str():
+            data['room'] = None
+
+        return data
+
 
 class UnofficialClubSerializer(CommunitySerializerTemplate):
     ''' Unofficial club serializer '''
@@ -326,25 +363,7 @@ class LabSerializer(CommunitySerializerTemplate):
 
         raise_validation_errors(errors)
 
+        if 'room' in data.keys() and data['room'] is not None and data['room'].strip() == str():
+            data['room'] = None
+
         return data
-
-    def create(self, validated_data):
-        ''' Create lab instance '''
-        if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
-            validated_data['url_id'] = None
-        if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
-            validated_data['room'] = None
-
-        return self.Meta.model.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        ''' Update lab instance '''
-        if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
-            validated_data['url_id'] = None
-        if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
-            validated_data['room'] = None
-
-        instance.__dict__.update(**validated_data)
-        instance.save()
-
-        return instance
