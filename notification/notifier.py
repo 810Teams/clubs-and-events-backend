@@ -94,7 +94,7 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
     ''' Send email notifications script '''
     # Initialization
     email_preferences = EmailPreference.objects.all()
-    subject, title, message, recipients, attachments = None, None, None, list(), list()
+    attachments = list()
 
     # Email Content
     if isinstance(obj, Request):
@@ -110,7 +110,7 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
             )
         elif obj.status == 'A':
             subject = 'Join request accepted: {}'.format(obj.community.name_en)
-            title = 'Your Request to Join {} is Accepted'.format(obj.community.name_en)
+            title = 'Join Request Accepted: {}'.format(obj.community.name_en)
             message = 'Your request to join <b>{}</b> sent on {} is accepted by {}. You can now view all ' + \
                       'community-private content by signing in and visit the community page.'
             message = message.format(
@@ -118,6 +118,8 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
                 obj.created_at,
                 obj.updated_by.name
             )
+        else:
+            raise InvalidNotificationType
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_request]
     elif isinstance(obj, Announcement):
         subject = 'New announcement: {}'.format(obj.community.name_en)
@@ -135,8 +137,8 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
     elif isinstance(obj, CommunityEvent):
         subject = 'New community event: {}'.format(obj.name_en)
         title = 'New Community Event: {}'.format(obj.name_en)
-        message = 'A new event <b>{}</b> from {} is created! The event will take place on {} to {} during {} to {}. ' +\
-                  'Apply yourself as a participator by signing in and send a join request to this event.'
+        message = 'A new event <b>{}</b> from {} is created! The event will take place on {} to {} during {} to ' + \
+                  '{}. Apply yourself as a participator by signing in and send a join request to this event.'
         message = message.format(
             obj.name_en,
             obj.created_under.name_en,
