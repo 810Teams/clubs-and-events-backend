@@ -28,13 +28,14 @@ class InvalidNotificationType(Exception):
 
 
 def notify(users=tuple(), obj=None):
-    ''' Send notification to users function '''
+    ''' Send notification to manually designated users based on the object (function) '''
     thread = threading.Thread(target=notify_process, args=[users, obj])
     thread.start()
 
 
 def notify_process(users=tuple(), obj=None):
-    ''' Send notification to users process '''
+    ''' Send notification to manually designated users based on the object (process) '''
+    # Valid notification type verification and notification creation
     for i in users:
         if isinstance(obj, Request):
             RequestNotification.objects.create(user_id=i.id, request_id=obj.id)
@@ -51,24 +52,19 @@ def notify_process(users=tuple(), obj=None):
         else:
             raise InvalidNotificationType
 
+    # Verify sending email notifications allowance
     if isinstance(obj, (Request, Announcement, CommunityEvent, Event, Invitation)):
         mail = EMAIL_NOTIFICATIONS
     else:
         mail = False
 
     # Send email notifications
-    if mail and obj is not None:
+    if mail and len(users) > 0:
         send_mail_notification(users=users, obj=obj, fail_silently=False)
 
 
 def notify_membership_log(obj):
-    ''' Send notification regarding membership log to users function '''
-    thread = threading.Thread(target=notify_membership_log_process, args=[obj])
-    thread.start()
-
-
-def notify_membership_log_process(obj):
-    ''' Send notification regarding membership log to users process '''
+    ''' Send notification to automatically designated users based on the membership log object '''
     if obj is None or not isinstance(obj, MembershipLog):
         return
 
@@ -80,11 +76,11 @@ def notify_membership_log_process(obj):
             notify(users=(obj.membership.user,), obj=obj)
 
         # You get removed
-        if previous_log is not None and previous_log.status != obj.status and obj.status == 'X':
+        elif previous_log is not None and previous_log.status != obj.status and obj.status == 'X':
             notify(users=(obj.membership.user,), obj=obj)
 
         # Someone joined
-        if (previous_log is None or previous_log.status in ('L', 'X')) and obj.status == 'A':
+        elif (previous_log is None or previous_log.status in ('L', 'X')) and obj.status == 'A':
             memberships = Membership.objects.filter(community_id=obj.membership.community.id, status='A')
             memberships = memberships.exclude(user_id=obj.membership.user.id)
             notify(users=tuple([i.user for i in memberships]), obj=obj)
