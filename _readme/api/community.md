@@ -15,7 +15,15 @@
 
 `status={string}`
 
+`exclude_own={boolean}`
+
 `url_id={string}` will return a single item is found, otherwise, a status of `404`.
+
+### List Own Communities
+
+`GET api/community/community/me`
+
+- Token is required.
 
 ### Retrieve Community
 
@@ -42,6 +50,8 @@
 `is_official={boolean}`
 
 `status={string}`
+
+`exclude_own={boolean}`
 
 `url_id={string}` will return a single item is found, otherwise, a status of `404`.
 
@@ -99,6 +109,12 @@
 - Must be a student.
 - Must have a membership with a position of 2 or 3.
 
+### List Own Clubs
+
+`GET api/community/club/me`
+
+- Token is required.
+
 #### Official Club
 
 In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` requests.
@@ -143,7 +159,19 @@ In case of official clubs, 3 additional fields can be used in `PUT` and `PATCH` 
 
 `exclude_community_events={boolean}`
 
+`exclude_own={boolean}`
+
 `url_id={string}` will return a single item is found, otherwise, a status of `404`.
+
+### List Own Events
+
+`GET api/community/event/me`
+
+- Token is required.
+
+#### URL Parameters
+
+`exclude_community_events={boolean}`
 
 ### Retrieve Event
 
@@ -254,7 +282,15 @@ In case of approved events, 2 additional fields can be used in `PUT` and `PATCH`
 
 `allows_outside_participators={boolean}`
 
+`exclude_own={boolean}`
+
 `url_id={string}` will return a single item is found, otherwise, a status of `404`.
+
+### List Own Community Events
+
+`GET api/community/event/community/me`
+
+- Token is required.
 
 ### Retrieve Community Event
 
@@ -345,7 +381,15 @@ In case of approved events, 2 additional fields can be used in `PUT` and `PATCH`
 
 `status={string}`
 
+`exclude_own={boolean}`
+
 `url_id={string}` will return a single item is found, otherwise, a status of `404`.
+
+### List Own Labs
+
+`GET api/community/lab/me`
+
+- Token is required.
 
 ### Retrieve Lab
 

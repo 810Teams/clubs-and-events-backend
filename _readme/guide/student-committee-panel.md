@@ -51,6 +51,12 @@ After filling the form, call this API to add the advisory.
 
 Please note that the club or the event can hold more than 1 advisor at a time, but if any time-overlapping advisory is attempted to be added, a status `400` will be returned.
 
+### Delete Advisory
+
+Advisories can be deleted by student committee members, this feature is added in order to allow student committee members to fix their mistakes in adding advisories. Simply render the delete button next to each advisory object, and call this API upon the button is clicked.
+
+`DELETE api/membership/advisory/{int}`
+
 ## Approval Requests Tab
 
 In this tab, student committee members are able to approve clubs and events that are requested to be approved. Unofficial clubs can become official clubs, unapproved events can become approved events.

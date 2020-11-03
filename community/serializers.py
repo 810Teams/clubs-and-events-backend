@@ -257,7 +257,7 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
         read_only_fields = ('is_approved', 'created_under')
 
 
-class NotExistingCommunityEventSerializer(ExistingCommunityEventSerializer):
+class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
     ''' Not existing community event serializer '''
     class Meta:
         ''' Meta '''
@@ -318,8 +318,7 @@ class LabSerializer(CommunitySerializerTemplate):
             for i in data['tags']:
                 if i not in characters:
                     add_error_message(
-                        errors,
-                        key='tags',
+                        errors, key='tags',
                         message='Tags must only consist of alphabetical characters, numbers, dashes, dots, and ' +
                                 'spaces. Each tag are separated by commas.'
                     )

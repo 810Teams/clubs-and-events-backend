@@ -3,9 +3,10 @@
     community/views.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
+
 from datetime import datetime
 
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets, generics
 from rest_framework.response import Response
 
 from community.models import Community, Club, Event, CommunityEvent, Lab
@@ -16,8 +17,8 @@ from community.serializers import CommunitySerializer, OfficialClubSerializer, U
 from community.serializers import ApprovedEventSerializer, UnapprovedEventSerializer
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
-from core.permissions import IsDeputyLeaderOfCommunity
-from core.filters import filter_queryset, filter_queryset_permission
+from core.permissions import IsDeputyLeaderOfCommunity, IsMemberOfCommunity
+from core.filters import filter_queryset, filter_queryset_permission, filter_queryset_exclude_own
 from membership.models import Membership
 from notification.notifier import notify
 from user.permissions import IsStudent, IsLecturer
@@ -39,6 +40,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -87,6 +89,7 @@ class ClubViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='is_official', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -142,6 +145,12 @@ class EventViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
+        queryset = filter_queryset(queryset, request, target_param='event_type', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='event_series', is_foreign_key=True)
+        queryset = filter_queryset(queryset, request, target_param='is_approved', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='is_cancelled', is_foreign_key=False)
+        queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         try:
             query = request.query_params.get('exclude_community_events')
@@ -150,12 +159,6 @@ class EventViewSet(viewsets.ModelViewSet):
                 queryset = queryset.exclude(pk__in=community_event_list)
         except ValueError:
             queryset = None
-
-        queryset = filter_queryset(queryset, request, target_param='event_type', is_foreign_key=True)
-        queryset = filter_queryset(queryset, request, target_param='event_series', is_foreign_key=True)
-        queryset = filter_queryset(queryset, request, target_param='is_approved', is_foreign_key=False)
-        queryset = filter_queryset(queryset, request, target_param='is_cancelled', is_foreign_key=False)
-        queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -218,6 +221,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='created_under', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='allows_outside_participators', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -276,6 +280,7 @@ class LabViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
+        queryset = filter_queryset_exclude_own(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -296,3 +301,61 @@ class LabViewSet(viewsets.ModelViewSet):
         Membership.objects.create(user_id=request.user.id, position=3, community_id=obj.id)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class MyCommunityView(generics.ListAPIView):
+    ''' My community view '''
+    queryset = Community.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = CommunitySerializer
+
+    def list(self, request, *args, **kwargs):
+        ''' Retrieve own communities '''
+        queryset = self.get_queryset().filter(
+            id__in=[i.id for i in self.get_queryset() if IsMemberOfCommunity().has_object_permission(request, None, i)]
+        )
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class MyClubView(MyCommunityView):
+    ''' My club view '''
+    queryset = Club.objects.all()
+    serializer_class = OfficialClubSerializer
+
+
+class MyEventView(generics.ListAPIView):
+    ''' My event view '''
+    queryset = Event.objects.all()
+    serializer_class = ApprovedEventSerializer
+
+    def list(self, request, *args, **kwargs):
+        ''' Retrieve own events '''
+        queryset = self.get_queryset().filter(
+            id__in=[i.id for i in self.get_queryset() if IsMemberOfCommunity().has_object_permission(request, None, i)]
+        )
+
+        try:
+            query = request.query_params.get('exclude_community_events')
+            if query is not None and eval(query):
+                community_event_list = [i.id for i in CommunityEvent.objects.all()]
+                queryset = queryset.exclude(pk__in=community_event_list)
+        except ValueError:
+            queryset = None
+
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
+class MyCommunityEventView(MyCommunityView):
+    ''' My community event view '''
+    queryset = CommunityEvent.objects.all()
+    serializer_class = ExistingCommunityEventSerializer
+
+
+class MyLabView(MyCommunityView):
+    ''' My lab view '''
+    queryset = Lab.objects.all()
+    serializer_class = LabSerializer

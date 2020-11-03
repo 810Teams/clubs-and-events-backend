@@ -551,8 +551,18 @@ class AdvisorySerializer(serializers.ModelSerializer):
     def get_meta(self, obj):
         ''' Retrieve meta data '''
         return {
+            'advisor_name': self.get_advisor_name(obj),
+            'community_name': self.get_community_name(obj),
             'is_active': self.get_is_active(obj)
         }
+
+    def get_advisor_name(self, obj):
+        ''' Retrieve name of the advisor '''
+        return obj.advisor.name
+
+    def get_community_name(self, obj):
+        ''' Retrieve name of the community '''
+        return obj.community.name_en
 
     def get_is_active(self, obj):
         ''' Retrieve active status '''

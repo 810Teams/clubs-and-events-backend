@@ -14,7 +14,7 @@ from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS, SEND
 from community.models import CommunityEvent, Event
 from core.utils import get_email
 from core.filters import get_previous_membership_log
-from membership.models import Request, MembershipLog, Membership
+from membership.models import Request, MembershipLog, Membership, Invitation
 from notification.models import RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 from user.models import EmailPreference
@@ -28,13 +28,14 @@ class InvalidNotificationType(Exception):
 
 
 def notify(users=tuple(), obj=None):
-    ''' Send notification to users function '''
+    ''' Send notification to manually designated users based on the object (function) '''
     thread = threading.Thread(target=notify_process, args=[users, obj])
     thread.start()
 
 
 def notify_process(users=tuple(), obj=None):
-    ''' Send notification to users process '''
+    ''' Send notification to manually designated users based on the object (process) '''
+    # Valid notification type verification and notification creation
     for i in users:
         if isinstance(obj, Request):
             RequestNotification.objects.create(user_id=i.id, request_id=obj.id)
@@ -46,27 +47,24 @@ def notify_process(users=tuple(), obj=None):
             CommunityEventNotification.objects.create(user_id=i.id, community_event_id=obj.id)
         elif isinstance(obj, Event):
             EventNotification.objects.create(user_id=i.id, event_id=obj.id)
+        elif isinstance(obj, Invitation):
+            pass
         else:
             raise InvalidNotificationType
 
-    if isinstance(obj, (Request, Announcement, CommunityEvent, Event)):
+    # Verify sending email notifications allowance
+    if isinstance(obj, (Request, Announcement, CommunityEvent, Event, Invitation)):
         mail = EMAIL_NOTIFICATIONS
     else:
         mail = False
 
     # Send email notifications
-    if mail and obj is not None:
+    if mail and len(users) > 0:
         send_mail_notification(users=users, obj=obj, fail_silently=False)
 
 
 def notify_membership_log(obj):
-    ''' Send notification regarding membership log to users function '''
-    thread = threading.Thread(target=notify_membership_log_process, args=[obj])
-    thread.start()
-
-
-def notify_membership_log_process(obj):
-    ''' Send notification regarding membership log to users process '''
+    ''' Send notification to automatically designated users based on the membership log object '''
     if obj is None or not isinstance(obj, MembershipLog):
         return
 
@@ -78,11 +76,11 @@ def notify_membership_log_process(obj):
             notify(users=(obj.membership.user,), obj=obj)
 
         # You get removed
-        if previous_log is not None and previous_log.status != obj.status and obj.status == 'X':
+        elif previous_log is not None and previous_log.status != obj.status and obj.status == 'X':
             notify(users=(obj.membership.user,), obj=obj)
 
         # Someone joined
-        if (previous_log is None or previous_log.status in ('L', 'X')) and obj.status == 'A':
+        elif (previous_log is None or previous_log.status in ('L', 'X')) and obj.status == 'A':
             memberships = Membership.objects.filter(community_id=obj.membership.community.id, status='A')
             memberships = memberships.exclude(user_id=obj.membership.user.id)
             notify(users=tuple([i.user for i in memberships]), obj=obj)
@@ -92,19 +90,32 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
     ''' Send email notifications script '''
     # Initialization
     email_preferences = EmailPreference.objects.all()
-    subject, title, message, recipients, attachments = None, None, None, list(), list()
+    attachments = list()
 
     # Email Content
     if isinstance(obj, Request):
-        subject = 'New join request: {}'.format(obj.community.name_en)
-        title = 'New Join Request in {}'.format(obj.community.name_en)
-        message = '{} ({}) has requested to join <b>{}</b>. Sign in and visit the requests tab of the community ' + \
-                  'page to respond to this request.'
-        message = message.format(
-            obj.user.name,
-            obj.user.username,
-            obj.community.name_en
-        )
+        if obj.status == 'W':
+            subject = 'New join request: {}'.format(obj.community.name_en)
+            title = 'New Join Request in {}'.format(obj.community.name_en)
+            message = '{} ({}) has requested to join <b>{}</b>. Sign in and visit the requests tab of the ' + \
+                      'community page to respond to this request.'
+            message = message.format(
+                obj.user.name,
+                obj.user.username,
+                obj.community.name_en
+            )
+        elif obj.status == 'A':
+            subject = 'Join request accepted: {}'.format(obj.community.name_en)
+            title = 'Join Request Accepted: {}'.format(obj.community.name_en)
+            message = 'Your request to join <b>{}</b> sent on {} is accepted by {}. You can now view all ' + \
+                      'community-private content by signing in and visit the community page.'
+            message = message.format(
+                obj.community.name_en,
+                obj.created_at,
+                obj.updated_by.name
+            )
+        else:
+            raise InvalidNotificationType
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_request]
     elif isinstance(obj, Announcement):
         subject = 'New announcement: {}'.format(obj.community.name_en)
@@ -122,8 +133,8 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
     elif isinstance(obj, CommunityEvent):
         subject = 'New community event: {}'.format(obj.name_en)
         title = 'New Community Event: {}'.format(obj.name_en)
-        message = 'A new event <b>{}</b> from {} is created! The event will take place on {} to {} during {} to {}. ' +\
-                  'Apply yourself as a participator by signing in and send a join request to this event.'
+        message = 'A new event <b>{}</b> from {} is created! The event will take place on {} to {} during {} to ' + \
+                  '{}. Apply yourself as a participator by signing in and send a join request to this event.'
         message = message.format(
             obj.name_en,
             obj.created_under.name_en,
@@ -146,6 +157,15 @@ def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
             obj.end_date
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_event]
+    elif isinstance(obj, Invitation):
+        subject = 'New invitation: {}'.format(obj.community.name_en)
+        title = 'New Invitation: {}'.format(obj.community.name_en)
+        message = '<b>{}</b> has invited you to join <b>{}</b>. Sign in to respond to this invitation.'
+        message = message.format(
+            obj.invitor.name,
+            obj.community.name_en
+        )
+        recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_invitation]
     else:
         raise InvalidNotificationType
 

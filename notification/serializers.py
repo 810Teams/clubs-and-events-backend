@@ -25,10 +25,7 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def get_meta(self, obj):
         ''' Retrieve meta data '''
-        notification_type = None
-        object_id = None
-        community_id = None
-        text = ''
+        notification_type, object_id, community_id, text = None, None, None, str()
 
         if has_instance(obj, RequestNotification):
             notification = RequestNotification.objects.get(pk=obj.id)
