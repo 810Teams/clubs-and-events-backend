@@ -326,6 +326,8 @@ class UnapprovedEventSerializer(CommunitySerializerTemplate):
 
 class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
     ''' Existing community event serializer '''
+    meta = serializers.SerializerMethodField()
+    
     class Meta:
         ''' Meta '''
         model = CommunityEvent
@@ -340,6 +342,12 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        meta = super(ExistingCommunityEventSerializer, self).get_meta(obj)
+        meta['created_under_name_en'] = obj.created_under.name_en
+
+        return meta
 
 
 class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
