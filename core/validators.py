@@ -24,16 +24,26 @@ def get_lang(text):
         return None
 
 
+def is_th(text):
+    ''' Detect a language and returns True if is in the Thai language '''
+    return get_lang(text) == 'th'
+
+
+def is_en(text):
+    ''' Detect a language and returns True if is in English '''
+    return get_lang(text) == 'en'
+
+
 def tokenize(text, engine='newmm', keep_whitespace=False):
     ''' Tokenize words from a sentence in the Thai language '''
     return word_tokenize(text, engine=engine, keep_whitespace=keep_whitespace)
 
 
-def validate_profanity(text):
+def validate_profanity(text, lang=('en', 'th')):
     ''' Validates profanity of the text '''
-    if is_profane_en(text):
+    if 'en' in lang and is_profane_en(text):
         raise ValidationError(_('Text contains profanity in English.'), code='profanity_detected')
-    elif is_profane_th(text):
+    elif 'th' in lang and is_profane_th(text):
         raise ValidationError(_('Text contains profanity in Thai.'), code='profanity_detected')
     return True
 

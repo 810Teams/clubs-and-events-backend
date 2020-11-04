@@ -114,13 +114,13 @@ def add_error_message(errors, key='non_field_errors', message=str(), wrap=True):
         errors[key] = message
 
 
-def validate_profanity_serializer(data, key, errors, field_name=str()):
+def validate_profanity_serializer(data, key, errors, field_name=str(), lang=('en', 'th')):
     ''' Validate profanity of data in the field, then add the error message to the errors list '''
     if field_name.strip() == '':
         field_name = key.replace('_', ' ').capitalize()
 
     try:
-        validate_profanity(data[key])
+        validate_profanity(data[key], lang=lang)
     except ValidationError:
         add_error_message(errors, key=key, message='{} contains profanity.'.format(field_name))
     except KeyError:

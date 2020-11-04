@@ -15,6 +15,7 @@ from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToD
 from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
 from core.utils import get_client_ip, has_instance
 from core.utils import add_error_message, validate_profanity_serializer, raise_validation_errors
+from core.validators import is_th, is_en
 from membership.models import Membership, ApprovalRequest
 
 
@@ -32,15 +33,28 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         ''' Validate data '''
         errors = dict()
 
-        validate_profanity_serializer(data, 'name_th', errors, 'Community\'s Thai name')
-        validate_profanity_serializer(data, 'name_en', errors, 'Community\'s English name')
-        validate_profanity_serializer(data, 'url_id', errors, 'URL ID')
-        validate_profanity_serializer(data, 'description', errors, 'Community description')
+        validate_profanity_serializer(data, 'name_th', errors, field_name='Community\'s Thai name', lang=('th',))
+        validate_profanity_serializer(data, 'name_en', errors, field_name='Community\'s English name', lang=('en',))
+        validate_profanity_serializer(data, 'url_id', errors, field_name='URL ID')
+        validate_profanity_serializer(data, 'description', errors, field_name='Community description')
+
+        # Community Thai name language and length validation
+        if len(data['name_th']) < 4:
+            add_error_message(errors, 'name_th', 'Community name must be at least 4 characters in length.')
+        elif not is_th(data['name_th']):
+            add_error_message(errors, 'name_th', 'This field must be in the Thai language.')
+
+        # Community English name language and length validation
+        if len(data['name_en']) < 4:
+            add_error_message(errors, 'name_en', 'Community name must be at least 4 characters in length.')
+        elif not is_en(data['name_en']):
+            add_error_message(errors, 'name_en', 'This field must be in English.')
 
         # External links validation
         if 'external_links' in data.keys() and data['external_links'] is not None:
             urls = [
-                i.replace('\r', '') for i in data['external_links'].split('\n') if i.replace('\r', '').strip() != ''
+                i.replace('\r', str()) for i in data['external_links'].split('\n')
+                if i.replace('\r', str()).strip() != str()
             ]
             validate = URLValidator()
 
@@ -52,6 +66,9 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                         'External links contains an invalid URL. Each URL must be written on a new line.'
                     )
 
+            data['external_links'] = '\r\n'.join(urls)
+
+        # URL ID validation
         if 'url_id' in data.keys() and data['url_id'] is not None and len(data['url_id']) > 0:
             allowed_characters = 'abcdefghijklmnopqrsstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'
 
@@ -78,6 +95,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         elif 'url_id' in data.keys() and data['url_id'] is not None and data['url_id'].strip() == str():
             data['url_id'] = None
 
+        # Return errors
         if get_errors:
             return errors
 
@@ -250,8 +268,11 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
     def validate(self, data, get_errors=False):
         errors = super(OfficialClubSerializer, self).validate(data, get_errors=True)
 
+        validate_profanity_serializer(data, 'room', errors, field_name='Club room')
+
         raise_validation_errors(errors)
 
+        # Data Cleaning
         if 'room' in data.keys() and data['room'] is not None and data['room'].strip() == str():
             data['room'] = None
 
@@ -275,6 +296,15 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
 
+    def validate(self, data, get_errors=False):
+        errors = super(ApprovedEventSerializer, self).validate(data, get_errors=True)
+
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
+
+        raise_validation_errors(errors)
+
+        return data
+
 
 class UnapprovedEventSerializer(CommunitySerializerTemplate):
     ''' Unapproved event serializer '''
@@ -284,6 +314,15 @@ class UnapprovedEventSerializer(CommunitySerializerTemplate):
         exclude = ('url_id', 'is_publicly_visible', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
 
+    def validate(self, data, get_errors=False):
+        errors = super(UnapprovedEventSerializer, self).validate(data, get_errors=True)
+
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
+
+        raise_validation_errors(errors)
+
+        return data
+
 
 class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
     ''' Existing community event serializer '''
@@ -292,6 +331,15 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
         model = CommunityEvent
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved', 'created_under')
+
+    def validate(self, data, get_errors=False):
+        errors = super(ExistingCommunityEventSerializer, self).validate(data, get_errors=True)
+
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
+
+        raise_validation_errors(errors)
+
+        return data
 
 
 class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
@@ -306,6 +354,9 @@ class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
         ''' Validate data '''
         errors = super(NotExistingCommunityEventSerializer, self).validate(data, get_errors=True)
 
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
+
+        # Creation permission validation
         base_community = Community.objects.get(pk=data['created_under'].id)
         base_membership = Membership.objects.filter(
             user_id=self.context['request'].user.id, position__in=(1, 2, 3), community_id=base_community.id, status='A'
@@ -326,11 +377,10 @@ class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
         except Club.DoesNotExist:
             pass
 
+        # Parent community validation
         if has_instance(data['created_under'], Event):
             add_error_message(
-                errors,
-                key='created_under',
-                message='Community events are not able to be created under events.'
+                errors, key='created_under', message='Community events are not able to be created under events.'
             )
 
         raise_validation_errors(errors)
@@ -349,6 +399,10 @@ class LabSerializer(CommunitySerializerTemplate):
         ''' Validate data '''
         errors = super(LabSerializer, self).validate(data, get_errors=True)
 
+        validate_profanity_serializer(data, 'room', errors, field_name='Lab room')
+        validate_profanity_serializer(data, 'tags', errors, field_name='Tags')
+
+        # Tags validation
         characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-., '
 
         if 'tags' in data.keys() and data['tags'] is not None:
@@ -361,8 +415,10 @@ class LabSerializer(CommunitySerializerTemplate):
                     )
                     break
 
+        # Raise validation errors
         raise_validation_errors(errors)
 
+        # Data cleaning
         if 'room' in data.keys() and data['room'] is not None and data['room'].strip() == str():
             data['room'] = None
 
