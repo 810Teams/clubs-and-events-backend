@@ -31,7 +31,10 @@ def is_th(text):
 
 def is_en(text):
     ''' Detect a language and returns True if is in English '''
-    return get_lang(text) == 'en'
+    for i in text:
+        if not (32 <= ord(i) <= 126):
+            return False
+    return True
 
 
 def tokenize(text, engine='newmm', keep_whitespace=False):
