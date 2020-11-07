@@ -253,9 +253,9 @@ class MembershipSerializer(serializers.ModelSerializer):
         original_membership = Membership.objects.get(pk=self.instance.id)
 
         # Fill Missing Data from Request
-        if field_exists(data, 'status'):
+        if not field_exists(data, 'status'):
             data['status'] = original_membership.status
-        elif field_exists(data, 'position'):
+        elif not field_exists(data, 'position'):
             data['position'] = original_membership.position
 
         # Variables for Validation
