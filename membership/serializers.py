@@ -10,13 +10,15 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
-from community.permissions import IsRenewableClub
+from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
+from core.permissions import IsDeputyLeaderOfCommunity
 from core.utils import has_instance, raise_validation_errors, add_error_message, validate_profanity_serializer
+from core.utils import field_exists
 from core.filters import get_previous_membership_log
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToDeleteInvitation
-from user.permissions import IsLecturer, IsSupportStaff, IsLecturerObject, IsSupportStaffObject
+from user.permissions import IsLecturer, IsLecturerObject, IsStudent, IsStudentObject
 
 
 class ExistingRequestSerializer(serializers.ModelSerializer):
@@ -55,18 +57,14 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
         community = data['community']
         user = request.user
 
-        # Case 1: Lecturers and support staff trying to request to join the club, or support staff to the lab
+        # Case 1: Non-student trying to join the club, or non-student and non-lecturer trying to join the lab
         if has_instance(community, Club):
-            if IsLecturer().has_permission(request, None):
-                add_error_message(
-                    errors, key='community', message='Requests are only able to be made to the club by students.'
-                )
-            elif IsSupportStaff().has_permission(request, None):
+            if not IsStudent().has_permission(request, None):
                 add_error_message(
                     errors, key='community', message='Requests are only able to be made to the club by students.'
                 )
         elif has_instance(community, Lab):
-            if IsSupportStaff().has_permission(request, None):
+            if not IsStudent().has_permission(request, None) and not IsLecturer().has_permission(request, None):
                 add_error_message(
                     errors, key='community',
                     message='Requests are only able to be made to the lab by students and lecturers.'
@@ -75,25 +73,20 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
         # Case 2: Community does not accept requests
         if not community.is_accepting_requests:
             add_error_message(
-                errors,
-                key='community',
+                errors, key='community',
                 message='Requests are not able to be made to the community which doesn\'t accept requests.'
             )
 
         # Case 3: Community is community event and doesn't allow outside participators
         if has_instance(community, CommunityEvent):
             community_event = CommunityEvent.objects.get(pk=community.id)
-            base_community = Community.objects.get(pk=community_event.created_under.id)
-            base_membership = Membership.objects.filter(
-                user_id=user.id, position__in=[1, 2, 3], community_id=base_community.id, status='A'
-            )
-            if not community_event.allows_outside_participators and len(base_membership) != 1:
-                add_error_message(
-                    errors,
-                    key='community',
-                    message='Requests are not able to be made to the community event that does not allow outside ' +
-                            'participators.'
-                )
+            if not community_event.allows_outside_participators:
+                if not IsMemberOfBaseCommunity().has_object_permission(request, None, community_event):
+                    add_error_message(
+                        errors, key='community',
+                        message='Requests are not able to be made to the community event that does not allow outside ' +
+                                'participators.'
+                    )
 
         # Case 4: Already a member
         membership = Membership.objects.filter(community_id=community.id, user_id=user.id, status__in=('A', 'R'))
@@ -108,8 +101,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
         join_request = Request.objects.filter(community_id=community.id, user_id=user.id, status='W')
         if len(join_request) >= 1:
             add_error_message(
-                errors,
-                key='community',
+                errors, key='community',
                 message='Requests are not able to be made to the community if the user already has a pending request.'
             )
 
@@ -117,8 +109,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
         invitation = Invitation.objects.filter(community_id=community.id, invitee_id=user.id, status='W')
         if len(invitation) >= 1:
             add_error_message(
-                errors,
-                key='community',
+                errors, key='community',
                 message='Requests are not able to be made if the pending invitation to the community exists.'
             )
 
@@ -178,38 +169,29 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
 
         # Case 1: Trying to invite a lecturer or a support staff to join the club, or support staff to join the lab
         if has_instance(community, Club):
-            if IsLecturerObject().has_object_permission(request, None, invitee):
-                add_error_message(
-                    errors, key='invitee',
-                    message='Invitation to join the club are only able to be made to students.'
-                )
-            elif IsSupportStaffObject().has_object_permission(request, None, invitee):
+            if not IsStudentObject().has_object_permission(request, None, invitee):
                 add_error_message(
                     errors, key='invitee',
                     message='Invitation to join the club are only able to be made to students.'
                 )
         elif has_instance(community, Lab):
-            if IsSupportStaffObject().has_object_permission(request, None, invitee):
-                add_error_message(
-                    errors, key='invitee',
-                    message='Invitation to join the lab are only able to be made to students and lecturers.'
-                )
+            if not IsStudentObject().has_object_permission(request, None, invitee):
+                if not IsLecturerObject().has_object_permission(request, None, invitee):
+                    add_error_message(
+                        errors, key='invitee',
+                        message='Invitation to join the lab are only able to be made to students and lecturers.'
+                    )
 
         # Case 2: Community is community event and doesn't allow outside participators
-        try:
+        if has_instance(community, CommunityEvent):
             community_event = CommunityEvent.objects.get(pk=community.id)
-            base_community = Community.objects.get(pk=community_event.created_under.id)
-            base_membership = Membership.objects.filter(
-                user_id=invitee.id, community_id=base_community.id, status__in=('A', 'R')
-            )
-            if not community_event.allows_outside_participators and len(base_membership) != 1:
-                add_error_message(
-                    errors,
-                    message='Invitation are not able to be made from the community event that does not allow outside ' +
-                            'participators.'
-                )
-        except CommunityEvent.DoesNotExist:
-            pass
+            if not community_event.allows_outside_participators:
+                if not IsMemberOfBaseCommunity().has_object_permission(request, None, community_event):
+                    add_error_message(
+                        errors, key='community',
+                        message='Invitation are not able to be made from the community event that does not allow ' +
+                                'outside participators.'
+                    )
 
         # Case 3: Not a staff
         invitor_membership = Membership.objects.filter(
@@ -271,9 +253,9 @@ class MembershipSerializer(serializers.ModelSerializer):
         original_membership = Membership.objects.get(pk=self.instance.id)
 
         # Fill Missing Data from Request
-        if 'status' not in data.keys():
+        if not field_exists(data, 'status'):
             data['status'] = original_membership.status
-        elif 'position' not in data.keys():
+        elif not field_exists(data, 'position'):
             data['position'] = original_membership.position
 
         # Variables for Validation
@@ -327,7 +309,7 @@ class MembershipSerializer(serializers.ModelSerializer):
                             'your own position.'
                 )
 
-        # Case 4: Error
+        # Case 4: Update Error
         elif position['old'] != position['new'] and status['old'] != status['new']:
             add_error_message(
                 errors,
@@ -408,15 +390,11 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
         ''' Validate data '''
         errors = dict()
 
-        membership = Membership.objects.filter(
-            user_id=self.context['request'].user.id,
-            position__in=(2, 3),
-            community_id=Community.objects.get(pk=data['membership'].community.id),
-            status='A'
-        )
+        request = self.context['request']
+        community = Community.objects.get(pk=data['membership'].community.id)
 
         # Case 1: Creator is not a deputy leader
-        if len(membership) == 0:
+        if not IsDeputyLeaderOfCommunity().has_object_permission(request, None, community):
             add_error_message(
                 errors,
                 message='Custom membership labels are only able to be created, updated, or deleted by deputy leader ' +
@@ -465,19 +443,17 @@ class MembershipLogSerializer(serializers.ModelSerializer):
 
     def get_log_text(self, obj):
         ''' Retrieve log text '''
-        current = obj
-        previous = get_previous_membership_log(current)
+        previous = get_previous_membership_log(obj)
 
         # Retrieve the community type
         community_type = 'community'
 
         if has_instance(obj.membership.community, Club):
             community_type = 'club'
-        elif has_instance(obj.membership.community, Event) \
-                and not has_instance(obj.membership.community, CommunityEvent):
-            community_type = 'event'
         elif has_instance(obj.membership.community, CommunityEvent):
             community_type = 'community event'
+        elif has_instance(obj.membership.community, Event):
+            community_type = 'event'
         elif has_instance(obj.membership.community, Lab):
             community_type = 'lab'
 
@@ -486,31 +462,31 @@ class MembershipLogSerializer(serializers.ModelSerializer):
             return _('{} has joined the {}.'.format(obj.membership.user.name, community_type))
 
         # If not the first log, the difference is the status
-        if previous.status != current.status:
-            if (previous.status, current.status) == ('R', 'A'):
+        if previous.status != obj.status:
+            if (previous.status, obj.status) == ('R', 'A'):
                 return _('{} is back in duty.'.format(obj.membership.user.name))
-            elif current.status == 'A':
+            elif obj.status == 'A':
                 return _('{} has joined the {}.'.format(obj.membership.user.name, community_type))
-            elif current.status == 'R':
+            elif obj.status == 'R':
                 return _('{} has retired from the {}.'.format(obj.membership.user.name, community_type))
-            elif current.status == 'L':
+            elif obj.status == 'L':
                 return _('{} has left the {}.'.format(obj.membership.user.name, community_type))
-            elif current.status == 'X':
+            elif obj.status == 'X':
                 return _('{} is removed from the {}.'.format(obj.membership.user.name, community_type))
 
         # If not the first log, the difference is the position
-        elif previous.position != current.position:
-            if current.position == 0:
+        elif previous.position != obj.position:
+            if obj.position == 0:
                 return _('{} is demoted to member by {}.'.format(obj.membership.user.name, obj.updated_by.name))
-            elif previous.position > current.position and current.position == 1:
+            elif previous.position > obj.position and obj.position == 1:
                 return _('{} is demoted to staff by {}.'.format(obj.membership.user.name, obj.updated_by.name))
-            elif previous.position < current.position and current.position == 1:
+            elif previous.position < obj.position and obj.position == 1:
                 return _('{} is promoted to staff by {}.'.format(obj.membership.user.name, obj.updated_by.name))
-            elif previous.position > current.position and current.position == 2:
+            elif previous.position > obj.position and obj.position == 2:
                 return _('{} is demoted to deputy leader.'.format(obj.membership.user.name))
-            elif previous.position < current.position and current.position == 2:
+            elif previous.position < obj.position and obj.position == 2:
                 return _('{} is promoted to deputy leader by {}.'.format(obj.membership.user.name, obj.updated_by.name))
-            elif current.position == 3:
+            elif obj.position == 3:
                 return _('{} is promoted to leader by {}.'.format(obj.membership.user.name, obj.updated_by.name))
 
         return None
@@ -616,20 +592,15 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
             )
 
         # Case 2: Must be an unofficial or renewable club, or an unapproved event
-        try:
-            club = Club.objects.get(pk=community.id)
-            if not IsRenewableClub().has_object_permission(request, None, club):
+        if has_instance(community, Club):
+            if not IsRenewableClub().has_object_permission(request, None, Club.objects.get(pk=community.id)):
                 add_error_message(
                     errors, key='community', message='The club is still valid and not ready for renewal yet.'
                 )
-        except Club.DoesNotExist:
-            pass
 
-        try:
+        if has_instance(community, Event):
             if Event.objects.get(pk=community.id).is_approved:
                 add_error_message(errors, key='community', message='The event is already approved.')
-        except Event.DoesNotExist:
-            pass
 
         # Case 3: Approval request sender must be the president of the club or event
         membership = Membership.objects.filter(

@@ -104,7 +104,7 @@ class IsLeaderOfBaseCommunity(permissions.BasePermission):
         if isinstance(obj, CommunityEvent):
             base_community = Community.objects.get(pk=obj.created_under.id)
             base_membership = Membership.objects.filter(
-                user_id=request.user.id, position=3, community_id=base_community.id, status='A'
+                user_id=request.user.id, position=3, community_id=base_community.id, status__in=('A', 'R')
             )
 
             return len(base_membership) == 1
@@ -118,7 +118,7 @@ class IsDeputyLeaderOfBaseCommunity(permissions.BasePermission):
         if isinstance(obj, CommunityEvent):
             base_community = Community.objects.get(pk=obj.created_under.id)
             base_membership = Membership.objects.filter(
-                user_id=request.user.id, position__in=(2, 3), community_id=base_community.id, status='A'
+                user_id=request.user.id, position__in=(2, 3), community_id=base_community.id, status__in=('A', 'R')
             )
 
             return len(base_membership) == 1
@@ -132,7 +132,7 @@ class IsStaffOfBaseCommunity(permissions.BasePermission):
         if isinstance(obj, CommunityEvent):
             base_community = Community.objects.get(pk=obj.created_under.id)
             base_membership = Membership.objects.filter(
-                user_id=request.user.id, position__in=(1, 2, 3), community_id=base_community.id, status='A'
+                user_id=request.user.id, position__in=(1, 2, 3), community_id=base_community.id, status__in=('A', 'R')
             )
 
             return len(base_membership) == 1
@@ -146,7 +146,7 @@ class IsMemberOfBaseCommunity(permissions.BasePermission):
         if isinstance(obj, CommunityEvent):
             base_community = Community.objects.get(pk=obj.created_under.id)
             base_membership = Membership.objects.filter(
-                user_id=request.user.id, community_id=base_community.id, status='A'
+                user_id=request.user.id, community_id=base_community.id, status__in=('A', 'R')
             )
 
             return len(base_membership) == 1

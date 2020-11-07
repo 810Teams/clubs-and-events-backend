@@ -11,10 +11,11 @@ from rest_framework import serializers
 
 from asset.models import Comment
 from community.models import Community, Club, Event, CommunityEvent, Lab
-from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent
+from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent, IsStaffOfBaseCommunity
 from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
-from core.utils import get_client_ip, has_instance
+from core.utils import get_client_ip, has_instance, clean_field, field_exists
 from core.utils import add_error_message, validate_profanity_serializer, raise_validation_errors
+from core.validators import is_th, is_en
 from membership.models import Membership, ApprovalRequest
 
 
@@ -32,14 +33,28 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         ''' Validate data '''
         errors = dict()
 
-        validate_profanity_serializer(data, 'name_th', errors, 'Community\'s Thai name')
-        validate_profanity_serializer(data, 'name_en', errors, 'Community\'s English name')
-        validate_profanity_serializer(data, 'url_id', errors, 'URL ID')
-        validate_profanity_serializer(data, 'description', errors, 'Community description')
+        validate_profanity_serializer(data, 'name_th', errors, field_name='Community\'s Thai name', lang=('th',))
+        validate_profanity_serializer(data, 'name_en', errors, field_name='Community\'s English name', lang=('en',))
+        validate_profanity_serializer(data, 'url_id', errors, field_name='URL ID')
+        validate_profanity_serializer(data, 'description', errors, field_name='Community description')
 
-        if 'external_links' in data.keys() and data['external_links'] is not None:
+        # Community Thai name language and length validation
+        if len(data['name_th']) < 4:
+            add_error_message(errors, 'name_th', 'Community name must be at least 4 characters in length.')
+        elif not is_th(data['name_th']):
+            add_error_message(errors, 'name_th', 'This field must be in the Thai language.')
+
+        # Community English name language and length validation
+        if len(data['name_en']) < 4:
+            add_error_message(errors, 'name_en', 'Community name must be at least 4 characters in length.')
+        elif not is_en(data['name_en']):
+            add_error_message(errors, 'name_en', 'This field must be in English.')
+
+        # External links validation
+        if field_exists(data, 'external_links'):
             urls = [
-                i.replace('\r', '') for i in data['external_links'].split('\n') if i.replace('\r', '').strip() != ''
+                i.replace('\r', str()) for i in data['external_links'].split('\n')
+                if i.replace('\r', str()).strip() != str()
             ]
             validate = URLValidator()
 
@@ -51,6 +66,36 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                         'External links contains an invalid URL. Each URL must be written on a new line.'
                     )
 
+            data['external_links'] = '\r\n'.join(urls)
+
+        # URL ID validation
+        if field_exists(data, 'url_id') and len(data['url_id']) > 0:
+            allowed_characters = 'abcdefghijklmnopqrsstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.'
+
+            for i in data['url_id']:
+                if i not in allowed_characters:
+                    add_error_message(
+                        errors, key='url_id',
+                        message='URL ID must only contain alphabetical characters, numbers, and dots'
+                    )
+                    break
+
+            if data['url_id'][0] == '.' or data['url_id'][-1] in '.':
+                add_error_message(
+                    errors, key='url_id', message='URL ID must start and end with an alphanumerical character.'
+                )
+
+            if len(data['url_id']) < 4:
+                add_error_message(errors, key='url_id', message='URL ID must be at least 4 characters in length.')
+
+            if '..' in data['url_id']:
+                add_error_message(
+                    errors, key='url_id', message='URL ID is not able to contain consecutive special characters.'
+                )
+        else:
+            clean_field(data, 'url_id')
+
+        # Return errors
         if get_errors:
             return errors
 
@@ -220,6 +265,19 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_official', 'valid_through')
 
+    def validate(self, data, get_errors=False):
+        ''' Validate data '''
+        errors = super(OfficialClubSerializer, self).validate(data, get_errors=True)
+
+        validate_profanity_serializer(data, 'room', errors, field_name='Club room')
+
+        raise_validation_errors(errors)
+
+        # Data Cleaning
+        clean_field(data, 'room')
+
+        return data
+
 
 class UnofficialClubSerializer(CommunitySerializerTemplate):
     ''' Unofficial club serializer '''
@@ -238,6 +296,16 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
 
+    def validate(self, data, get_errors=False):
+        ''' Validate data '''
+        errors = super(ApprovedEventSerializer, self).validate(data, get_errors=True)
+
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
+
+        raise_validation_errors(errors)
+
+        return data
+
 
 class UnapprovedEventSerializer(CommunitySerializerTemplate):
     ''' Unapproved event serializer '''
@@ -247,14 +315,48 @@ class UnapprovedEventSerializer(CommunitySerializerTemplate):
         exclude = ('url_id', 'is_publicly_visible', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
 
+    def validate(self, data, get_errors=False):
+        ''' Validate data '''
+        errors = super(UnapprovedEventSerializer, self).validate(data, get_errors=True)
+
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
+
+        raise_validation_errors(errors)
+
+        return data
+
 
 class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
     ''' Existing community event serializer '''
+    meta = serializers.SerializerMethodField()
+    
     class Meta:
         ''' Meta '''
         model = CommunityEvent
         exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved', 'created_under')
+
+    def validate(self, data, get_errors=False):
+        ''' Validate data '''
+        errors = super(ExistingCommunityEventSerializer, self).validate(data, get_errors=True)
+
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
+
+        raise_validation_errors(errors)
+
+        return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        meta = super(ExistingCommunityEventSerializer, self).get_meta(obj)
+        meta['created_under_name_en'] = self.get_created_under_name_en(obj)
+
+        return meta
+
+
+    def get_created_under_name_en(self, obj):
+        ''' Retrieve community English name created under '''
+        return obj.created_under.name_en
 
 
 class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
@@ -269,33 +371,30 @@ class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
         ''' Validate data '''
         errors = super(NotExistingCommunityEventSerializer, self).validate(data, get_errors=True)
 
-        base_community = Community.objects.get(pk=data['created_under'].id)
-        base_membership = Membership.objects.filter(
-            user_id=self.context['request'].user.id, position__in=(1, 2, 3), community_id=base_community.id, status='A'
-        )
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
 
-        if len(base_membership) != 1:
+        # Creation permission validation
+        base_community = Community.objects.get(pk=data['created_under'].id)
+
+        if not IsStaffOfBaseCommunity().has_object_permission(self.context['request'], None, base_community):
             add_error_message(
                 errors, message='Community events are not able to be created under communities you are not a staff.'
             )
 
-        try:
-            if not Club.objects.get(pk=data['created_under']).is_official:
+        if has_instance(data['created_under'], Club):
+            if not Club.objects.get(pk=data['created_under'].id).is_official:
                 add_error_message(
-                    errors,
-                    key='created_under',
-                    message='Community events are not able to be created under communities you are not a staff.'
+                    errors, key='created_under',
+                    message='Community events are not able to be created under unofficial clubs.'
                 )
-        except Club.DoesNotExist:
-            pass
 
+        # Parent community validation
         if has_instance(data['created_under'], Event):
             add_error_message(
-                errors,
-                key='created_under',
-                message='Community events are not able to be created under events.'
+                errors, key='created_under', message='Community events are not able to be created under events.'
             )
 
+        # Raise validation errors
         raise_validation_errors(errors)
 
         return data
@@ -312,39 +411,37 @@ class LabSerializer(CommunitySerializerTemplate):
         ''' Validate data '''
         errors = super(LabSerializer, self).validate(data, get_errors=True)
 
+        validate_profanity_serializer(data, 'room', errors, field_name='Lab room')
+        validate_profanity_serializer(data, 'tags', errors, field_name='Tags')
+
+        # Tags validation
         characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-., '
 
-        if 'tags' in data.keys() and data['tags'] is not None:
+        if field_exists(data, 'tags'):
             for i in data['tags']:
                 if i not in characters:
                     add_error_message(
                         errors, key='tags',
                         message='Tags must only consist of alphabetical characters, numbers, dashes, dots, and ' +
-                                'spaces. Each tag are separated by commas.'
+                                'spaces. Tags are separated by commas.'
                     )
                     break
 
+        if data['tags'].strip()[0] == ',' or data['tags'].strip()[-1] == ',':
+            add_error_message(
+                errors, key='tags',
+                message='Tags must not start or end with a comma.'
+            )
+        if ',,' in data['tags'].replace(' ', ''):
+            add_error_message(
+                errors, key='tags',
+                message='Tags must not contain consecutive commas.'
+            )
+
+        # Raise validation errors
         raise_validation_errors(errors)
 
+        # Data cleaning
+        clean_field(data, 'room')
+
         return data
-
-    def create(self, validated_data):
-        ''' Create lab instance '''
-        if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
-            validated_data['url_id'] = None
-        if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
-            validated_data['room'] = None
-
-        return self.Meta.model.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        ''' Update lab instance '''
-        if 'url_id' in validated_data.keys() and validated_data['url_id'].strip() == '':
-            validated_data['url_id'] = None
-        if 'room' in validated_data.keys() and validated_data['room'].strip() == '':
-            validated_data['room'] = None
-
-        instance.__dict__.update(**validated_data)
-        instance.save()
-
-        return instance

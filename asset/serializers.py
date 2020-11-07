@@ -9,8 +9,8 @@ from rest_framework import serializers
 
 from asset.models import Announcement, Album, Comment, AlbumImage
 from community.models import Event, CommunityEvent
-from core.permissions import IsStaffOfCommunity
-from core.utils import get_client_ip, has_instance
+from core.permissions import IsStaffOfCommunity, IsMemberOfCommunity
+from core.utils import get_client_ip, has_instance, field_exists
 from core.utils import add_error_message, validate_profanity_serializer, raise_validation_errors
 from membership.models import Membership
 
@@ -119,9 +119,9 @@ class AlbumSerializerTemplate(serializers.ModelSerializer):
         validate_profanity_serializer(data, 'name', errors, field_name='Album name')
 
         # Validates community event linking
-        if 'community_event' in data.keys() and data['community_event'] is not None:
+        if field_exists(data, 'community_event'):
             # In case of PATCH request, the community field might not be sent.
-            if 'community' not in data.keys():
+            if not field_exists(data, 'community'):
                 data['community'] = Album.objects.get(pk=self.instance.id).community
 
             if has_instance(data['community'], Event):
@@ -253,15 +253,14 @@ class CommentSerializer(serializers.ModelSerializer):
             )
 
         # Restricts event non-member users from commenting on community events that does not allow outside participators
-        if isinstance(event, CommunityEvent) and not event.allows_outside_participators:
-            try:
-                Membership.objects.get(community_id=event.id, user_id=user.id, status__in=('A', 'R'))
-            except Membership.DoesNotExist:
-                add_error_message(
-                    errors, key='event',
-                    message='Comments are not able to be made by non-members in community events that does not allow ' +
-                            'outside participators.'
-                )
+        if has_instance(event, CommunityEvent):
+            if not CommunityEvent.objects.get(pk=event.id).allows_outside_participators:
+                if not IsMemberOfCommunity().has_object_permission(request, None, event):
+                    add_error_message(
+                        errors, key='event',
+                        message='Comments are not able to be made by non-members in community events that does not ' +
+                                'allow outside participators.'
+                    )
 
         # Retrieve comments from a specific event
         comments = Comment.objects.filter(event_id=event.id)

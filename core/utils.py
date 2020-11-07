@@ -4,6 +4,7 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
+from collections import OrderedDict
 from datetime import datetime
 
 from django.core.exceptions import ValidationError
@@ -42,6 +43,7 @@ def _log(text, color=str()):
 
     print(colored('[{}] {}'.format(formatted_datetime, text), color))
 
+
 def log(text):
     ''' Display Django plain log '''
     _log(text)
@@ -66,7 +68,7 @@ def truncate(text, max_length=64):
 
 def get_file_extension(file_name):
     ''' Returns a file extension '''
-    if isinstance(file_name, str):
+    if isinstance(file_name, str) and len(file_name.split('.')) > 1:
         return file_name.split('.')[-1].lower()
     return None
 
@@ -114,13 +116,13 @@ def add_error_message(errors, key='non_field_errors', message=str(), wrap=True):
         errors[key] = message
 
 
-def validate_profanity_serializer(data, key, errors, field_name=str()):
+def validate_profanity_serializer(data, key, errors, field_name=str(), lang=('en', 'th')):
     ''' Validate profanity of data in the field, then add the error message to the errors list '''
     if field_name.strip() == '':
         field_name = key.replace('_', ' ').capitalize()
 
     try:
-        validate_profanity(data[key])
+        validate_profanity(data[key], lang=lang)
     except ValidationError:
         add_error_message(errors, key=key, message='{} contains profanity.'.format(field_name))
     except KeyError:
@@ -133,3 +135,20 @@ def raise_validation_errors(errors):
     ''' Raise validation errors if exist '''
     if len(errors) > 0:
         raise ValidationError(errors)
+
+
+def field_exists(data, field_name):
+    ''' Check if a value of the field exists in a data of dictionary form '''
+    if isinstance(data, (dict, OrderedDict)) and isinstance(field_name, str):
+        if field_name in data.keys() and data[field_name] is not None:
+            return True
+    return False
+
+
+def clean_field(data, field_name, replacement=None):
+    ''' Set a field to None or any designated value if an empty string is input '''
+    if isinstance(data, (dict, OrderedDict)) and isinstance(field_name, str):
+        if field_name in data.keys() and isinstance(data[field_name], str):
+            if data[field_name].replace('\n', str()).replace('\r', str()).strip() == str():
+                data[field_name] = replacement
+    return data
