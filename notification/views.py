@@ -25,9 +25,16 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         ''' List notifications '''
-        queryset = self.get_queryset().reverse()
+        queryset = self.get_queryset()
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
-        queryset = limit_queryset(queryset, request)
+
+        try:
+            limit = request.query_params.get('limit')
+            if limit is not None:
+                queryset = queryset[len(queryset) - 1 - int(limit):len(queryset)]
+        except ValueError:
+            queryset = None
+
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)

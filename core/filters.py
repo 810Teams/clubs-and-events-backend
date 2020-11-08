@@ -54,7 +54,7 @@ def limit_queryset(queryset, request, target_param='limit'):
         if limit is not None:
             queryset = queryset[:min(int(limit), len(queryset))]
     except ValueError:
-        pass
+        queryset = None
 
     return queryset
 
