@@ -126,7 +126,6 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
         return None
 
-
     def get_own_membership_id(self, obj):
         ''' Retrieve own membership ID '''
         try:

@@ -13,26 +13,25 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from clubs_and_events.settings import CLUB_VALID_MONTH, CLUB_VALID_DAY, CLUB_ADVANCED_RENEWAL
-from community.models import Club, Event, CommunityEvent, Lab
-from community.permissions import IsRenewableClub
+from community.models import Club, Event, CommunityEvent, Lab, Community
+from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
 from core.permissions import IsDeputyLeaderOfCommunity
 from core.permissions import IsInPubliclyVisibleCommunity
 from core.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
-from core.utils import has_instance
+from core.utils import has_instance, remove_duplicates
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToRetrieveRequest, IsAbleToUpdateRequest, IsAbleToDeleteRequest
 from membership.permissions import IsAbleToRetrieveInvitation, IsAbleToUpdateInvitation, IsAbleToDeleteInvitation
 from membership.permissions import IsAbleToUpdateMembership, IsAbleToUpdateCustomMembershipLabel
 from membership.permissions import IsAbleToRetrieveApprovalRequest, IsAbleToUpdateApprovalRequest
-from membership.permissions import IsAbleToDeleteApprovalRequest
+from membership.permissions import IsAbleToDeleteApprovalRequest, IsAbleToCreateAndDeleteAdvisory
 from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, MembershipLogSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
 from membership.serializers import ExistingApprovalRequestSerializer, NotExistingApprovalRequestSerializer
 from notification.notifier import notify, notify_membership_log
-from user.permissions import IsStudentCommittee
 
 
 class RequestViewSet(viewsets.ModelViewSet):
@@ -77,27 +76,37 @@ class RequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        # In case of requesting to join the community event, if already a member of the base community,
-        # you can join without waiting to be approved.
-        try:
+        # Requesting to join the community event
+        # If already a member of base community, you can join without waiting to be approved.
+        instant_join = False
+        if has_instance(obj.community, CommunityEvent):
             community_event = CommunityEvent.objects.get(pk=obj.community.id)
-            Membership.objects.get(
-                user_id=request.user.id, community_id=community_event.created_under.id, status__in=('A', 'R')
-            )
+            if IsMemberOfBaseCommunity().has_object_permission(request, None, community_event):
+                # Check for past membership to renew it, otherwise, create a new one.
+                try:
+                    membership = Membership.objects.get(user_id=obj.user.id, community_id=obj.community.id)
+                    membership.position = 0
+                    membership.status = 'A'
+                    membership.save()
+                except Membership.DoesNotExist:
+                    Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
 
-            request_obj = Request.objects.get(pk=obj.id)
-            request_obj.status = 'A'
-            request_obj.save()
-            Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
-                                      created_by_id=request.user.id, updated_by_id=request.user.id)
-        except (CommunityEvent.DoesNotExist, Membership.DoesNotExist):
-            pass
+                # Update request status
+                obj.status = 'A'
+                obj.save()
+
+                # Skip request notification, use membership log notification instead
+                instant_join = True
+                notify_membership_log(obj)
 
         # Notification
-        users = [i.user for i in Membership.objects.filter(
-            community_id=obj.community.id, position__in=(1, 2, 3), status='A'
-        )]
-        notify(users=users, obj=obj)
+        if not instant_join:
+            users = [i.user for i in Membership.objects.filter(
+                community_id=obj.community.id, position__in=(1, 2, 3), status='A'
+            )]
+            notify(users=users, obj=obj)
+
+        serializer = self.get_serializer(obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -107,7 +116,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        # If the request is accepted, check for past membership to renew it. Otherwise, create a new one.
+        # If the request is accepted, check for past membership to renew it, otherwise, create a new one.
         if obj.status == 'A':
             try:
                 membership = Membership.objects.get(user_id=obj.user.id, community_id=obj.community.id)
@@ -327,16 +336,19 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
 
         try:
+            # Filter selected user
             query = request.query_params.get('user')
             if query is not None:
                 membership_ids = [i.id for i in Membership.objects.filter(user_id=query)]
                 queryset = queryset.filter(membership_id__in=membership_ids)
 
+            # Filter selected community
             query = request.query_params.get('community')
             if query is not None:
                 membership_ids = [i.id for i in Membership.objects.filter(community_id=query)]
                 queryset = queryset.filter(membership_id__in=membership_ids)
 
+            # Filter out current memberships
             query = request.query_params.get('exclude_current_memberships')
             if query is not None and eval(query):
                 queryset = queryset.exclude(end_datetime=None)
@@ -360,7 +372,7 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method in ('POST', 'DELETE'):
-            return (permissions.IsAuthenticated(), IsStudentCommittee())
+            return (permissions.IsAuthenticated(), IsAbleToCreateAndDeleteAdvisory())
         return (permissions.IsAuthenticated(),)
 
     def list(self, request, *args, **kwargs):
@@ -487,3 +499,49 @@ def get_membership_default_labels(request):
             '0': _('Lab Member'),
         }
     })
+
+
+@api_view(['GET'])
+def get_past_memberships(request, user_id):
+    ''' Get past memberships of a certain user API '''
+    try:
+        get_user_model().objects.get(pk=user_id)
+    except get_user_model().DoesNotExist:
+        return Response({'message': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    memberships = Membership.objects.filter(user_id=user_id).exclude(status='A')
+
+    if not request.user.is_authenticated:
+        memberships = [i for i in memberships if i.community.is_publicly_visible]
+
+    membership_ids = [i.id for i in memberships]
+    membership_logs = MembershipLog.objects.filter(membership_id__in=membership_ids).exclude(end_datetime=None)
+    community_ids = remove_duplicates([i.membership.community.id for i in membership_logs])
+    past_memberships = list()
+
+    for i in community_ids:
+        _community = Community.objects.get(pk=i)
+        _community_type = 'community'
+
+        if has_instance(_community, Club):
+            _community_type = 'club'
+        elif has_instance(_community, Event) and not has_instance(_community, CommunityEvent):
+            _community_type = 'event'
+        elif has_instance(_community, CommunityEvent):
+            _community_type = 'community_event'
+        elif has_instance(_community, Lab):
+            _community_type = 'lab'
+
+        _position = max([j.position for j in membership_logs])
+
+        past_memberships.append({
+            'community_id': i,
+            'community_type': _community_type,
+            'start_datetime': min([j.start_datetime for j in membership_logs]),
+            'end_datetime': max([j.end_datetime for j in membership_logs]),
+            'position': _position,
+            'position_start_datetime': min([j.start_datetime for j in membership_logs.filter(position=_position)]),
+            'position_end_datetime': max([j.end_datetime for j in membership_logs.filter(position=_position)])
+        })
+
+    return Response(past_memberships)

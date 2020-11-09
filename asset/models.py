@@ -160,9 +160,9 @@ class Comment(models.Model):
     text = models.TextField(max_length=1024)
     written_by = models.CharField(max_length=64)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    ip_address = models.CharField(max_length=15)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
-    ip_address = models.CharField(max_length=15)
 
     def __str__(self):
         ''' String representation '''

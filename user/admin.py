@@ -30,7 +30,7 @@ class EmailPreferenceInline(admin.StackedInline):
 class StudentCommitteeAuthorityInline(admin.StackedInline):
     ''' Student committee authority inline '''
     model = StudentCommitteeAuthority
-    readonly_fields = ('created_by', 'updated_by')
+    readonly_fields = ('created_at', 'created_by', 'updated_at', 'updated_by')
     extra = 0
     fk_name = 'user'
 

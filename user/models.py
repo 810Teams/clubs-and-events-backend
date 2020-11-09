@@ -100,12 +100,19 @@ class EmailPreference(models.Model):
         ''' String representation '''
         return '{}'.format(self.user.username)
 
+    def save(self, *args, **kwargs):
+        ''' Save instance '''
+        self.user.save()
+        super(EmailPreference, self).save(*args, **kwargs)
+
 
 class StudentCommitteeAuthority(models.Model):
     ''' Student committee authority model '''
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='student_committee_authority_created_by')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,

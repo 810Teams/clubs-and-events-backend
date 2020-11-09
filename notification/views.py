@@ -7,7 +7,7 @@
 from rest_framework import permissions, viewsets
 from rest_framework.response import Response
 
-from core.filters import filter_queryset_permission
+from core.filters import filter_queryset_permission, limit_queryset
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 from notification.permissions import IsNotificationOwner
@@ -27,6 +27,14 @@ class NotificationViewSet(viewsets.ModelViewSet):
         ''' List notifications '''
         queryset = self.get_queryset()
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
+
+        try:
+            limit = request.query_params.get('limit')
+            if limit is not None:
+                queryset = queryset[len(queryset) - 1 - int(limit):len(queryset)]
+        except ValueError:
+            queryset = None
+
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)

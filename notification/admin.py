@@ -27,6 +27,10 @@ class NotificationAdmin(admin.ModelAdmin):
         ''' Restricts add permission '''
         return False
 
+    def has_change_permission(self, request, obj=None):
+        ''' Restricts change permission '''
+        return False
+
     def notification_type(self, obj):
         ''' Get notification type '''
         if has_instance(obj, RequestNotification):
@@ -54,6 +58,14 @@ class RequestNotificationAdmin(admin.ModelAdmin):
             return ('user', 'request') + self.readonly_fields
         return self.readonly_fields
 
+    def has_add_permission(self, request):
+        ''' Restricts add permission '''
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        ''' Restricts change permission '''
+        return False
+
 
 class MembershipLogNotificationAdmin(admin.ModelAdmin):
     ''' Membership log notification admin '''
@@ -66,6 +78,14 @@ class MembershipLogNotificationAdmin(admin.ModelAdmin):
         if obj is not None:
             return ('user', 'membership_log') + self.readonly_fields
         return self.readonly_fields
+
+    def has_add_permission(self, request):
+        ''' Restricts add permission '''
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        ''' Restricts change permission '''
+        return False
 
 
 class AnnouncementNotificationAdmin(admin.ModelAdmin):
@@ -80,6 +100,14 @@ class AnnouncementNotificationAdmin(admin.ModelAdmin):
             return ('user', 'announcement') + self.readonly_fields
         return self.readonly_fields
 
+    def has_add_permission(self, request):
+        ''' Restricts add permission '''
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        ''' Restricts change permission '''
+        return False
+
 
 class CommunityEventNotificationAdmin(admin.ModelAdmin):
     ''' Community event notification admin '''
@@ -93,6 +121,14 @@ class CommunityEventNotificationAdmin(admin.ModelAdmin):
             return ('user', 'community_event') + self.readonly_fields
         return self.readonly_fields
 
+    def has_add_permission(self, request):
+        ''' Restricts add permission '''
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        ''' Restricts change permission '''
+        return False
+
 
 class EventNotificationAdmin(admin.ModelAdmin):
     ''' Event notification admin '''
@@ -105,6 +141,14 @@ class EventNotificationAdmin(admin.ModelAdmin):
         if obj is not None:
             return ('user', 'event') + self.readonly_fields
         return self.readonly_fields
+
+    def has_add_permission(self, request):
+        ''' Restricts add permission '''
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        ''' Restricts change permission '''
+        return False
 
 
 admin.site.register(Notification, NotificationAdmin)

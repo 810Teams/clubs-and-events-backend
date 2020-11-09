@@ -11,7 +11,7 @@ from rest_framework import serializers
 
 from community.models import Community, CommunityEvent, Club, Lab, Event
 from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
-from core.permissions import IsDeputyLeaderOfCommunity
+from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
 from core.utils import has_instance, raise_validation_errors, add_error_message, validate_profanity_serializer
 from core.utils import field_exists
 from core.filters import get_previous_membership_log
@@ -585,11 +585,8 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
             add_error_message(
                 errors, key='community', message='Approval requests are not able to be made from community events.'
             )
-
-        if has_instance(community, Lab):
-            add_error_message(
-                errors, key='community', message='Approval requests are not able to be made from labs.'
-            )
+        elif has_instance(community, Lab):
+            add_error_message(errors, key='community', message='Approval requests are not able to be made from labs.')
 
         # Case 2: Must be an unofficial or renewable club, or an unapproved event
         if has_instance(community, Club):
@@ -597,19 +594,14 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
                 add_error_message(
                     errors, key='community', message='The club is still valid and not ready for renewal yet.'
                 )
-
-        if has_instance(community, Event):
+        elif has_instance(community, Event):
             if Event.objects.get(pk=community.id).is_approved:
                 add_error_message(errors, key='community', message='The event is already approved.')
 
         # Case 3: Approval request sender must be the president of the club or event
-        membership = Membership.objects.filter(
-            user_id=request.user.id, community_id=community.id, status='A', position=3
-        )
-        if len(membership) == 0:
+        if not IsLeaderOfCommunity().has_object_permission(request, None, community):
             add_error_message(
-                errors, key='community',
-                message='Approval requests can only be made by the leader of the community.'
+                errors, key='community', message='Approval requests can only be made by the leader of the community.'
             )
 
         # Case 4: Already has pending approval request

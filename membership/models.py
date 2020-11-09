@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, Lab, CommunityEvent, Club
-from core.utils import get_file_extension
+from core.utils import get_file_extension, has_instance
 from user.permissions import IsLecturerObject
 
 
@@ -250,7 +250,7 @@ class Advisory(models.Model):
         if not IsLecturerObject().has_object_permission(get_current_request(), None, self.advisor):
             errors.append(ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor'))
 
-        advisors = Advisory.objects.filter(advisor_id=self.advisor.id)
+        advisors = Advisory.objects.filter(community_id=self.community.id)
 
         if self.id is not None:
             advisors = advisors.exclude(pk=self.id)
@@ -262,20 +262,14 @@ class Advisory(models.Model):
         if self.start_date > self.end_date:
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
 
-        try:
-            if CommunityEvent.objects.get(pk=self.community.id):
-                errors.append(ValidationError(
-                    _('Advisories are not applicable on community events.'),
-                    code='advisory_feature'
-                ))
-        except CommunityEvent.DoesNotExist:
-            pass
+        if has_instance(self.community, CommunityEvent):
+            errors.append(ValidationError(
+                _('Advisories are not applicable on community events.'),
+                code='advisory_feature'
+            ))
 
-        try:
-            if Lab.objects.get(pk=self.community.id):
-                errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))
-        except Lab.DoesNotExist:
-            pass
+        if has_instance(self.community, Lab):
+            errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))
 
         if len(errors) > 0:
             raise ValidationError(errors)
