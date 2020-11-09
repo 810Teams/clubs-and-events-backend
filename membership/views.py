@@ -14,7 +14,7 @@ from rest_framework.response import Response
 
 from clubs_and_events.settings import CLUB_VALID_MONTH, CLUB_VALID_DAY, CLUB_ADVANCED_RENEWAL
 from community.models import Club, Event, CommunityEvent, Lab
-from community.permissions import IsRenewableClub
+from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
 from core.permissions import IsDeputyLeaderOfCommunity
 from core.permissions import IsInPubliclyVisibleCommunity
 from core.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
@@ -77,27 +77,37 @@ class RequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        # In case of requesting to join the community event, if already a member of the base community,
-        # you can join without waiting to be approved.
-        try:
+        # Requesting to join the community event
+        # If already a member of base community, you can join without waiting to be approved.
+        instant_join = False
+        if has_instance(obj.community, CommunityEvent):
             community_event = CommunityEvent.objects.get(pk=obj.community.id)
-            Membership.objects.get(
-                user_id=request.user.id, community_id=community_event.created_under.id, status__in=('A', 'R')
-            )
+            if IsMemberOfBaseCommunity().has_object_permission(request, None, community_event):
+                # Check for past membership to renew it, otherwise, create a new one.
+                try:
+                    membership = Membership.objects.get(user_id=obj.user.id, community_id=obj.community.id)
+                    membership.position = 0
+                    membership.status = 'A'
+                    membership.save()
+                except Membership.DoesNotExist:
+                    Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
 
-            request_obj = Request.objects.get(pk=obj.id)
-            request_obj.status = 'A'
-            request_obj.save()
-            Membership.objects.create(user_id=obj.user.id, position=0, community_id=obj.community.id,
-                                      created_by_id=request.user.id, updated_by_id=request.user.id)
-        except (CommunityEvent.DoesNotExist, Membership.DoesNotExist):
-            pass
+                # Update request status
+                obj.status = 'A'
+                obj.save()
+
+                # Skip request notification, use membership log notification instead
+                instant_join = True
+                notify_membership_log(obj)
 
         # Notification
-        users = [i.user for i in Membership.objects.filter(
-            community_id=obj.community.id, position__in=(1, 2, 3), status='A'
-        )]
-        notify(users=users, obj=obj)
+        if not instant_join:
+            users = [i.user for i in Membership.objects.filter(
+                community_id=obj.community.id, position__in=(1, 2, 3), status='A'
+            )]
+            notify(users=users, obj=obj)
+
+        serializer = self.get_serializer(obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -107,7 +117,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        # If the request is accepted, check for past membership to renew it. Otherwise, create a new one.
+        # If the request is accepted, check for past membership to renew it, otherwise, create a new one.
         if obj.status == 'A':
             try:
                 membership = Membership.objects.get(user_id=obj.user.id, community_id=obj.community.id)
