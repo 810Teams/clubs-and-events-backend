@@ -9,7 +9,7 @@ from rest_framework.routers import DefaultRouter
 
 from membership.views import RequestViewSet, InvitationViewSet, MembershipViewSet, CustomMembershipLabelViewSet
 from membership.views import MembershipLogViewSet, AdvisoryViewSet, ApprovalRequestViewSet
-from membership.views import get_membership_default_labels
+from membership.views import get_membership_default_labels, get_past_memberships
 
 
 router = DefaultRouter()
@@ -23,5 +23,6 @@ router.register('approval-request', ApprovalRequestViewSet)
 
 urlpatterns = [
     path('membership/label/default', get_membership_default_labels),
+    path('membership/past/<int:user_id>', get_past_memberships),
     path('', include(router.urls))
 ]

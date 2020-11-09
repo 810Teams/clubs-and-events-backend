@@ -73,6 +73,11 @@ def get_file_extension(file_name):
     return None
 
 
+def remove_duplicates(list_data):
+    ''' Removes all duplicated elements from a list and return '''
+    return list(dict.fromkeys(list_data))
+
+
 def get_email(user, domain_name='it.kmitl.ac.th', is_student=True):
     ''' Retrieves default IT KMITL email '''
     if is_student and user.username[0:2] == 'it':
