@@ -599,7 +599,7 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
                 add_error_message(errors, key='community', message='The event is already approved.')
 
         # Case 3: Approval request sender must be the president of the club or event
-        if not IsLeaderOfCommunity().has_object_permission(self.context['request'], None, community):
+        if not IsLeaderOfCommunity().has_object_permission(request, None, community):
             add_error_message(
                 errors, key='community', message='Approval requests can only be made by the leader of the community.'
             )
