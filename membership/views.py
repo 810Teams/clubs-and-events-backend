@@ -25,14 +25,13 @@ from membership.permissions import IsAbleToRetrieveRequest, IsAbleToUpdateReques
 from membership.permissions import IsAbleToRetrieveInvitation, IsAbleToUpdateInvitation, IsAbleToDeleteInvitation
 from membership.permissions import IsAbleToUpdateMembership, IsAbleToUpdateCustomMembershipLabel
 from membership.permissions import IsAbleToRetrieveApprovalRequest, IsAbleToUpdateApprovalRequest
-from membership.permissions import IsAbleToDeleteApprovalRequest
+from membership.permissions import IsAbleToDeleteApprovalRequest, IsAbleToCreateAndDeleteAdvisory
 from membership.serializers import ExistingRequestSerializer, NotExistingRequestSerializer
 from membership.serializers import ExistingInvitationSerializer, NotExistingInvitationSerializer
 from membership.serializers import MembershipSerializer, MembershipLogSerializer, AdvisorySerializer
 from membership.serializers import NotExistingCustomMembershipLabelSerializer, ExistingCustomMembershipLabelSerializer
 from membership.serializers import ExistingApprovalRequestSerializer, NotExistingApprovalRequestSerializer
 from notification.notifier import notify, notify_membership_log
-from user.permissions import IsStudentCommittee
 
 
 class RequestViewSet(viewsets.ModelViewSet):
@@ -370,7 +369,7 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method in ('POST', 'DELETE'):
-            return (permissions.IsAuthenticated(), IsStudentCommittee())
+            return (permissions.IsAuthenticated(), IsAbleToCreateAndDeleteAdvisory())
         return (permissions.IsAuthenticated(),)
 
     def list(self, request, *args, **kwargs):

@@ -7,8 +7,8 @@
 from rest_framework import permissions
 
 from core.permissions import IsStaffOfCommunity, IsMemberOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
-from membership.models import Request, Invitation, Membership, CustomMembershipLabel, ApprovalRequest
-from user.permissions import IsStudentCommittee
+from membership.models import Request, Invitation, Membership, CustomMembershipLabel, ApprovalRequest, Advisory
+from user.permissions import IsStudentCommittee, IsSupportStaff
 
 
 class IsAbleToRetrieveRequest(permissions.BasePermission):
@@ -104,13 +104,29 @@ class IsAbleToUpdateCustomMembershipLabel(permissions.BasePermission):
         return False
 
 
+class IsAbleToCreateAndDeleteAdvisory(permissions.BasePermission):
+    ''' Main permission of POST, DELETE request of Advisory '''
+    def has_permission(self, request, view):
+        ''' Check permission on request '''
+        return IsStudentCommittee().has_permission(request, view) \
+               or IsSupportStaff().has_permission(request, view)
+
+    def has_object_permission(self, request, view, obj):
+        ''' Check permission on object '''
+        if isinstance(obj, Advisory):
+            return IsStudentCommittee().has_permission(request, view) \
+                   or IsSupportStaff().has_permission(request, view)
+        return False
+
+
 class IsAbleToRetrieveApprovalRequest(permissions.BasePermission):
     ''' Main permission of GET request of ApprovalRequest '''
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
         if isinstance(obj, ApprovalRequest):
             return IsLeaderOfCommunity().has_object_permission(request, view, obj) \
-                   or IsStudentCommittee().has_object_permission(request, view, obj)
+                   or IsStudentCommittee().has_permission(request, view) \
+                   or IsSupportStaff().has_permission(request, view)
         return False
 
 
@@ -119,7 +135,9 @@ class IsAbleToUpdateApprovalRequest(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
         if isinstance(obj, ApprovalRequest):
-            return IsStudentCommittee().has_object_permission(request, view, obj) and obj.status == 'W'
+            return (IsStudentCommittee().has_permission(request, view)
+                    or IsSupportStaff().has_permission(request, view)) \
+                   and obj.status == 'W'
         return False
 
 
