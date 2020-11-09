@@ -47,7 +47,7 @@ class AdvisoryAdmin(admin.ModelAdmin):
     ''' Advisory admin '''
     list_display = ('id', 'advisor', 'community', 'start_date', 'end_date', 'is_active', 'created_at', 'created_by',
                     'updated_at', 'updated_by')
-    readonly_fields = ('created_by', 'updated_by',)
+    readonly_fields = ('created_by', 'updated_by')
     list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
@@ -66,7 +66,26 @@ class AdvisoryAdmin(admin.ModelAdmin):
 class CustomMembershipLabelInline(admin.StackedInline):
     ''' Custom membership label inline '''
     model = CustomMembershipLabel
-    readonly_fields = ('created_by', 'updated_by',)
+    readonly_fields = ('created_by', 'updated_by')
+
+
+class MembershipLogInline(admin.TabularInline):
+    ''' Membership log inline '''
+    model = MembershipLog
+    readonly_fields = ('position', 'status', 'start_datetime', 'created_by', 'updated_by')
+    exclude = ('end_datetime',)
+
+    def has_add_permission(self, request, obj):
+        ''' Restricts add permission '''
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        ''' Restricts change permission '''
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        ''' Restricts delete permission '''
+        return False
 
 
 class MembershipAdmin(admin.ModelAdmin):
@@ -74,7 +93,7 @@ class MembershipAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'community', 'position', 'position_name', 'is_active', 'status', 'custom_label',
                     'created_at', 'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by',)
-    inlines = (CustomMembershipLabelInline,)
+    inlines = (CustomMembershipLabelInline, MembershipLogInline)
     list_per_page = 20
 
     def get_readonly_fields(self, request, obj=None):
@@ -113,8 +132,19 @@ class MembershipLogAdmin(admin.ModelAdmin):
     ''' Membership log admin '''
     list_display = ('id', 'membership', 'position', 'status', 'start_datetime', 'end_datetime', 'created_by',
                     'updated_by')
-    readonly_fields = ('start_datetime', 'end_datetime', 'created_by', 'updated_by',)
     list_per_page = 20
+
+    def has_add_permission(self, request):
+        ''' Restricts add permission '''
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        ''' Restricts change permission '''
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        ''' Restricts delete permission '''
+        return False
 
 
 class ApprovalRequestAdmin(admin.ModelAdmin):
