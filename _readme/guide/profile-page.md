@@ -34,7 +34,7 @@ After clicking the edit profile button, the user will be redirected to the edit 
     "bio": "string",
     "profile_picture": "image",
     "cover_photo": "image",
-    "birthdate": "date",
+    "birthdate": "date"
 }
 ```
 
@@ -56,8 +56,10 @@ Call these 4 APIs to retrieve all current memberships of the user.
 
 `GET api/membership/membership?user={int}&community_type=lab&status=A`
 
-The `{int}` is the current
+The `{int}` is the ID of the current user.
 
 ### Past Memberships Section
 
-``
+Call this API to retrieve past memberships of the user.
+
+`GET api/membership/membership/past/{int}`

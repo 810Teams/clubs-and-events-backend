@@ -298,6 +298,14 @@
 - Token is optional.
 - If a token is present, membership logs of memberships in non-publicly visible communities will also be retrievable.
 
+### Retrieve Past Memberships
+
+`GET api/membership/membership/past/{int}`
+
+- Token is optional.
+- If a token is present, entries of memberships in non-publicly visible communities will also be retrievable.
+- `{int}` is the ID of the user.
+
 ## Advisory
 
 ### List Advisories
