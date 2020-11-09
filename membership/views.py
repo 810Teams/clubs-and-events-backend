@@ -520,18 +520,28 @@ def get_past_memberships(request, user_id):
     past_memberships = list()
 
     for i in community_ids:
+        _community = Community.objects.get(pk=i)
+        _community_type = 'community'
+
+        if has_instance(_community, Club):
+            _community_type = 'club'
+        elif has_instance(_community, Event) and not has_instance(_community, CommunityEvent):
+            _community_type = 'event'
+        elif has_instance(_community, CommunityEvent):
+            _community_type = 'community_event'
+        elif has_instance(_community, Lab):
+            _community_type = 'lab'
+
+        _position = max([j.position for j in membership_logs])
+
         past_memberships.append({
             'community_id': i,
-            'community_name_en': Community.objects.get(pk=i).name_en,
+            'community_type': _community_type,
             'start_datetime': min([j.start_datetime for j in membership_logs]),
             'end_datetime': max([j.end_datetime for j in membership_logs]),
-            'position': max([j.position for j in membership_logs]),
-            'position_start_datetime': min([j.start_datetime for j in membership_logs.filter(
-                position=max([j.position for j in membership_logs])
-            )]),
-            'position_end_datetime': max([j.end_datetime for j in membership_logs.filter(
-                position=max([j.position for j in membership_logs])
-            )])
+            'position': _position,
+            'position_start_datetime': min([j.start_datetime for j in membership_logs.filter(position=_position)]),
+            'position_end_datetime': max([j.end_datetime for j in membership_logs.filter(position=_position)])
         })
 
     return Response(past_memberships)
