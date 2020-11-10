@@ -3,6 +3,7 @@
     user/views.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
+
 from crum import get_current_request
 from django.contrib.auth import get_user_model
 from rest_framework import viewsets, filters, status, generics
@@ -11,11 +12,12 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from community.models import Club, CommunityEvent, Community
+from community.models import Club, CommunityEvent, Community, Lab
 from core.filters import filter_queryset
+from core.utils import has_instance
 from membership.models import Membership, Invitation, Request
 from user.models import EmailPreference, StudentCommitteeAuthority
-from user.permissions import IsProfileOwner, IsEmailPreferenceOwner, IsLecturerObject
+from user.permissions import IsProfileOwner, IsEmailPreferenceOwner, IsLecturerObject, IsStudentObject
 from user.serializers import UserSerializer, LimitedUserSerializer, EmailPreferenceSerializer
 from user.serializers import StudentCommitteeAuthoritySerializer
 
@@ -54,47 +56,53 @@ class UserViewSet(viewsets.ModelViewSet):
                 community_id = request.query_params.get('is_applicable_for')
 
                 if community_id is not None:
-                    community_id = int(community_id)
+                    community = Community.objects.get(pk=int(community_id))
                     excluded_ids = list()
 
-                    # Case 1: Exclude lecturers if the community is club
-                    try:
-                        Club.objects.get(pk=community_id)
+                    # Case 1: Exclude non-students if the community is club
+                    if has_instance(community, Club):
                         excluded_ids += [
-                            i.id for i in get_user_model().objects.all() if IsLecturerObject().has_object_permission(
+                            i.id for i in get_user_model().objects.all() if not IsStudentObject().has_object_permission(
                                 get_current_request(), None, i
                             )
                         ]
-                    except Club.DoesNotExist:
-                        pass
 
-                    # Case 2: Community is community event and doesn't allow outside participators
-                    try:
-                        community_event = CommunityEvent.objects.get(pk=community_id)
-                        base_community = Community.objects.get(pk=community_event.created_under.id)
-                        base_membership_ids = [i.id for i in Membership.objects.filter(
-                            community_id=base_community.id, status__in=('A', 'R')
-                        )]
-                        excluded_ids += [i.id for i in get_user_model().objects.all() if i not in base_membership_ids]
-                    except CommunityEvent.DoesNotExist:
-                        pass
+                    # Case 2: Exclude non-students and non-lecturers if the community is lab
+                    elif has_instance(community, Lab):
+                        excluded_ids += [
+                            i.id for i in get_user_model().objects.all() if not IsStudentObject().has_object_permission(
+                                get_current_request(), None, i
+                            ) and not IsLecturerObject().has_object_permission(
+                                get_current_request(), None, i
+                            )
+                        ]
 
-                    # Case 3: Already a member
+                    # Case 3: Community is community event and doesn't allow outside participators
+                    elif has_instance(community, CommunityEvent):
+                        community_event = CommunityEvent.objects.get(pk=community.id)
+                        if not community_event.allows_outside_participators:
+                            base_community = Community.objects.get(pk=community_event.created_under.id)
+                            base_membership_ids = [i.id for i in Membership.objects.filter(
+                                community_id=base_community.id, status__in=('A', 'R')
+                            )]
+                            excluded_ids += [i.id for i in get_user_model().objects.exclude(pk__in=base_membership_ids)]
+
+                    # Case 4: Already a member
                     excluded_ids += [i.user.id for i in Membership.objects.filter(
-                        community_id=community_id, status__in=('A', 'R')
+                        community_id=community.id, status__in=('A', 'R')
                     )]
 
-                    # Case 4: Already has pending invitation
+                    # Case 5: Already has pending invitation
                     excluded_ids += [i.invitee.id for i in Invitation.objects.filter(
-                        community_id=community_id, status='W'
+                        community_id=community.id, status='W'
                     )]
 
-                    # Case 5: Already has pending request
+                    # Case 6: Already has pending request
                     excluded_ids += [i.user.id for i in Request.objects.filter(community_id=community_id, status='W')]
 
                     # Excluding Process
                     queryset = queryset.exclude(pk__in=excluded_ids)
-            except ValueError:
+            except (ValueError, Community.DoesNotExist):
                 queryset = None
 
         serializer = self.get_serializer(queryset, many=True)
