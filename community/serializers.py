@@ -252,6 +252,12 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
 
         is_able_to_send_request, code, message = True, None, None
 
+        # Joining Allowance
+        if not Community.objects.get(pk=obj.id).is_accepting_requests:
+            is_able_to_send_request = False
+            code = 'restricted'
+            message = 'This community does not accept requests.'
+
         # Joining Permissions
         if has_instance(obj, Club) and not IsStudent().has_permission(request, None):
             is_able_to_send_request = False
