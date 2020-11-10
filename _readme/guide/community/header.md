@@ -1,6 +1,6 @@
 # Design Guide - Community Page (Header)
 
-## Heading
+## Header
 
 By visiting any community page, simply it means that the client must call one of these 4 APIs to retrieve the community's data. Make sure to display all important information.
 
@@ -14,37 +14,23 @@ By visiting any community page, simply it means that the client must call one of
 
 ### Rendering the Request Button
 
-Request button simply means request to join button. This requires an API testing, since duplicating the multiple cases is not the best practice. Let's say that the button should always be rendered first, then take a look at these cases to see if the button should be disabled or modified.
+Request button simply means request to join button. Upon calling one of the APIs above, look for the field `meta.request_ability.is_able_to_send_request`, the structure should be something like this.
 
-#### Case 1 - Already a member
+```json
+{
+    "meta": {
+        "request_ability": {
+            "is_able_to_send_request": false,
+            "code": "restricted",
+            "message": "Only students are able to join the club."
+        }
+    }
+}
+```
 
-Check if the user is already an active or retired member by verifying the data from calling one of the APIs above in the [heading](#heading) section. If the field `own_membership_id` is not `null`, no need to render the request button.
+If the field `is_able_to_send_request` is `true`, simply render the button, but if is `false`, follow these steps based on the field `code`
 
-#### Case 2 - Community is not accepting requests
-
-Check if the community accepts requests by verifying the data from calling one of the APIs above in the [heading](#heading) section. If the field `is_accepting_requests` is `false`, then disable the request button, with notes.
-
-#### Case 3 - Community event does not allow outside participators
-
-Check if the community is community event and allows outside participators or not by verifying the data from calling one of the APIs above in the [heading](#heading) section. If the field `allows_outside_participators` presents, meaning that the object is the community event, and if the value is `false`, then disable the request button, with notes.
-
-#### Case 4 - Pending request exists
-
-If this does not return an empty list, meaning the user is not able to request due to already having a pending request. In this case, render the [cancel request](#cancelling-request) button instead.
-
-`GET api/membership/request?user={int}&community={int}&status=W`
-
-The first `{int}` is the ID of the current user and the second `{int}` is the ID of the community.
-
-#### Case 5 - Pending invitation exists
-
-If this does not return an empty list, meaning the user is not able to request due to already having a pending invitation. In this case, render the [accept and decline invitation](#accept-or-decline-invitation) buttons instead.
-
-`GET api/membership/invitation?invitee={int}&community={int}&status=W`
-
-The first `{int}` is the ID of the current user and the second `{int}` is the ID of the community.
-
-### Requesting to Join
+#### Able to send request
 
 By clicking the request button, this API must be called.
 
@@ -58,17 +44,25 @@ By clicking the request button, this API must be called.
 
 The `"int"` is the ID of the community user requested to join, must be auto.
 
-### Cancelling Request
+#### Code 1: restricted
 
-If the user clicked the cancel request button, use this API. Deleting a pending join request is equivalent to cancelling the join request.
+If the field `code` is `"restricted"`, simply render the button useless, making it gray, and unclickable.
 
-`DELETE api/membership/request/{int}`
+Furthermore, when the user hovers over the disabled button, display the message from the field `message`.
 
-The `{int}` is the ID of the request, can be obtained by calling this API, and retrieve the ID of the first object in the list. The length of the list should never exceed 1 from begin.
+#### Code 2: already_member
 
-`GET api/membership/request?user={int}&community={int}&status=W`
+If the field `code` is `"already_member"`, simply render the button labeled as `"Joined"`, but unclickable, or clicking does nothing.
 
-### Accept or Decline Invitation
+Furthermore, when the user hovers over the disabled button, display the message from the field `message`.
+
+#### Code 3: pending_invitation
+
+If the field `code` is `"pending_invitation"`, render the accept and decline invitation buttons instead.
+
+Call this API to fetch the ID of the invitation for further usage.
+
+`GET api/membership/invitation?invitee={int}&community={int}&status=W`
 
 If the user clicked the accept invitation button, use one of these two APIs.
 
@@ -93,6 +87,20 @@ If the user clicked the decline invitation button, use one of these two APIs.
     "status": "D"
 }
 ```
+
+#### Code 4: pending_request
+
+If the field `code` is `"pending_request"`, render the cancel request button instead.
+
+Call this API to fetch the ID of the request for further usage.
+
+`GET api/membership/request?user={int}&community={int}&status=W`
+
+If the user clicked the cancel request button, use this API. Deleting a pending join request is equivalent to cancelling the join request.
+
+`DELETE api/membership/request/{int}`
+
+The `{int}` is the ID of the request, can be obtained by calling this API, and retrieve the ID of the first object in the list. The length of the list should never exceed 1 from begin.
 
 ### Get Available Actions
 
