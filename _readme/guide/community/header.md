@@ -54,9 +54,11 @@ Furthermore, when the user hovers over the disabled button, display the message 
 
 If the field `code` is `"already_member"`, simply render the button labeled as `"Joined"`, but unclickable, or clicking does nothing.
 
+Furthermore, when the user hovers over the disabled button, display the message from the field `message`.
+
 #### Code 3: pending_invitation
 
-If the field `code` is `"pending_invitation"`, render the [accept and decline invitation](#accept-or-decline-invitation) buttons instead.
+If the field `code` is `"pending_invitation"`, render the accept and decline invitation buttons instead.
 
 Call this API to fetch the ID of the invitation for further usage.
 
