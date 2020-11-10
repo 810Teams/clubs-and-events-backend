@@ -12,11 +12,14 @@ from rest_framework import serializers
 from asset.models import Comment
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent, IsStaffOfBaseCommunity
+from community.permissions import IsMemberOfBaseCommunity
 from community.permissions import IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
+from core.permissions import IsMemberOfCommunity
 from core.utils import get_client_ip, has_instance, clean_field, field_exists
 from core.utils import add_error_message, validate_profanity_serializer, raise_validation_errors
 from core.validators import is_th, is_en
-from membership.models import Membership, ApprovalRequest
+from membership.models import Membership, ApprovalRequest, Invitation, Request
+from user.permissions import IsStudent, IsLecturer
 
 
 class CommunitySerializerTemplate(serializers.ModelSerializer):
@@ -110,7 +113,8 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
             'community_type': self.get_community_type(obj),
             'own_membership_id': self.get_own_membership_id(obj),
             'own_membership_position': self.get_own_membership_position(obj),
-            'available_actions': self.get_available_actions(obj)
+            'available_actions': self.get_available_actions(obj),
+            'request_ability': self.get_request_ability(obj)
         }
 
     def get_community_type(self, obj):
@@ -152,6 +156,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         user = request.user
         actions = list()
 
+        # Standard actions
         try:
             # Fetch membership
             membership = Membership.objects.get(user_id=user.id, community_id=obj.id, status__in=('A', 'R'))
@@ -212,22 +217,21 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                         actions.append('cancel-approval-request')
                     except ApprovalRequest.DoesNotExist:
                         actions.append('send-approval-request')
-
         except Membership.DoesNotExist:
             pass
 
-        # Check if the community is event, and able to comment on the current session.
+        # Commenting actions
         if isinstance(obj, Event):
             is_able_to_comment = True
 
             if not user.is_authenticated and not obj.is_publicly_visible:
                 is_able_to_comment = False
-            if has_instance(obj, CommunityEvent) \
-                    and not CommunityEvent.objects.get(pk=obj.id).allows_outside_participators:
-                try:
-                    Membership.objects.get(community_id=obj.id, user_id=user.id, status__in=('A', 'R'))
-                except Membership.DoesNotExist:
-                    is_able_to_comment = False
+            if has_instance(obj, CommunityEvent):
+                if not CommunityEvent.objects.get(pk=obj.id).allows_outside_participators:
+                    try:
+                        Membership.objects.get(community_id=obj.id, user_id=user.id, status__in=('A', 'R'))
+                    except Membership.DoesNotExist:
+                        is_able_to_comment = False
 
             commentators = Comment.objects.filter(event_id=obj.id)
 
@@ -240,6 +244,54 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                 actions.append('comment')
 
         return actions
+
+    def get_request_ability(self, obj):
+        ''' Retrieve sending join request ability '''
+        request = self.context['request']
+        user = request.user
+
+        is_able_to_send_request, code, message = True, None, None
+
+        # Joining Permissions
+        if has_instance(obj, Club) and not IsStudent().has_permission(request, None):
+            is_able_to_send_request = False
+            code = 'restricted'
+            message = 'Only students are able to join the club.'
+        elif has_instance(obj, Lab):
+            if not IsStudent().has_permission(request, None) and not IsLecturer().has_permission(request, None):
+                is_able_to_send_request = False
+                code = 'restricted'
+                message = 'Only students and lecturers are able to join the club.'
+        elif has_instance(obj, CommunityEvent):
+            community_event = CommunityEvent.objects.get(pk=obj.id)
+            if not community_event.allows_outside_participators:
+                if not IsMemberOfBaseCommunity().has_object_permission(request, None, community_event):
+                    is_able_to_send_request = False
+                    code = 'restricted'
+                    message = 'The event does not allow outside participators.'
+
+        # Joining Validations
+        if IsMemberOfCommunity().has_object_permission(request, None, obj):
+            is_able_to_send_request = False
+            code = 'already_member'
+            message = 'You are already a member of the community.'
+        elif user.id in [i.invitee.id for i in Invitation.objects.filter(community_id=obj.id, status='W')]:
+            is_able_to_send_request = False
+            code = 'pending_invitation'
+            message = 'You already have a pending invitation from this community.'
+        elif user.id in [i.user.id for i in Request.objects.filter(community_id=obj.id, status='W')]:
+            is_able_to_send_request = False
+            code = 'pending_request'
+            message = 'You have already sent a pending request to this community.'
+
+        if message is not None:
+            message = _(message)
+
+        return {
+            'is_able_to_send_request': is_able_to_send_request,
+            'code': code,
+            'message': message
+        }
 
 
 class CommunitySerializer(CommunitySerializerTemplate):
