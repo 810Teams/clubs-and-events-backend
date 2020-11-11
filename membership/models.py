@@ -14,7 +14,7 @@ from django.utils.translation import gettext as _
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, Lab, CommunityEvent, Club
 from core.utils import get_file_extension, has_instance
-from user.permissions import IsLecturerObject
+from user.permissions import IsStudentObject, IsLecturerObject
 
 
 class Request(models.Model):
@@ -48,6 +48,48 @@ class Request(models.Model):
 
         super(Request, self).save(*args, **kwargs)
 
+    def clean(self):
+        ''' Validate on save '''
+        errors = list()
+
+        # User group verification
+        if has_instance(self.community, Club):
+            if not IsStudentObject().has_object_permission(get_current_request(), None, self.user):
+                errors.append(ValidationError(_('Only students can request to join the club.'), code='restricted'))
+        elif has_instance(self.community, Lab):
+            if not IsStudentObject().has_object_permission(get_current_request(), None, self.user):
+                if not IsLecturerObject().has_object_permission(get_current_request(), None, self.user):
+                    errors.append(ValidationError(
+                        _('Only students and lecturers can request to join the lab.'), code='restricted'
+                    ))
+
+        # Unable to request if the user is already a member
+        memberships = Membership.objects.filter(status__in=('A', 'R'))
+        if (self.user.id, self.community.id) in [(i.user.id, i.community.id) for i in memberships]:
+            if self.status == 'W':
+                errors.append(ValidationError(
+                    _('The user is already a member of this community.'), code='already_member'
+                ))
+
+        # Unable to request if the user already has a pending request
+        requests = Request.objects.filter(status='W')
+        if self.id is not None:
+            requests = requests.exclude(pk=self.id)
+        if (self.user.id, self.community.id) in [(i.user.id, i.community.id) for i in requests]:
+            if self.status == 'W':
+                errors.append(ValidationError(_('Pending request from this user already exists.'), code='restricted'))
+
+        # Unable to request if the user already has a pending invitation
+        invitations = Invitation.objects.filter(status='W')
+        if (self.user.id, self.community.id) in [(i.invitee.id, i.community.id) for i in invitations]:
+            if self.status == 'W':
+                errors.append(ValidationError(
+                    _('Pending invitation to this user already exists.'), code='duplicated_invitation'
+                ))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+
 
 class Invitation(models.Model):
     ''' Invitation model '''
@@ -80,6 +122,48 @@ class Invitation(models.Model):
             self.invitor = user
 
         super(Invitation, self).save(*args, **kwargs)
+
+    def clean(self):
+        ''' Validate on save '''
+        errors = list()
+
+        # User group verification
+        if has_instance(self.community, Club):
+            if not IsStudentObject().has_object_permission(get_current_request(), None, self.invitee):
+                errors.append(ValidationError(_('Only students can be invited to the club.'), code='restricted'))
+        elif has_instance(self.community, Lab):
+            if not IsStudentObject().has_object_permission(get_current_request(), None, self.invitee):
+                if not IsLecturerObject().has_object_permission(get_current_request(), None, self.invitee):
+                    errors.append(ValidationError(
+                        _('Only students and lecturers can be invited to the lab.'), code='restricted'
+                    ))
+
+        # Unable to invite if the user is already a member
+        memberships = Membership.objects.filter(status__in=('A', 'R'))
+        if (self.invitee.id, self.community.id) in [(i.user.id, i.community.id) for i in memberships]:
+            if self.status == 'W':
+                errors.append(ValidationError(
+                    _('The user is already a member of this community.'), code='already_member'
+                ))
+
+        # Unable to invite if the user already has a pending request
+        requests = Request.objects.filter(status='W')
+        if (self.invitee.id, self.community.id) in [(i.user.id, i.community.id) for i in requests]:
+            if self.status == 'W':
+                errors.append(ValidationError(_('Pending request from this user already exists.'), code='restricted'))
+
+        # Unable to invite if the user already has a pending invitation
+        invitations = Invitation.objects.filter(status='W')
+        if self.id is not None:
+            invitations = invitations.exclude(pk=self.id)
+        if (self.invitee.id, self.community.id) in [(i.invitee.id, i.community.id) for i in invitations]:
+            if self.status == 'W':
+                errors.append(ValidationError(
+                    _('Pending invitation to this user already exists.'), code='duplicated_invitation'
+                ))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
 
 
 class Membership(models.Model):
@@ -139,8 +223,25 @@ class Membership(models.Model):
         ''' Validate on save '''
         errors = list()
 
-        if self.position not in (0, 1, 2, 3):
-            errors.append(ValidationError(_('Position must be a number from 0 to 3.'), code='position_out_of_range'))
+        # User group verification
+        if has_instance(self.community, Club):
+            if not IsStudentObject().has_object_permission(get_current_request(), None, self.user):
+                errors.append(ValidationError(_('Only students can be invited to the club.'), code='restricted'))
+        elif has_instance(self.community, Lab):
+            if not IsStudentObject().has_object_permission(get_current_request(), None, self.user):
+                if not IsLecturerObject().has_object_permission(get_current_request(), None, self.user):
+                    errors.append(ValidationError(
+                        _('Only students and lecturers can be invited to the lab.'), code='restricted'
+                    ))
+
+        # Duplicated membership validation
+        memberships = Membership.objects.all()
+        if self.id is not None:
+            memberships = memberships.exclude(pk=self.id)
+        if (self.user.id, self.community.id) in [(i.user.id, i.community.id) for i in memberships]:
+            errors.append(ValidationError(
+                _('The membership of this user already exists in this community.'), code='duplicated_membership'
+            ))
 
         if len(errors) > 0:
             raise ValidationError(errors)
@@ -247,28 +348,29 @@ class Advisory(models.Model):
         ''' Validate instance on save '''
         errors = list()
 
+        # User group verification
         if not IsLecturerObject().has_object_permission(get_current_request(), None, self.advisor):
             errors.append(ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor'))
 
+        # Overlapping validation
         advisors = Advisory.objects.filter(community_id=self.community.id)
-
         if self.id is not None:
             advisors = advisors.exclude(pk=self.id)
-
         for i in advisors:
             if self.start_date <= i.end_date or i.start_date <= self.end_date:
                 errors.append(ValidationError(_('Advisory time overlapped.'), code='advisory_overlap'))
 
+        # Date validation
         if self.start_date > self.end_date:
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
-
+        
+        # Community validation
         if has_instance(self.community, CommunityEvent):
             errors.append(ValidationError(
                 _('Advisories are not applicable on community events.'),
                 code='advisory_feature'
             ))
-
-        if has_instance(self.community, Lab):
+        elif has_instance(self.community, Lab):
             errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))
 
         if len(errors) > 0:
