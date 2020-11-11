@@ -31,7 +31,7 @@ class IsLecturer(permissions.BasePermission):
 
 
 class IsSupportStaff(permissions.BasePermission):
-    ''' Lecturer permission '''
+    ''' Support staff permission '''
     def has_permission(self, request, view):
         ''' Check permission on request '''
         if request.user.is_authenticated:
