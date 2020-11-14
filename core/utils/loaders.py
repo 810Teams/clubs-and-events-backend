@@ -1,6 +1,6 @@
 '''
-    Core Application Loader
-    core/loader.py
+    Core Application Loaders
+    core/utils/loaders.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 

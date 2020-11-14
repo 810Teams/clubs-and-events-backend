@@ -12,7 +12,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR, LDAP_USER_GROUPS
-from core.utils import get_file_extension
+from core.utils.general import get_file_extension
 
 
 class UserManager(BaseUserManager):

@@ -1,6 +1,6 @@
 '''
-    Core Application Filters
-    core/filters.py
+    Core Application Queryset Filters
+    core/utils/filters.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 

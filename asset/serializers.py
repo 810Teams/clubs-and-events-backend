@@ -10,8 +10,10 @@ from rest_framework import serializers
 from asset.models import Announcement, Album, Comment, AlbumImage
 from community.models import Event, CommunityEvent
 from core.permissions import IsStaffOfCommunity, IsMemberOfCommunity
-from core.utils import get_client_ip, has_instance, field_exists
-from core.utils import add_error_message, validate_profanity_serializer, raise_validation_errors
+from core.utils.general import has_instance
+from core.utils.serializers import add_error_message, validate_profanity_serializer, raise_validation_errors
+from core.utils.serializers import field_exists
+from core.utils.users import get_client_ip
 from membership.models import Membership
 
 

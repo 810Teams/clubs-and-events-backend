@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from category.models import ClubType, EventType, EventSeries
 from clubs_and_events.settings import STORAGE_BASE_DIR
-from core.utils import get_file_extension
+from core.utils.general import get_file_extension
 
 
 class Community(models.Model):

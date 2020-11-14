@@ -13,7 +13,7 @@ from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, Lab, CommunityEvent, Club
-from core.utils import get_file_extension, has_instance
+from core.utils.general import get_file_extension, has_instance
 from user.permissions import IsStudentObject, IsLecturerObject
 
 

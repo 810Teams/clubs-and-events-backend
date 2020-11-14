@@ -9,7 +9,8 @@ from datetime import datetime
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from core.utils import raise_validation_errors, add_error_message, validate_profanity_serializer, field_exists
+from core.utils.serializers import add_error_message, validate_profanity_serializer, raise_validation_errors
+from core.utils.serializers import field_exists
 from user.models import EmailPreference, StudentCommitteeAuthority
 
 

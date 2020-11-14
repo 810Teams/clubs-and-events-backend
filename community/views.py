@@ -18,7 +18,7 @@ from community.serializers import ApprovedEventSerializer, UnapprovedEventSerial
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
 from core.permissions import IsDeputyLeaderOfCommunity, IsMemberOfCommunity
-from core.filters import filter_queryset, filter_queryset_permission, filter_queryset_exclude_own
+from core.utils.filters import filter_queryset, filter_queryset_permission, filter_queryset_exclude_own
 from membership.models import Membership
 from notification.notifier import notify
 from user.permissions import IsStudent, IsLecturer

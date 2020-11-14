@@ -7,7 +7,7 @@
 from django.contrib import admin
 
 from asset.models import AlbumImage, Announcement, Album, Comment
-from core.utils import truncate
+from core.utils.general import truncate
 
 
 class AnnouncementAdmin(admin.ModelAdmin):

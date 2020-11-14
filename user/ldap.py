@@ -9,7 +9,7 @@ from ldap3.core.exceptions import LDAPBindError, LDAPSocketOpenError
 
 from clubs_and_events.settings import LDAP_URL, LDAP_BIND_USERNAME, LDAP_BIND_PASSWORD, LDAP_BASE
 from clubs_and_events.settings import LDAP_USER_GROUPS, LDAP_USERNAME_FIELD, LDAP_DISPLAY_NAME_FIELD
-from core.utils import error
+from core.utils.logs import error
 
 
 def get_LDAP_user(username, password):

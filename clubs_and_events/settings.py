@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
-from core.loader import load_key, load_project_path
+from core.utils.loaders import load_key, load_project_path
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

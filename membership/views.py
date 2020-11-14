@@ -17,8 +17,8 @@ from community.models import Club, Event, CommunityEvent, Lab, Community
 from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
 from core.permissions import IsDeputyLeaderOfCommunity
 from core.permissions import IsInPubliclyVisibleCommunity
-from core.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
-from core.utils import has_instance, remove_duplicates
+from core.utils.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
+from core.utils.general import has_instance, remove_duplicates
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToRetrieveRequest, IsAbleToUpdateRequest, IsAbleToDeleteRequest

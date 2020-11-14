@@ -1,6 +1,6 @@
 '''
-    Core Application Validators
-    core/validators.py
+    Core Application Profanity Validators
+    core/utils/profanity.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
