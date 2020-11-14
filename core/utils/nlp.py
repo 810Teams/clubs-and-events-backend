@@ -1,6 +1,6 @@
 '''
-    Core Application Profanity Validators
-    core/utils/profanity.py
+    Core Application Natural Language Processing (NLP) Utility Functions
+    core/utils/nlp.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
@@ -14,32 +14,6 @@ from textblob.exceptions import TranslatorError
 from clubs_and_events.settings import NLP_EN_MODEL
 
 import spacy
-
-
-def get_lang(text):
-    ''' Get detected language from the text '''
-    try:
-        return TextBlob(text).detect_language()
-    except TranslatorError:
-        return None
-
-
-def is_th(text):
-    ''' Detect a language and returns True if is in the Thai language '''
-    return get_lang(text) == 'th'
-
-
-def is_en(text):
-    ''' Detect a language and returns True if is in English '''
-    for i in text:
-        if not (32 <= ord(i) <= 126):
-            return False
-    return True
-
-
-def tokenize(text, engine='newmm', keep_whitespace=False):
-    ''' Tokenize words from a sentence in the Thai language '''
-    return word_tokenize(text, engine=engine, keep_whitespace=keep_whitespace)
 
 
 def validate_profanity(text, lang=('en', 'th')):
@@ -62,7 +36,7 @@ def is_profane_en(text):
 
 def is_profane_th(text):
     ''' Check if the Thai text contains profanity '''
-    words = tokenize(text)
+    words = word_tokenize(text, engine='newmm', keep_whitespace=False)
     dictionary = open('core/dictionary/profanity_th.txt', encoding='utf-8')
     dictionary = [i.replace('\n', '').replace('\r', '').strip() for i in dictionary if i[0] != '#']
 
@@ -71,3 +45,24 @@ def is_profane_th(text):
             return True
 
     return False
+
+
+def get_lang(text):
+    ''' Get detected language from the text '''
+    try:
+        return TextBlob(text).detect_language()
+    except TranslatorError:
+        return None
+
+
+def is_en(text):
+    ''' Detect a language and returns True if is in English '''
+    for i in text:
+        if not (32 <= ord(i) <= 126):
+            return False
+    return True
+
+
+def is_th(text):
+    ''' Detect a language and returns True if is in the Thai language '''
+    return get_lang(text) == 'th'

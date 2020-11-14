@@ -1,5 +1,5 @@
 '''
-    Core Application Loaders
+    Core Application Loader Functions
     core/utils/loaders.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''

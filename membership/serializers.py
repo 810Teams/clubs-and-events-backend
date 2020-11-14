@@ -14,8 +14,8 @@ from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
 from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
 from core.utils.filters import get_previous_membership_log
 from core.utils.general import has_instance
-from core.utils.serializers import add_error_message, validate_profanity_serializer, raise_validation_errors
-from core.utils.serializers import field_exists
+from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
+from core.utils.serializer import field_exists
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToDeleteInvitation

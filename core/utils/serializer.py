@@ -9,7 +9,7 @@ from collections import OrderedDict
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 
-from core.utils.profanity import validate_profanity
+from core.utils.nlp import validate_profanity
 
 
 def add_error_message(errors, key='non_field_errors', message=str(), wrap=True):

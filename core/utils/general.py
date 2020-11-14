@@ -1,5 +1,5 @@
 '''
-    Core Application General Utilities
+    Core Application General Utility Functions
     core/utils/general.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''

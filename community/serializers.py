@@ -15,10 +15,10 @@ from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToD
 from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
 from core.permissions import IsMemberOfCommunity, IsStaffOfCommunity
 from core.utils.general import has_instance
-from core.utils.serializers import add_error_message, validate_profanity_serializer, raise_validation_errors
-from core.utils.serializers import field_exists, clean_field
+from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
+from core.utils.serializer import field_exists, clean_field
 from core.utils.users import get_client_ip
-from core.utils.profanity import is_th, is_en
+from core.utils.nlp import is_th, is_en
 from membership.models import Membership, ApprovalRequest, Invitation, Request
 from user.permissions import IsStudent, IsLecturer
 

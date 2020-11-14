@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from core.permissions import IsDeputyLeaderOfCommunity
-from core.utils.serializers import raise_validation_errors, add_error_message
+from core.utils.serializer import raise_validation_errors, add_error_message
 from generator.models import QRCode, JoinKey, GeneratedDocx
 from membership.models import Membership
 from user.permissions import IsLecturerObject

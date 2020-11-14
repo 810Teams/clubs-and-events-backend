@@ -1,5 +1,5 @@
 '''
-    Core Application User Information Functions
+    Core Application User Utility Functions
     core/utils/users.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
