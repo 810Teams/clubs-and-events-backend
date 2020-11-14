@@ -37,7 +37,7 @@ def _log(text, color=str()):
     months = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 
     now = datetime.now()
-    formatted_datetime = '{}/{}/{} {}:{}:{}'.format(
+    formatted_datetime = '{:02d}/{}/{:04d} {:02d}:{:02d}:{:02d}'.format(
         now.day, months[now.month - 1], now.year, now.hour, now.minute, now.second
     )
 
