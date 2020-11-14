@@ -7,11 +7,14 @@
 from collections import OrderedDict
 from datetime import datetime
 
+from crum import get_current_request
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
+from clubs_and_events.settings import EMAIL_DOMAIN_NAME
 from core.validators import validate_profanity
+from user.permissions import IsStudentObject
 
 
 class Colors:
@@ -78,11 +81,11 @@ def remove_duplicates(list_data):
     return list(dict.fromkeys(list_data))
 
 
-def get_email(user, domain_name='it.kmitl.ac.th', is_student=True):
+def get_email(user):
     ''' Retrieves default IT KMITL email '''
-    if is_student and user.username[0:2] == 'it':
-        return user.username[2:] + '@' + domain_name
-    return user.username + '@' + domain_name
+    if IsStudentObject().has_object_permission(get_current_request(), None, user) and user.username[0:2] == 'it':
+        return user.username[2:] + '@' + EMAIL_DOMAIN_NAME
+    return user.username + '@' + EMAIL_DOMAIN_NAME
 
 
 def get_client_ip(request):
