@@ -12,8 +12,8 @@ from email.mime.image import MIMEImage
 from asset.models import Announcement
 from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS, SEND_IMAGES_AS_ATTACHMENTS
 from community.models import CommunityEvent, Event
-from core.utils import get_email
-from core.filters import get_previous_membership_log
+from core.utils.users import get_email
+from core.utils.filters import get_previous_membership_log
 from membership.models import Request, MembershipLog, Membership, Invitation
 from notification.models import RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification

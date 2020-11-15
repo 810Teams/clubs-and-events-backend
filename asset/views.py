@@ -13,9 +13,8 @@ from asset.permissions import IsAbleToRetrieveAnnouncement
 from asset.serializers import ExistingAnnouncementSerializer, NotExistingAnnouncementSerializer
 from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerializer
 from asset.serializers import AlbumImageSerializer, CommentSerializer
-from community.models import Community
 from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity
-from core.filters import filter_queryset, filter_queryset_permission, limit_queryset
+from core.utils.filters import filter_queryset, filter_queryset_permission, limit_queryset
 from membership.models import Membership
 from notification.notifier import notify
 

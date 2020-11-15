@@ -6,7 +6,7 @@
 
 from django.contrib import admin
 
-from core.utils import has_instance
+from core.utils.general import has_instance
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 

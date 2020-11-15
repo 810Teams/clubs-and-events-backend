@@ -7,7 +7,7 @@
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from core.utils import has_instance
+from core.utils.general import has_instance
 from membership.serializers import MembershipLogSerializer
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification

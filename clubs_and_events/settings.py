@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 
-from core.loader import load_key, load_project_path
+from core.utils.loaders import load_key, load_project_path
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -30,7 +30,7 @@ SECRET_KEY = load_key(key='secret', decrypt=True)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', '0.0.0.0', 'localhost']
 
 
 # Application definition
@@ -153,6 +153,16 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
+# Django REST Framework Configuration
+
+REST_FRAMEWORK = {
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication'
+    ]
+}
+
+
 # LDAP Settings
 
 LDAP_URL = load_key(key='ldap', decrypt=True)[0]
@@ -168,16 +178,6 @@ LDAP_USERNAME_FIELD = 'sAMAccountName'
 LDAP_DISPLAY_NAME_FIELD = 'displayName'
 
 
-# Django REST Framework Configuration
-
-REST_FRAMEWORK = {
-    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication'
-    ]
-}
-
-
 # Email Settings
 
 EMAIL_HOST = 'smtp.gmail.com'
@@ -185,6 +185,13 @@ EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'community.it.kmitl@gmail.com'
 EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
 EMAIL_USE_TLS = True
+
+
+# Notification Settings
+
+EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
+EMAIL_NOTIFICATIONS = False
+SEND_IMAGES_AS_ATTACHMENTS = False
 
 
 # Media Path Settings
@@ -196,12 +203,6 @@ MEDIA_ROOT = load_project_path()
 # Storage Settings
 
 STORAGE_BASE_DIR = '_storage'
-
-
-# Notification Settings
-
-EMAIL_NOTIFICATIONS = False
-SEND_IMAGES_AS_ATTACHMENTS = False
 
 
 # Club Approval and Renewal Settings

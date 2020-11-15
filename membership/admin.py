@@ -7,7 +7,7 @@
 from django.contrib import admin
 
 from community.models import Club, Event, Lab, CommunityEvent
-from core.utils import truncate, has_instance
+from core.utils.general import truncate, has_instance
 from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel, MembershipLog
 from membership.models import ApprovalRequest
 

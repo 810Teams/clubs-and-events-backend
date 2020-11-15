@@ -13,8 +13,8 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from community.models import Club, CommunityEvent, Community, Lab
-from core.filters import filter_queryset
-from core.utils import has_instance
+from core.utils.filters import filter_queryset
+from core.utils.general import has_instance
 from membership.models import Membership, Invitation, Request
 from user.models import EmailPreference, StudentCommitteeAuthority
 from user.permissions import IsProfileOwner, IsEmailPreferenceOwner, IsLecturerObject, IsStudentObject

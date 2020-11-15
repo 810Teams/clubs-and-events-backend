@@ -12,7 +12,8 @@ from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, Event, CommunityEvent
-from core.utils import truncate, get_client_ip, get_file_extension
+from core.utils.general import truncate, get_file_extension
+from core.utils.users import get_client_ip
 
 
 class Announcement(models.Model):

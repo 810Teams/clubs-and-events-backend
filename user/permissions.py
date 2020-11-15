@@ -16,21 +16,27 @@ class IsStudent(permissions.BasePermission):
     ''' Student permission '''
     def has_permission(self, request, view):
         ''' Check permission on request '''
-        return request.user.user_group == 'student'
+        if request.user.is_authenticated:
+            return request.user.user_group == 'student'
+        return False
 
 
 class IsLecturer(permissions.BasePermission):
     ''' Lecturer permission '''
     def has_permission(self, request, view):
         ''' Check permission on request '''
-        return request.user.user_group == 'lecturer'
+        if request.user.is_authenticated:
+            return request.user.user_group == 'lecturer'
+        return False
 
 
 class IsSupportStaff(permissions.BasePermission):
-    ''' Lecturer permission '''
+    ''' Support staff permission '''
     def has_permission(self, request, view):
         ''' Check permission on request '''
-        return request.user.user_group == 'support'
+        if request.user.is_authenticated:
+            return request.user.user_group == 'support'
+        return False
 
 
 class IsStudentObject(permissions.BasePermission):

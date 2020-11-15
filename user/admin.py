@@ -75,7 +75,8 @@ class EmailPreferenceAdmin(admin.ModelAdmin):
 
 class StudentCommitteeAuthorityAdmin(admin.ModelAdmin):
     ''' Student committee authority admin '''
-    list_display = ('id', 'user', 'start_date', 'end_date', 'is_active')
+    list_display = ('id', 'user', 'start_date', 'end_date', 'is_active', 'created_at', 'created_by', 'updated_at',
+                    'updated_by')
     readonly_fields = ('created_by', 'updated_by')
     list_per_page = 20
 

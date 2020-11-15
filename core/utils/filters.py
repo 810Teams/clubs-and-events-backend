@@ -1,13 +1,13 @@
 '''
-    Core Application Filters
-    core/filters.py
+    Core Application Queryset Filtering Functions
+    core/utils/filters.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
 from django.core.exceptions import ValidationError
 
 from core.permissions import IsMemberOfCommunity
-from membership.models import MembershipLog
+from membership.models import Membership, MembershipLog
 
 
 def filter_queryset(queryset, request, target_param=None, is_foreign_key=False):
@@ -79,6 +79,9 @@ def get_previous_membership_log(obj):
 
 def get_latest_membership_log(membership):
     ''' Retrieves the latest membership log object from a membership object '''
+    if not isinstance(membership, Membership):
+        return None
+
     logs = MembershipLog.objects.filter(membership_id=membership.id)
 
     if len(logs) > 0:
