@@ -62,7 +62,7 @@ class AlbumAdmin(admin.ModelAdmin):
     ''' Album admin '''
     list_display = ('id', 'name', 'photos', 'storage', 'community', 'community_event', 'created_at', 'created_by',
                     'updated_at', 'updated_by')
-    readonly_fields = ('created_by', 'updated_by')
+    readonly_fields = ('storage', 'created_by', 'updated_by')
     inlines = (AlbumImageInline,)
     list_per_page = 20
 

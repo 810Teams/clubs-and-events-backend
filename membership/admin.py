@@ -7,6 +7,7 @@
 from django.contrib import admin
 
 from community.models import Club, Event, Lab, CommunityEvent
+from core.utils.files import get_file_size
 from core.utils.general import truncate, has_instance
 from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel, MembershipLog
 from membership.models import ApprovalRequest
@@ -149,20 +150,23 @@ class MembershipLogAdmin(admin.ModelAdmin):
 
 class ApprovalRequestAdmin(admin.ModelAdmin):
     ''' Approval request admin '''
-    list_display = ('id', 'community', 'partial_message', 'has_attached_file', 'status', 'created_at', 'created_by',
+    list_display = ('id', 'community', 'partial_message', 'attached_file_size', 'status', 'created_at', 'created_by',
                     'updated_at', 'updated_by')
-    readonly_fields = ('created_by', 'updated_by',)
+    readonly_fields = ('attached_file_size', 'created_by', 'updated_by',)
     list_per_page = 20
 
     def partial_message(self, obj):
         ''' Get partial message '''
         return truncate(obj.message, max_length=32)
 
-    def has_attached_file(self, obj):
-        ''' Get attached file status '''
-        return obj.attached_file is not None and obj.attached_file != ''
-
-    has_attached_file.boolean = True
+    def attached_file_size(self, obj):
+        ''' Get attached file size  '''
+        try:
+            return get_file_size(obj.attached_file)
+        except ValueError:
+            return str()
+        except FileNotFoundError:
+            return 'FileNotFoundError'
 
 
 admin.site.register(Request, RequestAdmin)
