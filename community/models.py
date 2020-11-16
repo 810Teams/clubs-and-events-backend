@@ -12,8 +12,9 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from category.models import ClubType, EventType, EventSeries
-from clubs_and_events.settings import STORAGE_BASE_DIR
+from clubs_and_events.settings import STORAGE_BASE_DIR, MAX_COMMUNITY_LOGO_DIMENSION, MAX_COMMUNITY_BANNER_DIMENSION
 from core.utils.general import get_file_extension
+from core.utils.files import auto_downscale_image
 
 
 class Community(models.Model):
@@ -95,6 +96,9 @@ class Community(models.Model):
                 kwargs.pop('force_insert')
 
         super(Community, self).save(*args, **kwargs)
+
+        auto_downscale_image(self.logo, threshold=MAX_COMMUNITY_LOGO_DIMENSION)
+        auto_downscale_image(self.banner, threshold=MAX_COMMUNITY_BANNER_DIMENSION)
 
 
 class Club(Community):

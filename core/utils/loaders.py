@@ -10,6 +10,7 @@ import pathlib
 
 
 def load_project_path():
+    ''' Load project path '''
     return str(pathlib.Path().absolute()).replace('\\', '/') + '/'
 
 

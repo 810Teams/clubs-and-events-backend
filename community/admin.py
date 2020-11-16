@@ -7,6 +7,7 @@
 from django.contrib import admin
 
 from community.models import Club, Event, CommunityEvent, Lab
+from core.utils.general import has_instance
 from membership.models import Membership, Advisory, Invitation, Request, ApprovalRequest
 
 
@@ -49,7 +50,7 @@ class ClubAdmin(admin.ModelAdmin):
     list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'club_type', 'room',
                     'is_official', 'status', 'valid_through', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
-    inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline)
+    inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline, ApprovalRequestInline)
     list_per_page = 20
 
 
@@ -59,16 +60,14 @@ class EventAdmin(admin.ModelAdmin):
                     'start_date', 'end_date', 'is_approved', 'is_cancelled', 'is_community_event',
                     'created_at', 'updated_at',)
     readonly_fields = ('created_by', 'updated_by')
-    inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline)
+    inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline, ApprovalRequestInline)
     list_per_page = 20
 
     def is_community_event(self, obj):
         ''' Return true if the event is a community event '''
-        try:
-            CommunityEvent.objects.get(pk=obj.id)
+        if has_instance(obj, CommunityEvent):
             return True
-        except CommunityEvent.DoesNotExist:
-            return False
+        return False
 
     is_community_event.boolean = True
 

@@ -12,7 +12,9 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR, LDAP_USER_GROUPS
+from clubs_and_events.settings import MAX_PROFILE_PICTURE_DIMENSION, MAX_COVER_PHOTO_DIMENSION
 from core.utils.general import get_file_extension
+from core.utils.files import auto_downscale_image
 
 
 class UserManager(BaseUserManager):
@@ -85,6 +87,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         self.updated_by = user
 
         super(User, self).save(*args, **kwargs)
+
+        auto_downscale_image(self.profile_picture, threshold=MAX_PROFILE_PICTURE_DIMENSION)
+        auto_downscale_image(self.cover_photo, threshold=MAX_COVER_PHOTO_DIMENSION)
 
 
 class EmailPreference(models.Model):

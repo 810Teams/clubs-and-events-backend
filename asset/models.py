@@ -10,9 +10,10 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 
-from clubs_and_events.settings import STORAGE_BASE_DIR
+from clubs_and_events.settings import STORAGE_BASE_DIR, MAX_ANNOUNCEMENT_IMAGE_DIMENSION, MAX_ALBUM_IMAGE_DIMENSION
 from community.models import Community, Event, CommunityEvent
 from core.utils.general import truncate, get_file_extension
+from core.utils.files import auto_downscale_image
 from core.utils.users import get_client_ip
 
 
@@ -56,6 +57,8 @@ class Announcement(models.Model):
                 kwargs.pop('force_insert')
 
         super(Announcement, self).save(*args, **kwargs)
+
+        auto_downscale_image(self.image, threshold=MAX_ANNOUNCEMENT_IMAGE_DIMENSION)
 
 
 class Album(models.Model):
@@ -154,6 +157,8 @@ class AlbumImage(models.Model):
                 kwargs.pop('force_insert')
 
         super(AlbumImage, self).save(*args, **kwargs)
+
+        auto_downscale_image(self.image, threshold=MAX_ALBUM_IMAGE_DIMENSION)
 
 
 class Comment(models.Model):
