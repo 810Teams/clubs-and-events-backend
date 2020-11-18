@@ -3,6 +3,7 @@
     core/utils/files.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
+
 from django.core.files import File
 from django.core.files.images import ImageFile
 
