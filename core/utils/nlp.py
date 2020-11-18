@@ -31,7 +31,10 @@ def is_profane_en(text):
     profanity_filter = ProfanityFilter(nlps={'en': nlp})
     nlp.add_pipe(profanity_filter.spacy_component, last=True)
 
-    return nlp(text)._.is_profane
+    try:
+        return nlp(text)._.is_profane
+    except TypeError:
+        return False
 
 
 def is_profane_th(text):
