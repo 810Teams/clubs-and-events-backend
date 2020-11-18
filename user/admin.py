@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext as _
 
+from core.utils.files import get_image_size
 from user.models import EmailPreference, StudentCommitteeAuthority
 
 
@@ -37,7 +38,8 @@ class StudentCommitteeAuthorityInline(admin.StackedInline):
 
 class UserAdmin(BaseUserAdmin):
     ''' User admin '''
-    list_display = ('id', 'username', 'name', 'user_group', 'is_active', 'is_staff', 'is_superuser')
+    list_display = ('id', 'username', 'name', 'user_group', 'is_active', 'is_staff', 'is_superuser',
+                    'profile_picture_size', 'cover_photo_size')
     inlines = (EmailPreferenceInline, StudentCommitteeAuthorityInline)
     readonly_fields = ('last_login', 'created_at', 'created_by', 'updated_at', 'updated_by')
     list_per_page = 20
@@ -54,6 +56,24 @@ class UserAdmin(BaseUserAdmin):
         (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
         (_('Permissions'), {'fields': ('user_group', 'is_active', 'is_staff', 'is_superuser')}),
     )
+
+    def profile_picture_size(self, obj):
+        ''' Get profile picture size and dimensions '''
+        try:
+            return get_image_size(obj.profile_picture)
+        except ValueError:
+            return str()
+        except FileNotFoundError:
+            return 'FileNotFoundError'
+
+    def cover_photo_size(self, obj):
+        ''' Get cover photo size and dimensions '''
+        try:
+            return get_image_size(obj.cover_photo)
+        except ValueError:
+            return str()
+        except FileNotFoundError:
+            return 'FileNotFoundError'
 
 
 class EmailPreferenceAdmin(admin.ModelAdmin):
