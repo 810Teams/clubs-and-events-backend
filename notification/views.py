@@ -31,7 +31,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
         try:
             limit = request.query_params.get('limit')
             if limit is not None:
-                queryset = queryset[len(queryset) - 1 - int(limit):len(queryset)]
+                queryset = queryset[max(len(queryset) - int(limit), 0):len(queryset)]
         except ValueError:
             queryset = None
 

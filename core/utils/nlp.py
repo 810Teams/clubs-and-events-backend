@@ -31,7 +31,9 @@ def is_profane_en(text):
     profanity_filter = ProfanityFilter(nlps={'en': nlp})
     nlp.add_pipe(profanity_filter.spacy_component, last=True)
 
-    return nlp(text)._.is_profane
+    if isinstance(text, str):
+        return nlp(text)._.is_profane
+    return False
 
 
 def is_profane_th(text):
@@ -57,10 +59,7 @@ def get_lang(text):
 
 def is_en(text):
     ''' Detect a language and returns True if is in English '''
-    for i in text:
-        if not (32 <= ord(i) <= 126):
-            return False
-    return True
+    return get_lang(text) == 'en'
 
 
 def is_th(text):
