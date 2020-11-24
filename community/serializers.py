@@ -485,16 +485,11 @@ class LabSerializer(CommunitySerializerTemplate):
                     )
                     break
 
-        if data['tags'].strip()[0] == ',' or data['tags'].strip()[-1] == ',':
-            add_error_message(
-                errors, key='tags',
-                message='Tags must not start or end with a comma.'
-            )
-        if ',,' in data['tags'].replace(' ', ''):
-            add_error_message(
-                errors, key='tags',
-                message='Tags must not contain consecutive commas.'
-            )
+            if len(data['tags']) > 0 and (data['tags'].strip()[0] == ',' or data['tags'].strip()[-1] == ','):
+                add_error_message(errors, key='tags', message='Tags must not start or end with a comma.')
+
+            if ',,' in data['tags'].replace(' ', str()):
+                add_error_message(errors, key='tags', message='Tags must not contain consecutive commas.')
 
         # Raise validation errors
         raise_validation_errors(errors)
