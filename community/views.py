@@ -244,9 +244,9 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         # Notification
         if datetime.today().date() <= obj.end_date:
             users = [
-                i.user for i in Membership.objects.filter(
-                    community_id=obj.created_under.id, status='A'
-                ).exclude(user_id=request.user.id)
+                i.user for i in Membership.objects.filter(community_id=obj.created_under.id, status='A').exclude(
+                    user_id=request.user.id
+                )
             ]
             notify(users=users, obj=obj)
 
