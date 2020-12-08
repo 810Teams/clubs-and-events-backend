@@ -2,8 +2,8 @@
     User Application Tests
     user/tests.py
     @author Teerapat Kraisrisirikul (810Teams)
-    @status discontinued
 '''
+
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
