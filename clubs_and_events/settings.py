@@ -165,6 +165,7 @@ REST_FRAMEWORK = {
 
 # LDAP Settings
 
+ENABLE_LDAP = True
 LDAP_URL = load_key(key='ldap', decrypt=True)[0]
 LDAP_BIND_USERNAME = load_key(key='ldap', decrypt=True)[1]
 LDAP_BIND_PASSWORD = load_key(key='ldap', decrypt=True)[2]
