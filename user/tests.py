@@ -4,12 +4,13 @@
     @author Teerapat Kraisrisirikul (810Teams)
     @status discontinued
 '''
+from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from user.models import EmailPreference
+from user.models import EmailPreference, StudentCommitteeAuthority
 
 
 class LoginAPITest(APITestCase):
@@ -139,6 +140,28 @@ class UserAPITest(APITestCase):
         self.client.logout()
 
 
+class MyUserAPITest(APITestCase):
+    ''' User API test '''
+    def setUp(self):
+        ''' Set up '''
+        get_user_model().objects.create_user(username='user_01', password='12345678')
+        get_user_model().objects.create_user(username='user_02', password='12345678')
+
+    def test_retrieve_unauthenticated(self):
+        ''' Test retrieve authenticated '''
+        response = self.client.get('/api/user/user/me/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_retrieve_authenticated(self):
+        ''' Test retrieve authenticated '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.get('/api/user/user/me/')
+        self.assertEqual(response.data['id'], get_user_model().objects.get(username='user_01').id)
+
+        self.client.logout()
+
+
 class EmailPreferenceAPITest(APITestCase):
     ''' Email preference API test '''
     def setUp(self):
@@ -238,5 +261,114 @@ class EmailPreferenceAPITest(APITestCase):
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        self.client.logout()
+
+
+class MyEmailPreferenceAPITest(APITestCase):
+    ''' User API test '''
+    def setUp(self):
+        ''' Set up '''
+        user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
+        user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
+        EmailPreference.objects.create(user_id=user_01.id)
+        EmailPreference.objects.create(user_id=user_02.id)
+
+    def test_retrieve_unauthenticated(self):
+        ''' Test retrieve authenticated '''
+        response = self.client.get('/api/user/email-preference/me/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_retrieve_authenticated(self):
+        ''' Test retrieve authenticated '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.get('/api/user/email-preference/me/')
+        self.assertEqual(response.data['user'], get_user_model().objects.get(username='user_01').id)
+
+        self.client.logout()
+
+
+class StudentCommitteeAuthorityAPITest(APITestCase):
+    ''' Student committee authority API test '''
+    def setUp(self):
+        ''' Set up '''
+        user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
+        user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
+        StudentCommitteeAuthority.objects.create(
+            user_id=user_01.id, start_date=datetime.now().date(), end_date=datetime.now().date()
+        )
+        StudentCommitteeAuthority.objects.create(
+            user_id=user_02.id, start_date=datetime.now().date(), end_date=datetime.now().date()
+        )
+
+    def test_list_unauthenticated(self):
+        ''' Test list authenticated '''
+        response = self.client.get('/api/user/student-committee/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_authenticated(self):
+        ''' Test list authenticated '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.get('/api/user/student-committee/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.client.logout()
+
+    def test_create(self):
+        ''' Test create '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.post('/api/user/student-committee/', {})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        self.client.logout()
+
+    def test_update(self):
+        ''' Test update '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.put('/api/user/student-committee/1/', {})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        response = self.client.patch('/api/user/student-committee/1/', {})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        self.client.logout()
+
+    def test_delete(self):
+        ''' Test delete '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.delete('/api/user/student-committee/1/')
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        self.client.logout()
+
+
+class MyStudentCommitteeAuthorityAPITest(APITestCase):
+    ''' My student committee authority API test '''
+    def setUp(self):
+        ''' Set up '''
+        user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
+        user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
+        StudentCommitteeAuthority.objects.create(
+            user_id=user_01.id, start_date=datetime.now().date(), end_date=datetime.now().date()
+        )
+        StudentCommitteeAuthority.objects.create(
+            user_id=user_02.id, start_date=datetime.now().date(), end_date=datetime.now().date()
+        )
+
+    def test_retrieve_unauthenticated(self):
+        ''' Test retrieve authenticated '''
+        response = self.client.get('/api/user/student-committee/me/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_retrieve_authenticated(self):
+        ''' Test retrieve authenticated '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.get('/api/user/student-committee/me/')
+        self.assertEqual(response.data['user'], get_user_model().objects.get(username='user_01').id)
 
         self.client.logout()
