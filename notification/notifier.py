@@ -13,7 +13,7 @@ from asset.models import Announcement
 from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS, SEND_IMAGES_AS_ATTACHMENTS
 from community.models import CommunityEvent, Event
 from core.utils.users import get_email
-from core.utils.filters import get_previous_membership_log
+from core.utils.filters import get_previous_membership_log, get_latest_membership_log
 from membership.models import Request, MembershipLog, Membership, Invitation
 from notification.models import RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
@@ -65,7 +65,9 @@ def notify_process(users=tuple(), obj=None):
 
 def notify_membership_log(obj):
     ''' Send notification to automatically designated users based on the membership log object '''
-    if obj is None or not isinstance(obj, MembershipLog):
+    if isinstance(obj, Membership):
+        obj = get_latest_membership_log(obj)
+    elif obj is None or not isinstance(obj, MembershipLog):
         return
 
     previous_log = get_previous_membership_log(obj)

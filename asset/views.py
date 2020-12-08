@@ -61,7 +61,11 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         obj = serializer.save()
 
         # Notification
-        users = [i.user for i in Membership.objects.filter(community_id=obj.community.id, status='A')]
+        users = [
+            i.user for i in Membership.objects.filter(community_id=obj.community.id, status='A').exclude(
+                user_id=request.user.id
+            )
+        ]
         notify(users=users, obj=obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)

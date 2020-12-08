@@ -89,7 +89,7 @@ class RequestViewSet(viewsets.ModelViewSet):
                     membership.status = 'A'
                     membership.save()
                 except Membership.DoesNotExist:
-                    Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
+                    membership = Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
 
                 # Update request status
                 obj.status = 'A'
@@ -97,7 +97,7 @@ class RequestViewSet(viewsets.ModelViewSet):
 
                 # Skip request notification, use membership log notification instead
                 instant_join = True
-                notify_membership_log(obj)
+                notify_membership_log(get_latest_membership_log(membership))
 
         # Notification
         if not instant_join:
@@ -127,7 +127,7 @@ class RequestViewSet(viewsets.ModelViewSet):
                 membership = Membership.objects.create(user_id=obj.user.id, community_id=obj.community.id)
 
             # Request accepted notification
-            notify(users=[obj.user], obj=obj)
+            notify(users=(obj.user,), obj=obj)
 
             # New member joined notification
             notify_membership_log(get_latest_membership_log(membership))
@@ -178,7 +178,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         obj = serializer.save()
 
-        notify([obj.invitee], obj)
+        notify((obj.invitee,), obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
