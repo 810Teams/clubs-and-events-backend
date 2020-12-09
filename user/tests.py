@@ -45,8 +45,8 @@ class UserAPITest(APITestCase):
         self.public_parameter = ('id', 'username', 'name', 'profile_picture', 'cover_photo')
         self.protected_parameters = ('nickname', 'bio', 'birthdate', 'user_group')
 
-        get_user_model().objects.create_user(username='user_01', password='12345678')
-        get_user_model().objects.create_user(username='user_02', password='12345678')
+        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
+        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
 
     def test_list(self):
         ''' Test list '''
@@ -59,9 +59,7 @@ class UserAPITest(APITestCase):
 
     def test_retrieve_unauthenticated(self):
         ''' Test retrieve user data when not logged in '''
-        response =  self.client.get(
-            '/api/user/user/{}/'.format(get_user_model().objects.get(username='user_01').id)
-        )
+        response =  self.client.get('/api/user/user/{}/'.format(self.user_01.id))
 
         for i in self.public_parameter:
             self.assertIn(i, response.data)
@@ -73,9 +71,7 @@ class UserAPITest(APITestCase):
         ''' Test retrieve user data when logged in '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.get(
-            '/api/user/user/{}/'.format(get_user_model().objects.get(username='user_01').id)
-        )
+        response = self.client.get('/api/user/user/{}/'.format(self.user_01.id))
 
         for i in self.public_parameter + self.protected_parameters:
             self.assertIn(i, response.data)
@@ -86,13 +82,10 @@ class UserAPITest(APITestCase):
         ''' Test create '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.post(
-            '/api/user/user/',
-            {
-                'username': 'user_xx',
-                'password': '12345678'
-            }
-        )
+        response = self.client.post('/api/user/user/', {
+            'username': 'user_xx',
+            'password': '12345678'
+        })
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         self.client.logout()
@@ -101,15 +94,10 @@ class UserAPITest(APITestCase):
         ''' Test update own '''
         self.client.login(username='user_01', password='12345678')
 
-        self.client.patch(
-            '/api/user/user/{}/'.format(get_user_model().objects.get(username='user_01').id),
-            {
-                'nickname': 'Bob'
-            }
-        )
-        response = self.client.get(
-            '/api/user/user/{}/'.format(get_user_model().objects.get(username='user_01').id)
-        )
+        self.client.patch('/api/user/user/{}/'.format(self.user_01.id), {
+            'nickname': 'Bob'
+        })
+        response = self.client.get('/api/user/user/{}/'.format(self.user_01.id))
         self.assertEqual(response.data['nickname'], 'Bob')
 
         self.client.logout()
@@ -118,12 +106,9 @@ class UserAPITest(APITestCase):
         ''' Test update other '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.patch(
-            '/api/user/user/{}/'.format(get_user_model().objects.get(username='user_02').id),
-            {
-                'nickname': 'Alice'
-            }
-        )
+        response = self.client.patch('/api/user/user/{}/'.format(self.user_02.id), {
+            'nickname': 'Alice'
+        })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.logout()
@@ -132,9 +117,7 @@ class UserAPITest(APITestCase):
         ''' Test delete '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.delete(
-            '/api/user/user/{}/'.format(get_user_model().objects.get(username='user_02').id),
-        )
+        response = self.client.delete('/api/user/user/{}/'.format(self.user_02.id))
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         self.client.logout()
