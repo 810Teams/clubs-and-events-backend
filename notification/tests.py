@@ -24,26 +24,34 @@ class NotificationAPITest(APITestCase):
         self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
         self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
         self.user_03 = get_user_model().objects.create_user(username='user_03', password='12345678')
+        self.user_04 = get_user_model().objects.create_user(username='user_04', password='12345678')
+        self.user_05 = get_user_model().objects.create_user(username='user_05', password='12345678')
         self.club = Club.objects.create(
             name_th='ชุมนุมนอน', name_en='Sleeping Club', is_accepting_requests=True, is_official=True
         )
+
         Membership.objects.create(community_id=self.club.id, user_id=self.user_01.id, position=3)
         Membership.objects.create(community_id=self.club.id, user_id=self.user_02.id, position=2)
+        Membership.objects.create(community_id=self.club.id, user_id=self.user_03.id, position=1)
+        Membership.objects.create(community_id=self.club.id, user_id=self.user_04.id, position=0)
         StudentCommitteeAuthority.objects.create(
             user_id=self.user_01.id,
             start_date=datetime.date(1970, 1, 1),
             end_date=datetime.date(2099, 12, 31)
         )
 
+        self.club_members = 4
+        self.non_club_members = 0
+
     def test_request_notification(self):
         ''' Test request notification '''
-        self.client.login(username='user_03', password='12345678')
+        self.client.login(username='user_05', password='12345678')
 
         self.assertEqual(len(RequestNotification.objects.all()), 0)
         self.client.post('/api/membership/request/', {
             'community': self.club.id
         })
-        self.assertEqual(len(RequestNotification.objects.all()), 2)
+        self.assertEqual(len(RequestNotification.objects.all()), self.club_members - 1)
 
         self.client.logout()
 
@@ -56,7 +64,7 @@ class NotificationAPITest(APITestCase):
             'community': self.club.id,
             'text': 'Test announcement notification'
         })
-        self.assertEqual(len(AnnouncementNotification.objects.all()), 1)
+        self.assertEqual(len(AnnouncementNotification.objects.all()), self.club_members - 1)
 
         self.client.logout()
 
@@ -75,7 +83,7 @@ class NotificationAPITest(APITestCase):
             'end_time': datetime.time(12, 30, 0),
             'created_under': self.club.id
         })
-        self.assertEqual(len(CommunityEventNotification.objects.all()), 1)
+        self.assertEqual(len(CommunityEventNotification.objects.all()), self.club_members - 1)
 
         self.client.logout()
 
@@ -119,7 +127,7 @@ class NotificationAPITest(APITestCase):
         self.client.patch('/api/membership/approval-request/{}/'.format(response.data['id']), {
             'status': 'A'
         })
-        self.assertEqual(len(EventNotification.objects.all()), 3)
+        self.assertEqual(len(EventNotification.objects.all()), self.club_members + self.non_club_members)
 
         self.client.logout()
 
