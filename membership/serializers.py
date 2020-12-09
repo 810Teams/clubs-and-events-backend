@@ -93,8 +93,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
         membership = Membership.objects.filter(community_id=community.id, user_id=user.id, status__in=('A', 'R'))
         if len(membership) >= 1:
             add_error_message(
-                errors,
-                key='community',
+                errors, key='community',
                 message='Requests are not able to be made to the community which the user is already a member.'
             )
 
