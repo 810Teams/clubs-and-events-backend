@@ -41,7 +41,7 @@ class NotificationAPITest(APITestCase):
         )
 
         self.club_members = 4
-        self.non_club_members = 0
+        self.non_club_members = 1
 
     def test_request_notification(self):
         ''' Test request notification '''
