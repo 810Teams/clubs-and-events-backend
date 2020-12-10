@@ -17,7 +17,7 @@ class LoginAPITest(APITestCase):
     ''' Login API test '''
     def setUp(self):
         ''' Set up '''
-        get_user_model().objects.create_user(username='user_01', password='12345678')
+        get_user_model().objects.create_user(username='user_01', password='12345678', name='User One')
 
     def test_login_valid(self):
         ''' Test valid login credentials '''

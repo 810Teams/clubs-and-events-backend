@@ -47,7 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     # Personal Information
     username = models.CharField(max_length=64, unique=True)
-    name = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(max_length=255)
     nickname = models.CharField(max_length=32, null=True, blank=True)
     bio = models.TextField(max_length=4096, null=True, blank=True)
     profile_picture = models.ImageField(null=True, blank=True, upload_to=get_profile_picture_path)

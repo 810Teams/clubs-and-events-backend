@@ -21,11 +21,11 @@ class NotificationAPITest(APITestCase):
     ''' Notification API test '''
     def setUp(self):
         ''' Set up '''
-        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
-        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
-        self.user_03 = get_user_model().objects.create_user(username='user_03', password='12345678')
-        self.user_04 = get_user_model().objects.create_user(username='user_04', password='12345678')
-        self.user_05 = get_user_model().objects.create_user(username='user_05', password='12345678')
+        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678', name='User One')
+        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678', name='User Two')
+        self.user_03 = get_user_model().objects.create_user(username='user_03', password='12345678', name='User Three')
+        self.user_04 = get_user_model().objects.create_user(username='user_04', password='12345678', name='User Four')
+        self.user_05 = get_user_model().objects.create_user(username='user_05', password='12345678', name='User Five')
         self.club = Club.objects.create(
             name_th='ชุมนุมนอน', name_en='Sleeping Club', is_accepting_requests=True, is_official=True
         )

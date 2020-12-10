@@ -120,13 +120,14 @@ class GeneratedDocxSerializerTemplate(serializers.ModelSerializer):
         ''' Validate data '''
         errors = dict()
 
-        if not IsLecturerObject().has_object_permission(self.context['request'], None, data['advisor']):
-            errors['advisor'] = _('Advisor must be a lecturer.')
+        if 'advisor' in data.keys():
+            if not IsLecturerObject().has_object_permission(self.context['request'], None, data['advisor']):
+                errors['advisor'] = _('Advisor must be a lecturer.')
 
-        if '\n' in data['objective']:
+        if 'objective' in data.keys() and '\n' in data['objective']:
             errors['objective'] = _('Club brief objective must be a single line.')
 
-        if '\n' in data['room']:
+        if 'room' in data.keys() and '\n' in data['room']:
             errors['room'] = _('Room must be a single line.')
 
         if get_errors:

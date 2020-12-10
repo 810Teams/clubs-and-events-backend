@@ -63,7 +63,7 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
             return (permissions.IsAuthenticated(), IsMemberOfCommunity())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
-        elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
+        elif self.request.method == 'DELETE':
             return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
         return tuple()
 
@@ -163,7 +163,7 @@ class GeneratedDocxViewSet(viewsets.ModelViewSet):
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsLeaderOfCommunity())
+            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
         return tuple()
 
     def get_serializer_class(self):
