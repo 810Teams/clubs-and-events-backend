@@ -5,16 +5,16 @@
 '''
 
 from django.contrib.auth import get_user_model
+from rest_framework import status
 from rest_framework.test import APITestCase
 
 from community.models import Club
 from membership.models import Membership
-from notification.models import RequestNotification, AnnouncementNotification, CommunityEventNotification, \
-    EventNotification
+from notification.models import Notification, RequestNotification, AnnouncementNotification
+from notification.models import CommunityEventNotification, EventNotification
+from user.models import StudentCommitteeAuthority
 
 import datetime
-
-from user.models import StudentCommitteeAuthority
 
 
 class NotificationAPITest(APITestCase):
@@ -153,5 +153,87 @@ class NotificationAPITest(APITestCase):
             'status': 'A'
         })
         self.assertEqual(len(EventNotification.objects.all()), 0)
+
+        self.client.logout()
+
+    def test_list_notification(self):
+        ''' Test list notification '''
+        self.client.login(username='user_01', password='12345678')
+
+        Notification.objects.create(user_id=self.user_01.id)
+        Notification.objects.create(user_id=self.user_02.id)
+        Notification.objects.create(user_id=self.user_03.id)
+        response = self.client.get('/api/notification/notification/')
+
+        self.assertEqual(len(response.data), 1)
+
+        self.client.logout()
+
+    def test_create_notification(self):
+        ''' Test create notification '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.post('/api/notification/notification/', {})
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        self.client.logout()
+
+    def test_read_notification_own(self):
+        ''' Test read own notification '''
+        self.client.login(username='user_01', password='12345678')
+
+        notification = Notification.objects.create(user_id=self.user_01.id, is_read=False)
+        response = self.client.patch('/api/notification/notification/{}/'.format(notification.id), {
+            'is_read': True
+        })
+        self.assertEqual(response.data['is_read'], True)
+
+        self.client.logout()
+
+    def test_read_notification_other(self):
+        ''' Test read other users' notification '''
+        self.client.login(username='user_01', password='12345678')
+
+        notification = Notification.objects.create(user_id=self.user_02.id, is_read=False)
+        response = self.client.patch('/api/notification/notification/{}/'.format(notification.id), {
+            'is_read': True
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.logout()
+
+    def test_unread_notification_own(self):
+        ''' Test unread own notification '''
+        self.client.login(username='user_01', password='12345678')
+
+        notification = Notification.objects.create(user_id=self.user_01.id, is_read=True)
+        response = self.client.patch('/api/notification/notification/{}/'.format(notification.id), {
+            'is_read': False
+        })
+        self.assertEqual(response.data['is_read'], False)
+
+        self.client.logout()
+
+    def test_delete_notification_own(self):
+        ''' Test delete own notification '''
+        self.client.login(username='user_01', password='12345678')
+
+        notification = Notification.objects.create(user_id=self.user_01.id, is_read=False)
+        self.assertEqual(len(Notification.objects.all()), 1)
+
+        self.client.delete('/api/notification/notification/{}/'.format(notification.id))
+        self.assertEqual(len(Notification.objects.all()), 0)
+
+        self.client.logout()
+
+    def test_delete_notification_other(self):
+        ''' Test delete other users' notification '''
+        self.client.login(username='user_01', password='12345678')
+
+        notification = Notification.objects.create(user_id=self.user_02.id, is_read=False)
+        self.assertEqual(len(Notification.objects.all()), 1)
+
+        response = self.client.delete('/api/notification/notification/{}/'.format(notification.id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.logout()
