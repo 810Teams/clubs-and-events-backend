@@ -186,11 +186,14 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         if has_instance(community, CommunityEvent):
             community_event = CommunityEvent.objects.get(pk=community.id)
             if not community_event.allows_outside_participators:
-                if not IsMemberOfBaseCommunity().has_object_permission(request, None, community_event):
+                memberships = Membership.objects.filter(
+                    user_id=invitee.id, community_id=community_event.created_under.id, status__in=('A', 'R')
+                )
+                if len(memberships) != 1:
                     add_error_message(
                         errors, key='community',
-                        message='Invitation are not able to be made from the community event that does not allow ' +
-                                'outside participators.'
+                        message='Invitation are not able to be made to users who are not a member of base community ' +
+                                'due to the community event does not allow outside participators.'
                     )
 
         # Case 3: Not a staff
