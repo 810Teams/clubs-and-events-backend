@@ -1322,3 +1322,21 @@ class MembershipAPITest(APITestCase):
         self.assertIn(response.status_code, (status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN))
 
         self.client.logout()
+
+    def test_delete_membership(self):
+        ''' Test delete membership '''
+        self.client.login(username='user_01', password='12345678')
+
+        response = self.client.delete('/api/membership/membership/{}/'.format(self.m1pub.id))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        response = self.client.delete('/api/membership/membership/{}/'.format(self.m2pub.id))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        response = self.client.delete('/api/membership/membership/{}/'.format(self.m3pub.id))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        response = self.client.delete('/api/membership/membership/{}/'.format(self.m4pub.id))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        self.client.logout()
