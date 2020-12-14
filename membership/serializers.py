@@ -270,8 +270,16 @@ class MembershipSerializer(serializers.ModelSerializer):
         }
         status = {'old': original_membership.status, 'new': data['status']}
 
+        # Update Error
+        if (position['old'] != position['new']) and (status['old'] != status['new']):
+            add_error_message(
+                errors, message='Memberships are not able to be updated both position and status at the same time.'
+            )
+        elif (position['old'] == position['new']) and (status['old'] == status['new']):
+            add_error_message(errors, message='No updates provided for the membership.')
+
         # Case 1: Leaving and Retiring
-        if user_id['new'] == user_id['own']:
+        elif user_id['new'] == user_id['own']:
             if position['old'] != position['new']:
                 add_error_message(
                     errors, key='position', message='Membership owners are not able to change their own position.'
@@ -311,13 +319,6 @@ class MembershipSerializer(serializers.ModelSerializer):
                     message='Membership positions are not able to be updated to the position equal to or higher than ' +
                             'your own position.'
                 )
-
-        # Case 4: Update Error
-        elif position['old'] != position['new'] and status['old'] != status['new']:
-            add_error_message(
-                errors,
-                message='Memberships are not able to be updated both position and status at the same time.'
-            )
 
         raise_validation_errors(errors)
 
