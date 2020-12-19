@@ -59,7 +59,7 @@ def get_lang(text):
 
 def is_en(text):
     ''' Detect a language and returns True if is in English '''
-    return get_lang(text) == 'en'
+    return not is_th(text)
 
 
 def is_th(text):

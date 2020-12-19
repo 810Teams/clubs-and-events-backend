@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import check_password
 
+from clubs_and_events.settings import ENABLE_LDAP
 from user.ldap import get_LDAP_user
 from user.models import EmailPreference
 
@@ -16,7 +17,10 @@ class AuthenticationBackend(ModelBackend):
     ''' Authentication back-end '''
     def authenticate(self, request, username=None, password=None, **kwargs):
         ''' Authenticate user '''
-        ldap_user = get_LDAP_user(username, password)
+        if ENABLE_LDAP:
+            ldap_user = get_LDAP_user(username, password)
+        else:
+            ldap_user = None
 
         # User successfully authenticated via the LDAP server
         if ldap_user is not None:

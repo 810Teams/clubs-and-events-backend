@@ -28,13 +28,7 @@ class InvalidNotificationType(Exception):
 
 
 def notify(users=tuple(), obj=None):
-    ''' Send notification to manually designated users based on the object (function) '''
-    thread = threading.Thread(target=notify_process, args=[users, obj])
-    thread.start()
-
-
-def notify_process(users=tuple(), obj=None):
-    ''' Send notification to manually designated users based on the object (process) '''
+    ''' Send notification to manually designated users based on the object  '''
     # Valid notification type verification and notification creation
     for i in users:
         if isinstance(obj, Request):
@@ -89,7 +83,13 @@ def notify_membership_log(obj):
 
 
 def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
-    ''' Send email notifications script '''
+    ''' Send email notifications script (function) '''
+    thread = threading.Thread(target=send_mail_notification_process, args=[users, obj, fail_silently])
+    thread.start()
+
+
+def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False):
+    ''' Send email notifications script (process) '''
     # Initialization
     email_preferences = EmailPreference.objects.all()
     attachments = list()

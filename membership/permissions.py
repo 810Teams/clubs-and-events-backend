@@ -63,7 +63,7 @@ class IsAbleToDeleteInvitation(permissions.BasePermission):
         if isinstance(obj, Invitation):
             if obj.status != 'W':
                 return False
-            if request.user.id == obj.invitor:
+            if obj.invitor is not None and request.user.id == obj.invitor.id:
                 return True
 
             return IsDeputyLeaderOfCommunity().has_object_permission(request, view, obj)

@@ -42,7 +42,7 @@ class Request(models.Model):
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
-        if self.id is None:
+        if self.id is None and user is not None:
             self.user = user
         self.updated_by = user
 
@@ -118,7 +118,7 @@ class Invitation(models.Model):
         user = get_current_user()
         if user is not None and user.id is None:
             user = None
-        if self.id is None:
+        if self.id is None and user is not None:
             self.invitor = user
 
         super(Invitation, self).save(*args, **kwargs)

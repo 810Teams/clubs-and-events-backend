@@ -93,8 +93,7 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
         membership = Membership.objects.filter(community_id=community.id, user_id=user.id, status__in=('A', 'R'))
         if len(membership) >= 1:
             add_error_message(
-                errors,
-                key='community',
+                errors, key='community',
                 message='Requests are not able to be made to the community which the user is already a member.'
             )
 
@@ -187,11 +186,14 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
         if has_instance(community, CommunityEvent):
             community_event = CommunityEvent.objects.get(pk=community.id)
             if not community_event.allows_outside_participators:
-                if not IsMemberOfBaseCommunity().has_object_permission(request, None, community_event):
+                memberships = Membership.objects.filter(
+                    user_id=invitee.id, community_id=community_event.created_under.id, status__in=('A', 'R')
+                )
+                if len(memberships) != 1:
                     add_error_message(
                         errors, key='community',
-                        message='Invitation are not able to be made from the community event that does not allow ' +
-                                'outside participators.'
+                        message='Invitation are not able to be made to users who are not a member of base community ' +
+                                'due to the community event does not allow outside participators.'
                     )
 
         # Case 3: Not a staff
@@ -268,8 +270,16 @@ class MembershipSerializer(serializers.ModelSerializer):
         }
         status = {'old': original_membership.status, 'new': data['status']}
 
+        # Update Error
+        if (position['old'] != position['new']) and (status['old'] != status['new']):
+            add_error_message(
+                errors, message='Memberships are not able to be updated both position and status at the same time.'
+            )
+        elif (position['old'] == position['new']) and (status['old'] == status['new']):
+            add_error_message(errors, message='No updates provided for the membership.')
+
         # Case 1: Leaving and Retiring
-        if user_id['new'] == user_id['own']:
+        elif user_id['new'] == user_id['own']:
             if position['old'] != position['new']:
                 add_error_message(
                     errors, key='position', message='Membership owners are not able to change their own position.'
@@ -309,13 +319,6 @@ class MembershipSerializer(serializers.ModelSerializer):
                     message='Membership positions are not able to be updated to the position equal to or higher than ' +
                             'your own position.'
                 )
-
-        # Case 4: Update Error
-        elif position['old'] != position['new'] and status['old'] != status['new']:
-            add_error_message(
-                errors,
-                message='Memberships are not able to be updated both position and status at the same time.'
-            )
 
         raise_validation_errors(errors)
 
