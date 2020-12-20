@@ -371,14 +371,17 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         ''' Get permissions '''
-        if self.request.method in ('POST', 'DELETE'):
+        if self.request.method == 'GET':
+            return (IsInPubliclyVisibleCommunity(),)
+        elif self.request.method in ('POST', 'DELETE'):
             return (permissions.IsAuthenticated(), IsAbleToCreateAndDeleteAdvisory())
-        return (permissions.IsAuthenticated(),)
+        return tuple()
 
     def list(self, request, *args, **kwargs):
         ''' List advisories '''
         queryset = self.get_queryset()
 
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='advisor', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
 

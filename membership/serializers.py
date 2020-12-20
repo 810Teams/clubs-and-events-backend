@@ -509,17 +509,23 @@ class AdvisorySerializer(serializers.ModelSerializer):
         ''' Validate data '''
         errors = dict()
 
+        # Advisor validation
         if not IsLecturerObject().has_object_permission(self.context['request'], None, data['advisor']):
             add_error_message(errors, key='advisor', message='Advisor must be a lecturer.')
 
+        # Community type validation
+        if has_instance(data['community'], Lab) or has_instance(data['community'], CommunityEvent):
+            add_error_message(errors, key='community', message='Community must be a club or an event.')
+
+        # Dates validation
         if data['start_date'] > data['end_date']:
             add_error_message(errors, key='start_date', message='Start date must come before end date.')
             add_error_message(errors, key='end_date', message='End date must come after start date.')
 
+        # Overlapping validation
         advisories = Advisory.objects.filter(community_id=data['community'].id)
-
         for i in advisories:
-            if data['start_date'] <= i.end_date or i.start_date <= data['end_date']:
+            if data['start_date'] <= i.end_date and i.start_date <= data['end_date']:
                 add_error_message(
                     errors, message='Advisory time overlapped. A community can only have one advisor at a time.'
                 )
