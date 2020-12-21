@@ -1,6 +1,6 @@
 '''
     Membership Application's Membership Log API Test
-    membership/tests/membership_log_api_test.py
+    membership/tests/tests_membership_log_api.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 

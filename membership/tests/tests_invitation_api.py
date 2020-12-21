@@ -1,6 +1,6 @@
 '''
     Membership Application's Invitation API Test
-    membership/tests/invitation_api_test.py
+    membership/tests/tests_invitation_api.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
@@ -509,4 +509,3 @@ class InvitationAPITest(APITestCase):
             self.assertEqual(len(Invitation.objects.filter(invitee_id=self.user_06.id, community_id=self.club.id)), 1)
 
         self.client.logout()
-        

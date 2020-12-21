@@ -1,6 +1,6 @@
 '''
     Membership Application's Advisory API Test
-    membership/tests/advisory_api_test.py
+    membership/tests/tests_advisory_api.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
