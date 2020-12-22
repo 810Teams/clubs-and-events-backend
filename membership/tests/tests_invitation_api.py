@@ -30,10 +30,10 @@ class InvitationAPITest(APITestCase):
         self.support_staff = get_user_model().objects.create_user(
             username='support', password='12345678', name='Mr.Supporter', user_group='support'
         )
-        self.club = Club.objects.create(name_th='ชุมนุมทดสอบคำขอเข้าร่วม', name_en='Request Testing Club')
+        self.club = Club.objects.create(name_th='ชุมนุมทดสอบคำเชิญ', name_en='Invitation Testing Club')
         self.event = Event.objects.create(
-            name_th='กิจกรรมทดสอบคำขอเข้าร่วม',
-            name_en='Request Testing Event',
+            name_th='กิจกรรมทดสอบคำเชิญ',
+            name_en='Invitation Testing Event',
             is_approved=True,
             location='L207 IT KMITL',
             start_date=datetime.date(2020, 12, 1),
@@ -41,10 +41,10 @@ class InvitationAPITest(APITestCase):
             start_time=datetime.time(9, 0, 0),
             end_time=datetime.time(17, 0, 0)
         )
-        self.lab = Lab.objects.create(name_th='ห้องปฏิบัติการทดสอบคำขอเข้าร่วม', name_en='Request Testing Lab')
+        self.lab = Lab.objects.create(name_th='ห้องปฏิบัติการทดสอบคำเชิญ', name_en='Invitation Testing Lab')
         self.community_event_allows_outside = CommunityEvent.objects.create(
-            name_th='กิจกรรมชุมนุมทดสอบคำขอเข้าร่วม',
-            name_en='Request Testing Club Event',
+            name_th='กิจกรรมชุมนุมทดสอบคำเชิญ',
+            name_en='Invitation Testing Club Event',
             is_approved=True,
             location='L207 IT KMITL',
             start_date=datetime.date(2020, 12, 1),
@@ -55,8 +55,8 @@ class InvitationAPITest(APITestCase):
             allows_outside_participators=True
         )
         self.community_event_disallows_outside = CommunityEvent.objects.create(
-            name_th='กิจกรรมห้องปฏิบัติการทดสอบคำขอเข้าร่วม',
-            name_en='Request Testing Lab Event',
+            name_th='กิจกรรมห้องปฏิบัติการทดสอบคำเชิญ',
+            name_en='Invitation Testing Lab Event',
             is_approved=True,
             location='L207 IT KMITL',
             start_date=datetime.date(2020, 12, 1),
