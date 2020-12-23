@@ -40,7 +40,7 @@ class AdvisoryAPITest(APITestCase):
             name_th='ชุมนุมทดสอบที่ปรึกษา สาธารณะ', name_en='Advisory Testing Club (Public)', is_publicly_visible=True
         )
         self.club_private = Club.objects.create(
-            name_th='ชุมนุมทดสอบที่ปรึกษา ส่วนตัว', name_en='Advisory Testing Club (Private)'
+            name_th='ชุมนุมทดสอบที่ปรึกษา ส่วนตัว', name_en='Advisory Testing Club (Private)', is_publicly_visible=False
         )
         self.event = Event.objects.create(
             name_th='กิจกรรมทดสอบที่ปรึกษา',
