@@ -43,16 +43,18 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         validate_profanity_serializer(data, 'description', errors, field_name='Community description')
 
         # Community Thai name language and length validation
-        if len(data['name_th']) < 4:
-            add_error_message(errors, 'name_th', 'Community name must be at least 4 characters in length.')
-        elif not is_th(data['name_th']):
-            add_error_message(errors, 'name_th', 'This field must be in the Thai language.')
+        if field_exists(data, 'name_th'):
+            if len(data['name_th']) < 4:
+                add_error_message(errors, 'name_th', 'Community name must be at least 4 characters in length.')
+            elif not is_th(data['name_th']):
+                add_error_message(errors, 'name_th', 'This field must be in the Thai language.')
 
         # Community English name language and length validation
-        if len(data['name_en']) < 4:
-            add_error_message(errors, 'name_en', 'Community name must be at least 4 characters in length.')
-        elif not is_en(data['name_en']):
-            add_error_message(errors, 'name_en', 'This field must be in English.')
+        if field_exists(data, 'name_en'):
+            if len(data['name_en']) < 4:
+                add_error_message(errors, 'name_en', 'Community name must be at least 4 characters in length.')
+            elif not is_en(data['name_en']):
+                add_error_message(errors, 'name_en', 'This field must be in English.')
 
         # External links validation
         if field_exists(data, 'external_links'):

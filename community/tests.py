@@ -3,14 +3,16 @@
     community/tests.py
     @author Teerapat Kraisrisirikul (810Teams)
 '''
-import datetime
 
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from community.models import Club, Event, CommunityEvent, Lab
+from community.models import Community, Club, Event, CommunityEvent, Lab
 from membership.models import Membership
+
+import datetime
+import random
 
 
 class CommunityAPITest(APITestCase):
@@ -22,8 +24,11 @@ class CommunityAPITest(APITestCase):
         self.user_03 = get_user_model().objects.create_user(username='user_03', password='12345678', name='User Three')
         self.user_04 = get_user_model().objects.create_user(username='user_04', password='12345678', name='User Four')
         self.user_05 = get_user_model().objects.create_user(username='user_05', password='12345678', name='User Five')
-        self.lecturer = get_user_model().objects.create_user(
-            username='lecturer', password='12345678', name='Prof.Lazy Bones', user_group='lecturer'
+        self.lecturer_01 = get_user_model().objects.create_user(
+            username='lecturer_01', password='12345678', name='Prof.Lazy Bones', user_group='lecturer'
+        )
+        self.lecturer_02 = get_user_model().objects.create_user(
+            username='lecturer_02', password='12345678', name='Prof.Lazy Ass', user_group='lecturer'
         )
         self.support_staff = get_user_model().objects.create_user(
             username='support', password='12345678', name='Mr.Supporter', user_group='support'
@@ -82,8 +87,8 @@ class CommunityAPITest(APITestCase):
         Membership.objects.create(community_id=self.community_event.id, user_id=self.user_03.id, position=1)
         Membership.objects.create(community_id=self.community_event.id, user_id=self.user_04.id, position=0)
 
-        Membership.objects.create(community_id=self.lab.id, user_id=self.user_01.id, position=3)
-        Membership.objects.create(community_id=self.lab.id, user_id=self.user_02.id, position=2)
+        Membership.objects.create(community_id=self.lab.id, user_id=self.lecturer_01.id, position=3)
+        Membership.objects.create(community_id=self.lab.id, user_id=self.lecturer_02.id, position=2)
         Membership.objects.create(community_id=self.lab.id, user_id=self.user_03.id, position=1)
         Membership.objects.create(community_id=self.lab.id, user_id=self.user_04.id, position=0)
 
@@ -147,14 +152,16 @@ class CommunityAPITest(APITestCase):
     def test_create_club(self):
         ''' Test create club '''
         self._test_create_community(username='user_05', instance_path='club', allows_create=True)
-        self._test_create_community(username='lecturer', instance_path='club', allows_create=False)
+        self._test_create_community(username='lecturer_02', instance_path='club', allows_create=False)
         self._test_create_community(username='support', instance_path='club', allows_create=False)
+        self._test_create_community(username=str(), instance_path='club', allows_create=False)
 
     def test_create_event(self):
         ''' Test create event '''
         self._test_create_community(username='user_05', instance_path='event', allows_create=True)
-        self._test_create_community(username='lecturer', instance_path='event', allows_create=True)
+        self._test_create_community(username='lecturer_01', instance_path='event', allows_create=True)
         self._test_create_community(username='support', instance_path='event', allows_create=True)
+        self._test_create_community(username=str(), instance_path='event', allows_create=False)
 
     def test_create_community_event_under_official_club(self):
         ''' Test create community event under official club '''
@@ -174,10 +181,7 @@ class CommunityAPITest(APITestCase):
             username='user_05', instance_path='event/community', created_under=self.club_public.id, allows_create=False
         )
         self._test_create_community(
-            username='lecturer', instance_path='event/community', created_under=self.club_public.id, allows_create=False
-        )
-        self._test_create_community(
-            username='support', instance_path='event/community', created_under=self.club_public.id, allows_create=False
+            username=str(), instance_path='event/community', created_under=self.club_public.id, allows_create=False
         )
 
     def test_create_community_event_under_unofficial_club(self):
@@ -198,13 +202,7 @@ class CommunityAPITest(APITestCase):
             username='user_05', instance_path='event/community', created_under=self.club_private.id, allows_create=False
         )
         self._test_create_community(
-            username='lecturer',
-            instance_path='event/community',
-            created_under=self.club_private.id,
-            allows_create=False
-        )
-        self._test_create_community(
-            username='support', instance_path='event/community', created_under=self.club_private.id, allows_create=False
+            username=str(), instance_path='event/community', created_under=self.club_private.id, allows_create=False
         )
 
     def test_create_community_event_under_event(self):
@@ -225,64 +223,43 @@ class CommunityAPITest(APITestCase):
             username='user_05', instance_path='event/community', created_under=self.event.id, allows_create=False
         )
         self._test_create_community(
-            username='lecturer', instance_path='event/community', created_under=self.event.id, allows_create=False
-        )
-        self._test_create_community(
-            username='support', instance_path='event/community', created_under=self.event.id, allows_create=False
+            username=str(), instance_path='event/community', created_under=self.event.id, allows_create=False
         )
 
     def test_create_community_event_under_community_event(self):
         ''' Test create community event under event '''
         self._test_create_community(
-            username='user_01',
-            instance_path='event/community',
-            created_under=self.community_event.id,
-            allows_create=False
+            username='user_01', instance_path='event/community',
+            created_under=self.community_event.id, allows_create=False
         )
         self._test_create_community(
-            username='user_02',
-            instance_path='event/community',
-            created_under=self.community_event.id,
-            allows_create=False
+            username='user_02', instance_path='event/community',
+            created_under=self.community_event.id, allows_create=False
         )
         self._test_create_community(
-            username='user_03',
-            instance_path='event/community',
-            created_under=self.community_event.id,
-            allows_create=False
+            username='user_03', instance_path='event/community',
+            created_under=self.community_event.id, allows_create=False
         )
         self._test_create_community(
-            username='user_04',
-            instance_path='event/community',
-            created_under=self.community_event.id,
-            allows_create=False
+            username='user_04', instance_path='event/community',
+            created_under=self.community_event.id, allows_create=False
         )
         self._test_create_community(
-            username='user_05',
-            instance_path='event/community',
-            created_under=self.community_event.id,
-            allows_create=False
+            username='user_05', instance_path='event/community',
+            created_under=self.community_event.id, allows_create=False
         )
         self._test_create_community(
-            username='lecturer',
-            instance_path='event/community',
-            created_under=self.community_event.id,
-            allows_create=False
-        )
-        self._test_create_community(
-            username='support',
-            instance_path='event/community',
-            created_under=self.community_event.id,
-            allows_create=False
+            username=str(), instance_path='event/community',
+            created_under=self.community_event.id, allows_create=False
         )
 
     def test_create_community_event_under_lab(self):
         ''' Test create community event under event '''
         self._test_create_community(
-            username='user_01', instance_path='event/community', created_under=self.lab.id, allows_create=True
+            username='lecturer_01', instance_path='event/community', created_under=self.lab.id, allows_create=True
         )
         self._test_create_community(
-            username='user_02', instance_path='event/community', created_under=self.lab.id, allows_create=True
+            username='lecturer_02', instance_path='event/community', created_under=self.lab.id, allows_create=True
         )
         self._test_create_community(
             username='user_03', instance_path='event/community', created_under=self.lab.id, allows_create=True
@@ -294,17 +271,15 @@ class CommunityAPITest(APITestCase):
             username='user_05', instance_path='event/community', created_under=self.lab.id, allows_create=False
         )
         self._test_create_community(
-            username='lecturer', instance_path='event/community', created_under=self.lab.id, allows_create=False
-        )
-        self._test_create_community(
-            username='support', instance_path='event/community', created_under=self.lab.id, allows_create=False
+            username=str(), instance_path='event/community', created_under=self.lab.id, allows_create=False
         )
 
     def test_create_lab(self):
         ''' Test create lab '''
         self._test_create_community(username='user_05', instance_path='lab', allows_create=False)
-        self._test_create_community(username='lecturer', instance_path='lab', allows_create=True)
+        self._test_create_community(username='lecturer_01', instance_path='lab', allows_create=True)
         self._test_create_community(username='support', instance_path='lab', allows_create=False)
+        self._test_create_community(username=str(), instance_path='lab', allows_create=False)
 
     def _test_create_community(self, username=str(), instance_path='club', created_under=int(), allows_create=True):
         ''' Test create community '''
@@ -338,14 +313,110 @@ class CommunityAPITest(APITestCase):
         if username.strip() != str():
             self.client.logout()
 
-    def _test__community(self, username=str(), instance_path='club', expected_length=0):
-        ''' Test list community '''
+    def test_update_club(self):
+        ''' Test update club '''
+        self._test_update_community(
+            username='user_01', community_id=self.club_public.id, instance_path='club', allows_update=True
+        )
+        self._test_update_community(
+            username='user_02', community_id=self.club_public.id, instance_path='club', allows_update=True
+        )
+        self._test_update_community(
+            username='user_03', community_id=self.club_public.id, instance_path='club', allows_update=False
+        )
+        self._test_update_community(
+            username='user_04', community_id=self.club_public.id, instance_path='club', allows_update=False
+        )
+        self._test_update_community(
+            username='user_05', community_id=self.club_public.id, instance_path='club', allows_update=False
+        )
+        self._test_update_community(
+            username=str(), community_id=self.club_public.id, instance_path='club', allows_update=False
+        )
+
+    def test_update_event(self):
+        ''' Test update event'''
+        self._test_update_community(
+            username='user_01', community_id=self.event.id, instance_path='event', allows_update=True
+        )
+        self._test_update_community(
+            username='user_02', community_id=self.event.id, instance_path='event', allows_update=True
+        )
+        self._test_update_community(
+            username='user_03', community_id=self.event.id, instance_path='event', allows_update=False
+        )
+        self._test_update_community(
+            username='user_04', community_id=self.event.id, instance_path='event', allows_update=False
+        )
+        self._test_update_community(
+            username='user_05', community_id=self.event.id, instance_path='event', allows_update=False
+        )
+        self._test_update_community(
+            username=str(), community_id=self.event.id, instance_path='event', allows_update=False
+        )
+
+    def test_update_community_event(self):
+        ''' Test update community event '''
+        self._test_update_community(
+            username='user_01', community_id=self.community_event.id,
+            instance_path='event/community', allows_update=True
+        )
+        self._test_update_community(
+            username='user_02', community_id=self.community_event.id,
+            instance_path='event/community', allows_update=True
+        )
+        self._test_update_community(
+            username='user_03', community_id=self.community_event.id,
+            instance_path='event/community', allows_update=False
+        )
+        self._test_update_community(
+            username='user_04', community_id=self.community_event.id,
+            instance_path='event/community', allows_update=False
+        )
+        self._test_update_community(
+            username='user_05', community_id=self.community_event.id,
+            instance_path='event/community', allows_update=False
+        )
+        self._test_update_community(
+            username=str(), community_id=self.community_event.id,
+            instance_path='event/community', allows_update=False
+        )
+
+    def test_update_lab(self):
+        ''' Test update lab '''
+        self._test_update_community(
+            username='lecturer_01', community_id=self.lab.id, instance_path='lab', allows_update=True
+        )
+        self._test_update_community(
+            username='lecturer_02', community_id=self.lab.id, instance_path='lab', allows_update=True
+        )
+        self._test_update_community(
+            username='user_03', community_id=self.lab.id, instance_path='lab', allows_update=False
+        )
+        self._test_update_community(
+            username='user_04', community_id=self.lab.id, instance_path='lab', allows_update=False
+        )
+        self._test_update_community(
+            username='user_05', community_id=self.lab.id, instance_path='lab', allows_update=False
+        )
+        self._test_update_community(
+            username=str(), community_id=self.lab.id, instance_path='lab', allows_update=False
+        )
+
+    def _test_update_community(self, username=str(), community_id=int(), instance_path='club', allows_update=True):
+        ''' Test update community '''
         if username.strip() != str():
             self.client.login(username=username, password='12345678')
 
-        response = self.client.get('/api/community/{}/'.format(instance_path))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), expected_length)
+        letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        description = ''.join(random.choice(letters) for _ in range(24))
 
-        if username.strip() != str():
-            self.client.logout()
+        response = self.client.patch('/api/community/{}/{}/'.format(instance_path, community_id), {
+            'description': description
+        })
+
+        if allows_update:
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(Community.objects.get(pk=community_id).description, description)
+        else:
+            self.assertIn(response.status_code, (status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN))
