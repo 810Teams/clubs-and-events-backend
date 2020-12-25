@@ -67,16 +67,7 @@ class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
 
     def get_is_able_to_edit(self, obj):
         ''' Retrieve edit-ability '''
-        try:
-            Membership.objects.get(
-                user_id=self.context['request'].user.id,
-                position__in=(1, 2, 3),
-                community_id=obj.community.id,
-                status='A'
-            )
-            return True
-        except Membership.DoesNotExist:
-            return False
+        return IsStaffOfCommunity().has_object_permission(self.context['request'], None, obj)
 
 
 class NotExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
@@ -91,14 +82,7 @@ class NotExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
         ''' Validate data '''
         errors = super(NotExistingAnnouncementSerializer, self).validate(data, get_errors=True)
 
-        membership = Membership.objects.filter(
-            user_id=self.context['request'].user.id,
-            position__in=(1, 2, 3),
-            community_id=data['community'].id,
-            status='A'
-        )
-
-        if len(membership) == 0:
+        if not IsStaffOfCommunity().has_object_permission(self.context['request'], None, data['community']):
             errors['community'] = _('Announcements are not able to be created in communities the user is not a staff.')
 
         raise_validation_errors(errors)
@@ -177,16 +161,7 @@ class ExistingAlbumSerializer(AlbumSerializerTemplate):
 
     def get_is_able_to_edit(self, obj):
         ''' Retrieve edit-ability '''
-        try:
-            Membership.objects.get(
-                user_id=self.context['request'].user.id,
-                position__in=(1, 2, 3),
-                community_id=obj.community.id,
-                status='A'
-            )
-            return True
-        except Membership.DoesNotExist:
-            return False
+        return IsStaffOfCommunity().has_object_permission(self.context['request'], None, obj)
 
 
 class NotExistingAlbumSerializer(AlbumSerializerTemplate):
@@ -200,6 +175,9 @@ class NotExistingAlbumSerializer(AlbumSerializerTemplate):
     def validate(self, data, get_errors=False):
         ''' Validate data '''
         errors = super(NotExistingAlbumSerializer, self).validate(data, get_errors=True)
+
+        if not IsStaffOfCommunity().has_object_permission(self.context['request'], None, data['community']):
+            errors['community'] = _('Albums are not able to be created in communities the user is not a staff.')
 
         if has_instance(data['community'], CommunityEvent):
             errors['community'] = (_('Albums are not able to be created under community events.'))
