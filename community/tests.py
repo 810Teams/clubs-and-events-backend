@@ -9,10 +9,10 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from community.models import Community, Club, Event, CommunityEvent, Lab
+from core.utils.general import get_random_string
 from membership.models import Membership
 
 import datetime
-import random
 
 
 class CommunityAPITest(APITestCase):
@@ -444,8 +444,7 @@ class CommunityAPITest(APITestCase):
         if username.strip() != str():
             self.client.login(username=username, password='12345678')
 
-        letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-        description = ''.join(random.choice(letters) for _ in range(24))
+        description = get_random_string(length=64)
 
         response = self.client.patch('/api/community/{}/{}/'.format(instance_path, community_id), {
             'description': description

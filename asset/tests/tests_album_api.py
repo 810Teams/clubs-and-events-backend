@@ -39,40 +39,25 @@ class AlbumAPITest(APITestCase):
             is_publicly_visible=False, is_official=False
         )
         self.event = Event.objects.create(
-            name_th='กิจกรรมทดสอบอัลบั้ม',
-            name_en='Album Testing Event',
-            is_approved=True,
-            location='L207 IT KMITL',
-            start_date=datetime.date(2020, 12, 1),
-            end_date=datetime.date(2020, 12, 2),
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(17, 0, 0),
-            is_publicly_visible=False
+            name_th='กิจกรรมทดสอบอัลบั้ม', name_en='Album Testing Event',
+            is_approved=True, location='L207 IT KMITL',
+            start_date=datetime.date(2020, 12, 1), end_date=datetime.date(2020, 12, 2),
+            start_time=datetime.time(9, 0, 0), end_time=datetime.time(17, 0, 0), is_publicly_visible=False
         )
         self.lab = Lab.objects.create(name_th='ห้องปฏิบัติการทดสอบอัลบั้ม', name_en='Album Testing Lab')
         self.club_event = CommunityEvent.objects.create(
-            name_th='กิจกรรมชุมนุมทดสอบอัลบั้ม',
-            name_en='Album Testing Club Event',
-            is_approved=True,
-            location='L207 IT KMITL',
-            start_date=datetime.date(2020, 12, 1),
-            end_date=datetime.date(2020, 12, 2),
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(17, 0, 0),
-            created_under_id=self.club_public.id,
-            is_publicly_visible=False
+            name_th='กิจกรรมชุมนุมทดสอบอัลบั้ม', name_en='Album Testing Club Event',
+            is_approved=True, location='L207 IT KMITL',
+            start_date=datetime.date(2020, 12, 1), end_date=datetime.date(2020, 12, 2),
+            start_time=datetime.time(9, 0, 0), end_time=datetime.time(17, 0, 0),
+            created_under_id=self.club_public.id, is_publicly_visible=False
         )
         self.lab_event = CommunityEvent.objects.create(
-            name_th='กิจกรรมห้องปฏิบัติการทดสอบอัลบั้ม',
-            name_en='Album Testing Lab Event',
-            is_approved=True,
-            location='L207 IT KMITL',
-            start_date=datetime.date(2020, 12, 1),
-            end_date=datetime.date(2020, 12, 2),
-            start_time=datetime.time(9, 0, 0),
-            end_time=datetime.time(17, 0, 0),
-            created_under_id=self.lab.id,
-            is_publicly_visible=False
+            name_th='กิจกรรมห้องปฏิบัติการทดสอบอัลบั้ม', name_en='Album Testing Lab Event',
+            is_approved=True, location='L207 IT KMITL',
+            start_date=datetime.date(2020, 12, 1), end_date=datetime.date(2020, 12, 2),
+            start_time=datetime.time(9, 0, 0), end_time=datetime.time(17, 0, 0),
+            created_under_id=self.lab.id, is_publicly_visible=False
         )
 
         Membership.objects.create(community_id=self.club_public.id, user_id=self.user_01.id, position=3)

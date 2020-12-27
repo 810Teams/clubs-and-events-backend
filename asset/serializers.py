@@ -9,6 +9,7 @@ from rest_framework import serializers
 
 from asset.models import Announcement, Album, Comment, AlbumImage
 from community.models import Event, CommunityEvent
+from community.permissions import IsPubliclyVisibleCommunity
 from core.permissions import IsStaffOfCommunity, IsMemberOfCommunity
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
@@ -226,7 +227,7 @@ class CommentSerializer(serializers.ModelSerializer):
         event = data['event']
 
         # Restricts anonymous users from commenting on non-publicly visible events
-        if not user.is_authenticated and not event.is_publicly_visible:
+        if not IsPubliclyVisibleCommunity().has_object_permission(request, None, event):
             add_error_message(
                 errors, key='event',
                 message='Comments are not able to be made by an anonymous user in non-publicly visible events.'
@@ -234,8 +235,9 @@ class CommentSerializer(serializers.ModelSerializer):
 
         # Restricts event non-member users from commenting on community events that does not allow outside participators
         if has_instance(event, CommunityEvent):
-            if not CommunityEvent.objects.get(pk=event.id).allows_outside_participators:
-                if not IsMemberOfCommunity().has_object_permission(request, None, event):
+            community_event = CommunityEvent.objects.get(pk=event.id)
+            if not community_event.allows_outside_participators:
+                if not IsMemberOfCommunity().has_object_permission(request, None, community_event):
                     add_error_message(
                         errors, key='event',
                         message='Comments are not able to be made by non-members in community events that does not ' +
@@ -250,7 +252,8 @@ class CommentSerializer(serializers.ModelSerializer):
             add_error_message(errors, key='event', message='Comment from this user is already made in this event.')
 
         # Restricts user making duplicated comments based on IP address if not authenticated
-        if not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in comments]:
+        ip_addresses = [i.ip_address for i in comments if i.ip_address is not None]
+        if not user.is_authenticated and get_client_ip(request) in ip_addresses:
             add_error_message(
                 errors, key='event', message='Comment from this IP Address is already made in this event.'
             )
