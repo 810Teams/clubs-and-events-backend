@@ -92,7 +92,9 @@ class IsPubliclyVisibleCommunity(permissions.BasePermission):
     ''' Community viewing availability permission '''
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
-        if isinstance(obj, Community):
+        if isinstance(obj, CommunityEvent):
+            return request.user.is_authenticated or (obj.is_publicly_visible and obj.created_under.is_publicly_visible)
+        elif isinstance(obj, Community):
             return request.user.is_authenticated or obj.is_publicly_visible
         return False
 

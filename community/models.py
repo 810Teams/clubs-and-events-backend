@@ -210,10 +210,7 @@ class CommunityEvent(Event):
             pass
 
         if not self.is_approved:
-            errors.append(ValidationError(
-                _('Community events are not able to be unapproved.'),
-                code='status_error'
-            ))
+            errors.append(ValidationError(_('Community events are not able to be unapproved.'), code='status_error'))
 
         if get_error:
             return errors

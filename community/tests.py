@@ -149,6 +149,42 @@ class CommunityAPITest(APITestCase):
         else:
             self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_retrieve_community_event_under_non_publicly_visible_community(self):
+        ''' Test retrieve community event under non-publicly visible community '''
+        club = Club.objects.create(
+            name_th='ชุมนุมนอน', name_en='Sleeping Club', is_publicly_visible=False, is_official=True
+        )
+        community_event = CommunityEvent.objects.create(
+            name_th='นิทรรศการเตียงนอน',
+            name_en='Bed Fair',
+            is_approved=True,
+            location='Somewhere undecided',
+            start_date=datetime.date(2020, 12, 1),
+            end_date=datetime.date(2020, 12, 2),
+            start_time=datetime.time(9, 0, 0),
+            end_time=datetime.time(17, 0, 0),
+            created_under_id=club.id,
+            is_publicly_visible=True
+        )
+
+        # Unauthenticated
+        response = self.client.get('/api/community/club/{}/'.format(club.id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        response = self.client.get('/api/community/event/community/{}/'.format(community_event.id))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Authenticated
+        self.client.login(username='user_05', password='12345678')
+
+        response = self.client.get('/api/community/club/{}/'.format(club.id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.get('/api/community/event/community/{}/'.format(community_event.id))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.client.logout()
+
     def test_create_club(self):
         ''' Test create club '''
         self._test_create_community(username='user_05', instance_path='club', allows_create=True)
