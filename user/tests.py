@@ -45,8 +45,8 @@ class UserAPITest(APITestCase):
         self.public_parameter = ('id', 'username', 'name', 'profile_picture', 'cover_photo')
         self.protected_parameters = ('nickname', 'bio', 'birthdate', 'user_group')
 
-        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
-        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
+        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678', name='User One')
+        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678', name='User Two')
 
     def test_list(self):
         ''' Test list '''
@@ -127,8 +127,8 @@ class MyUserAPITest(APITestCase):
     ''' User API test '''
     def setUp(self):
         ''' Set up '''
-        get_user_model().objects.create_user(username='user_01', password='12345678')
-        get_user_model().objects.create_user(username='user_02', password='12345678')
+        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678', name='User One')
+        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678', name='User Two')
 
     def test_retrieve_unauthenticated(self):
         ''' Test retrieve authenticated '''
@@ -140,7 +140,7 @@ class MyUserAPITest(APITestCase):
         self.client.login(username='user_01', password='12345678')
 
         response = self.client.get('/api/user/user/me/')
-        self.assertEqual(response.data['id'], get_user_model().objects.get(username='user_01').id)
+        self.assertEqual(response.data['id'], self.user_01.id)
 
         self.client.logout()
 
@@ -149,10 +149,10 @@ class EmailPreferenceAPITest(APITestCase):
     ''' Email preference API test '''
     def setUp(self):
         ''' Set up '''
-        user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
-        user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
-        EmailPreference.objects.create(user_id=user_01.id)
-        EmailPreference.objects.create(user_id=user_02.id)
+        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
+        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
+        self.email_pref_01 = EmailPreference.objects.create(user_id=self.user_01.id)
+        self.email_pref_02 = EmailPreference.objects.create(user_id=self.user_02.id)
 
     def test_list(self):
         ''' Test list '''
@@ -163,11 +163,7 @@ class EmailPreferenceAPITest(APITestCase):
         ''' Test retrieve own '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.get(
-            '/api/user/email-preference/{}/'.format(
-                EmailPreference.objects.get(user_id=get_user_model().objects.get(username='user_01').id).id
-            )
-        )
+        response = self.client.get('/api/user/email-preference/{}/'.format(self.email_pref_01.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.client.logout()
@@ -176,11 +172,7 @@ class EmailPreferenceAPITest(APITestCase):
         ''' Test retrieve own '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.get(
-            '/api/user/email-preference/{}/'.format(
-                EmailPreference.objects.get(user_id=get_user_model().objects.get(username='user_02').id).id
-            )
-        )
+        response = self.client.get('/api/user/email-preference/{}/'.format(self.email_pref_02.id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.logout()
@@ -189,7 +181,9 @@ class EmailPreferenceAPITest(APITestCase):
         ''' Test create '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.post('/api/user/email-preference/', {'user': 1})
+        response = self.client.post('/api/user/email-preference/', {
+            'user': 1
+        })
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         self.client.logout()
@@ -198,20 +192,11 @@ class EmailPreferenceAPITest(APITestCase):
         ''' Test update own '''
         self.client.login(username='user_01', password='12345678')
 
-        self.client.patch(
-            '/api/user/email-preference/{}/'.format(
-                EmailPreference.objects.get(user_id=get_user_model().objects.get(username='user_01').id).id
-            ),
-            {
-                'receive_request': False,
-                'receive_announcement': True,
-            }
-        )
-        response = self.client.get(
-            '/api/user/email-preference/{}/'.format(
-                EmailPreference.objects.get(user_id=get_user_model().objects.get(username='user_01').id).id
-            )
-        )
+        self.client.patch('/api/user/email-preference/{}/'.format(self.email_pref_01.id),{
+            'receive_request': False,
+            'receive_announcement': True,
+        })
+        response = self.client.get('/api/user/email-preference/{}/'.format(self.email_pref_01.id))
         self.assertEqual(response.data['receive_request'], False)
         self.assertEqual(response.data['receive_announcement'], True)
 
@@ -221,15 +206,10 @@ class EmailPreferenceAPITest(APITestCase):
         ''' Test update other '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.patch(
-            '/api/user/email-preference/{}/'.format(
-                EmailPreference.objects.get(user_id=get_user_model().objects.get(username='user_02').id).id
-            ),
-            {
-                'receive_request': False,
-                'receive_announcement': True,
-            }
-        )
+        response = self.client.patch('/api/user/email-preference/{}/'.format(self.email_pref_02.id), {
+            'receive_request': False,
+            'receive_announcement': True,
+        })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         self.client.logout()
@@ -238,11 +218,7 @@ class EmailPreferenceAPITest(APITestCase):
         ''' Test delete '''
         self.client.login(username='user_01', password='12345678')
 
-        response = self.client.delete(
-            '/api/user/email-preference/{}/'.format(
-                EmailPreference.objects.get(user_id=get_user_model().objects.get(username='user_01').id).id
-            ),
-        )
+        response = self.client.delete('/api/user/email-preference/{}/'.format(self.email_pref_01.id))
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         self.client.logout()
@@ -252,10 +228,10 @@ class MyEmailPreferenceAPITest(APITestCase):
     ''' User API test '''
     def setUp(self):
         ''' Set up '''
-        user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
-        user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
-        EmailPreference.objects.create(user_id=user_01.id)
-        EmailPreference.objects.create(user_id=user_02.id)
+        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
+        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
+        self.email_pref_01 = EmailPreference.objects.create(user_id=self.user_01.id)
+        self.email_pref_02 = EmailPreference.objects.create(user_id=self.user_02.id)
 
     def test_retrieve_unauthenticated(self):
         ''' Test retrieve authenticated '''
@@ -267,7 +243,7 @@ class MyEmailPreferenceAPITest(APITestCase):
         self.client.login(username='user_01', password='12345678')
 
         response = self.client.get('/api/user/email-preference/me/')
-        self.assertEqual(response.data['user'], get_user_model().objects.get(username='user_01').id)
+        self.assertEqual(response.data['user'], self.user_01.id)
 
         self.client.logout()
 

@@ -11,6 +11,7 @@ from rest_framework import permissions
 from clubs_and_events.settings import CLUB_ADVANCED_RENEWAL
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
+from core.utils.general import has_instance
 from membership.models import Membership
 from user.permissions import IsStudent, IsLecturer
 
@@ -93,7 +94,12 @@ class IsPubliclyVisibleCommunity(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
         if isinstance(obj, Community):
-            return request.user.is_authenticated or obj.is_publicly_visible
+            if request.user.is_authenticated:
+                return True
+            elif has_instance(obj, CommunityEvent):
+                community_event = CommunityEvent.objects.get(pk=obj.id)
+                return community_event.is_publicly_visible and community_event.created_under.is_publicly_visible
+            return obj.is_publicly_visible
         return False
 
 

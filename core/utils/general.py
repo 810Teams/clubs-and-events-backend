@@ -6,6 +6,8 @@
 
 from django.db import models
 
+import random
+
 
 def truncate(text, max_length=64):
     ''' Truncates text if the length is above the max length '''
@@ -35,3 +37,8 @@ def has_instance(obj, model):
         except model.DoesNotExist:
             return False
     return False
+
+
+def get_random_string(letters='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', length=16):
+    ''' Get random string '''
+    return str().join(random.choice(letters) for _ in range(length))

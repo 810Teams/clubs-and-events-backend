@@ -19,6 +19,9 @@ def get_email(user):
 
 def get_client_ip(request):
     ''' Retrieves client's IP address '''
+    if request is None:
+        return None
+
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
 
     if x_forwarded_for is not None:

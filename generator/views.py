@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
 from core.utils.filters import filter_queryset, filter_queryset_permission
+from core.utils.general import get_random_string
 from generator.models import QRCode, JoinKey, GeneratedDocx
 from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSerializer
 from generator.serializers import ExistingJoinKeySerializer, NotExistingJoinKeySerializer
@@ -88,8 +89,6 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def generate_join_key(request):
     ''' Generate join key API '''
-    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-
     # Validate join key's length
     query = request.query_params.get('length')
     if query is not None:
@@ -108,7 +107,7 @@ def generate_join_key(request):
 
     # Generate join key, if duplicated, generate a new one
     while True:
-        join_key = ''.join(random.choice(letters) for _ in range(length))
+        join_key = get_random_string(length=length)
         try:
             JoinKey.objects.get(key=join_key)
         except JoinKey.DoesNotExist:

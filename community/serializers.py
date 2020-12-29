@@ -11,7 +11,7 @@ from rest_framework import serializers
 
 from asset.models import Comment
 from community.models import Community, Club, Event, CommunityEvent, Lab
-from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent
+from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent, IsPubliclyVisibleCommunity
 from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
 from core.permissions import IsMemberOfCommunity, IsStaffOfCommunity
 from core.utils.general import has_instance
@@ -43,16 +43,18 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         validate_profanity_serializer(data, 'description', errors, field_name='Community description')
 
         # Community Thai name language and length validation
-        if len(data['name_th']) < 4:
-            add_error_message(errors, 'name_th', 'Community name must be at least 4 characters in length.')
-        elif not is_th(data['name_th']):
-            add_error_message(errors, 'name_th', 'This field must be in the Thai language.')
+        if field_exists(data, 'name_th'):
+            if len(data['name_th']) < 4:
+                add_error_message(errors, 'name_th', 'Community name must be at least 4 characters in length.')
+            elif not is_th(data['name_th']):
+                add_error_message(errors, 'name_th', 'This field must be in the Thai language.')
 
         # Community English name language and length validation
-        if len(data['name_en']) < 4:
-            add_error_message(errors, 'name_en', 'Community name must be at least 4 characters in length.')
-        elif not is_en(data['name_en']):
-            add_error_message(errors, 'name_en', 'This field must be in English.')
+        if field_exists(data, 'name_en'):
+            if len(data['name_en']) < 4:
+                add_error_message(errors, 'name_en', 'Community name must be at least 4 characters in length.')
+            elif not is_en(data['name_en']):
+                add_error_message(errors, 'name_en', 'This field must be in English.')
 
         # External links validation
         if field_exists(data, 'external_links'):
@@ -225,20 +227,21 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         if isinstance(obj, Event):
             is_able_to_comment = True
 
-            if not user.is_authenticated and not obj.is_publicly_visible:
+            if not IsPubliclyVisibleCommunity().has_object_permission(request, None, obj):
                 is_able_to_comment = False
             if has_instance(obj, CommunityEvent):
-                if not CommunityEvent.objects.get(pk=obj.id).allows_outside_participators:
-                    try:
-                        Membership.objects.get(community_id=obj.id, user_id=user.id, status__in=('A', 'R'))
-                    except Membership.DoesNotExist:
+                community_event = CommunityEvent.objects.get(pk=obj.id)
+                if not community_event.allows_outside_participators:
+                    if not IsMemberOfCommunity().has_object_permission(request, None, community_event):
                         is_able_to_comment = False
 
-            commentators = Comment.objects.filter(event_id=obj.id)
+            comments = Comment.objects.filter(event_id=obj.id)
+            commentators = [i.created_by.id for i in comments.exclude(created_by=None)]
+            ip_addresses = [i.ip_address for i in comments.exclude(ip_address=None)]
 
-            if user.is_authenticated and user.id in [i.created_by.id for i in commentators.exclude(created_by=None)]:
+            if user.is_authenticated and user.id in commentators:
                 is_able_to_comment = False
-            elif not user.is_authenticated and get_client_ip(request) in [i.ip_address for i in commentators]:
+            elif not user.is_authenticated and get_client_ip(request) in ip_addresses:
                 is_able_to_comment = False
 
             if is_able_to_comment:

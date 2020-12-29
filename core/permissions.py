@@ -7,7 +7,8 @@
 from rest_framework import permissions
 
 from asset.models import Announcement, Album, AlbumImage, Comment
-from community.models import Community
+from community.models import Community, CommunityEvent
+from core.utils.general import has_instance
 from generator.models import QRCode, JoinKey, GeneratedDocx
 from membership.models import Request, Invitation, Advisory, Membership, CustomMembershipLabel, MembershipLog
 from membership.models import ApprovalRequest
@@ -20,7 +21,13 @@ class IsInPubliclyVisibleCommunity(permissions.BasePermission):
         ref = get_community_reference(obj)
 
         if ref is not None:
-            return request.user.is_authenticated or Community.objects.get(pk=ref).is_publicly_visible
+            community = Community.objects.get(pk=ref)
+            if request.user.is_authenticated:
+                return True
+            elif has_instance(community, CommunityEvent):
+                community_event = CommunityEvent.objects.get(pk=community.id)
+                return community_event.is_publicly_visible and community_event.created_under.is_publicly_visible
+            return community.is_publicly_visible
         return False
 
 
