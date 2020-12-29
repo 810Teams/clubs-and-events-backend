@@ -43,7 +43,12 @@ def simplify_file_size(size, unit='B'):
     if unit == 'GB' and size >= 1024:
         size /= 1024
         unit = 'TB'
-    return '{:.2f} {}'.format(size, unit)
+
+    if unit == 'b':
+        return '{} bits'.format(int(size))
+    elif unit == 'B':
+        return '{} bytes'.format(int(size))
+    return '{:.2f} {}'.format(int(size * 100) / 100, unit)
 
 
 def auto_downscale_image(image, threshold=(1024, 1024), optimize=True, quality=95, round_function=round):
