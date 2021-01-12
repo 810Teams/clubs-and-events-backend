@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'core',
     'generator',
     'membership',
+    'misc',
     'notification',
     'user',
     'corsheaders',
