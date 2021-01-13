@@ -4,7 +4,6 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.exceptions import ValidationError
@@ -15,6 +14,7 @@ from clubs_and_events.settings import STORAGE_BASE_DIR, LDAP_USER_GROUPS
 from clubs_and_events.settings import MAX_PROFILE_PICTURE_DIMENSION, MAX_COVER_PHOTO_DIMENSION
 from core.utils.general import get_file_extension
 from core.utils.files import auto_downscale_image
+from core.utils.objects import save_user_attributes
 
 
 class UserManager(BaseUserManager):
@@ -79,13 +79,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.pk is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(User, self).save(*args, **kwargs)
 
         auto_downscale_image(self.profile_picture, threshold=MAX_PROFILE_PICTURE_DIMENSION)
@@ -129,13 +123,7 @@ class StudentCommitteeAuthority(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.pk is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(StudentCommitteeAuthority, self).save(*args, **kwargs)
 
     def clean(self):

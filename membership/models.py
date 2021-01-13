@@ -4,7 +4,7 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from crum import get_current_user, get_current_request
+from crum import get_current_request
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Community, Lab, CommunityEvent, Club
 from core.utils.general import get_file_extension, has_instance
+from core.utils.objects import save_user_attributes
 from user.permissions import IsStudentObject, IsLecturerObject
 
 
@@ -39,13 +40,7 @@ class Request(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None and user is not None:
-            self.user = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='user', updated_by_field_name='updated_by', allows_null=False)
         super(Request, self).save(*args, **kwargs)
 
     def clean(self):
@@ -115,12 +110,7 @@ class Invitation(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None and user is not None:
-            self.invitor = user
-
+        save_user_attributes(self, created_by_field_name='invitor', updated_by_field_name=None, allows_null=False)
         super(Invitation, self).save(*args, **kwargs)
 
     def clean(self):
@@ -199,13 +189,7 @@ class Membership(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(Membership, self).save(*args, **kwargs)
 
         logs = MembershipLog.objects.filter(membership_id=self.id)
@@ -264,13 +248,7 @@ class CustomMembershipLabel(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(CustomMembershipLabel, self).save(*args, **kwargs)
 
 
@@ -306,13 +284,7 @@ class MembershipLog(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(MembershipLog, self).save(*args, **kwargs)
 
 
@@ -335,13 +307,7 @@ class Advisory(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(Advisory, self).save(*args, **kwargs)
 
     def clean(self):
@@ -406,12 +372,7 @@ class ApprovalRequest(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
 
         if self.pk is None:
             saved_attached_file = self.attached_file

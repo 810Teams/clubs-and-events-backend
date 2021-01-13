@@ -4,12 +4,12 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.db import models
 
 from asset.models import Announcement
 from community.models import CommunityEvent, Event
+from core.utils.objects import save_user_attributes
 from membership.models import Request, MembershipLog
 
 
@@ -30,13 +30,7 @@ class Notification(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(Notification, self).save(*args, **kwargs)
 
 

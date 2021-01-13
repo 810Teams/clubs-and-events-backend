@@ -4,7 +4,7 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from crum import get_current_request, get_current_user
+from crum import get_current_request
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -14,6 +14,7 @@ from clubs_and_events.settings import STORAGE_BASE_DIR, MAX_ANNOUNCEMENT_IMAGE_D
 from community.models import Community, Event, CommunityEvent
 from core.utils.general import truncate, get_file_extension
 from core.utils.files import auto_downscale_image
+from core.utils.objects import save_user_attributes
 from core.utils.users import get_client_ip
 
 
@@ -40,12 +41,7 @@ class Announcement(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
 
         if self.pk is None:
             saved_image = self.image
@@ -80,13 +76,7 @@ class Album(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(Album, self).save(*args, **kwargs)
 
     def clean(self):
@@ -141,11 +131,7 @@ class AlbumImage(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name=None)
 
         if self.pk is None:
             saved_image = self.image
@@ -176,11 +162,8 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name=None)
+
         self.ip_address = get_client_ip(get_current_request())
 
         super(Comment, self).save(*args, **kwargs)
