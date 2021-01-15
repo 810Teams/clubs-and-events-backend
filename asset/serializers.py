@@ -4,10 +4,16 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
+from datetime import timedelta
+
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from asset.models import Announcement, Album, Comment, AlbumImage
+from clubs_and_events.settings import COMMENT_LIMIT_PER_INTERVAL, COMMENT_INTERVAL_TIME
 from community.models import Event, CommunityEvent
 from community.permissions import IsPubliclyVisibleCommunity
 from core.permissions import IsStaffOfCommunity, IsMemberOfCommunity
@@ -15,7 +21,6 @@ from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
 from core.utils.serializer import field_exists
 from core.utils.users import get_client_ip
-from membership.models import Membership
 
 
 class AnnouncementSerializerTemplate(serializers.ModelSerializer):
@@ -247,16 +252,29 @@ class CommentSerializer(serializers.ModelSerializer):
         # Retrieve comments from a specific event
         comments = Comment.objects.filter(event_id=event.id)
 
-        # Restricts user making duplicated comments based on user ID if authenticated
-        if user.is_authenticated and user.id in [i.created_by.id for i in comments.exclude(created_by=None)]:
-            add_error_message(errors, key='event', message='Comment from this user is already made in this event.')
+        # Restricts user making a comment if a URL is included
+        validate = URLValidator()
+        for i in data['text'].split():
+            try:
+                validate(i)
+                add_error_message(errors, key='text', message='Comments are not able to contain a URL.')
+                break
+            except ValidationError:
+                pass
 
-        # Restricts user making duplicated comments based on IP address if not authenticated
-        ip_addresses = [i.ip_address for i in comments if i.ip_address is not None]
-        if not user.is_authenticated and get_client_ip(request) in ip_addresses:
-            add_error_message(
-                errors, key='event', message='Comment from this IP Address is already made in this event.'
-            )
+        # Restricts user making too many comments based on user ID if authenticated, or IP address if unauthenticated
+        if user.is_authenticated:
+            user_comments = comments.filter(created_by_id=user.id).order_by('created_at')
+        else:
+            user_comments = comments.filter(ip_address=get_client_ip(request)).order_by('created_at')
+
+        if len(user_comments) >= COMMENT_LIMIT_PER_INTERVAL:
+            target_comment = user_comments[len(user_comments) - COMMENT_LIMIT_PER_INTERVAL]
+            if target_comment.created_at + timedelta(minutes=COMMENT_INTERVAL_TIME) > timezone.now():
+                add_error_message(
+                    errors, key='event',
+                    message='Comments from this user has reached the limit. Please try again after a while.'
+                )
 
         # Check profanity
         validate_profanity_serializer(data, 'text', errors, field_name='Comment text')

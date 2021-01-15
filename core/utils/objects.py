@@ -5,7 +5,6 @@
 '''
 
 from crum import get_current_user
-from django.contrib.auth import get_user_model
 
 
 def save_user_attributes(obj, created_by_field_name='created_by', updated_by_field_name='updated_by', allows_null=True):
