@@ -272,8 +272,7 @@ class CommentSerializer(serializers.ModelSerializer):
             target_comment = user_comments[len(user_comments) - COMMENT_LIMIT_PER_INTERVAL]
             if target_comment.created_at + timedelta(minutes=COMMENT_INTERVAL_TIME) > timezone.now():
                 add_error_message(
-                    errors, key='event',
-                    message='Comments from this user has reached the limit. Please try again after a while.'
+                    errors, key='event', message='Comments limit reached, please try again after a while.'
                 )
 
         # Check profanity
