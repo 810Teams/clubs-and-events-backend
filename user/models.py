@@ -11,7 +11,7 @@ from django.db import models
 from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR, LDAP_USER_GROUPS
-from clubs_and_events.settings import MAX_PROFILE_PICTURE_DIMENSION, MAX_COVER_PHOTO_DIMENSION
+from clubs_and_events.settings import MAX_PROFILE_PICTURE_DIMENSION
 from core.utils.general import get_file_extension
 from core.utils.files import auto_downscale_image
 from core.utils.objects import save_user_attributes
