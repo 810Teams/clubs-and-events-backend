@@ -42,7 +42,7 @@ class UserAPITest(APITestCase):
     ''' User API test '''
     def setUp(self):
         ''' Set up '''
-        self.public_parameter = ('id', 'username', 'name', 'profile_picture', 'cover_photo')
+        self.public_parameter = ('id', 'username', 'name', 'profile_picture')
         self.protected_parameters = ('nickname', 'bio', 'birthdate', 'user_group')
 
         self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678', name='User One')

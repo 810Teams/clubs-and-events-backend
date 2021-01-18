@@ -59,8 +59,8 @@ class LimitedUserSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = get_user_model()
-        fields = ('id', 'username', 'name', 'profile_picture', 'cover_photo')
-        read_only_fields = ('id', 'username', 'name', 'profile_picture', 'cover_photo')
+        fields = ('id', 'username', 'name', 'profile_picture')
+        read_only_fields = ('id', 'username', 'name', 'profile_picture')
 
 
 class EmailPreferenceSerializer(serializers.ModelSerializer):

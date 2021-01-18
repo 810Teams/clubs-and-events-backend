@@ -51,7 +51,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     nickname = models.CharField(max_length=32, null=True, blank=True)
     bio = models.TextField(max_length=4096, null=True, blank=True)
     profile_picture = models.ImageField(null=True, blank=True, upload_to=get_profile_picture_path)
-    cover_photo = models.ImageField(null=True, blank=True, upload_to=get_cover_photo_path)
     birthdate = models.DateField(null=True, blank=True)
 
     # Statuses
@@ -81,9 +80,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ''' Save instance '''
         save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
         super(User, self).save(*args, **kwargs)
-
         auto_downscale_image(self.profile_picture, threshold=MAX_PROFILE_PICTURE_DIMENSION)
-        auto_downscale_image(self.cover_photo, threshold=MAX_COVER_PHOTO_DIMENSION)
 
 
 class EmailPreference(models.Model):
