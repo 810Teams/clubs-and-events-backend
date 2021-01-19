@@ -18,7 +18,7 @@ class FAQAdmin(admin.ModelAdmin):
     list_per_page = 20
 
     def partial_question(self, obj):
-        ''' Get truncated text at max length of 32 '''
+        ''' Get truncated question at max length of 32 '''
         return truncate(obj.question, max_length=32)
 
     def image_size(self, obj):
@@ -33,8 +33,12 @@ class FAQAdmin(admin.ModelAdmin):
 
 class VoteAdmin(admin.ModelAdmin):
     ''' Vote admin '''
-    list_display = ('id', 'voted_for', 'voted_by', 'created_at')
+    list_display = ('id', 'voted_for', 'partial_comment', 'voted_by', 'created_at')
     list_per_page = 20
+
+    def partial_comment(self, obj):
+        ''' Get truncated comment at max length of 32 '''
+        return truncate(obj.comment, max_length=32)
 
 
 admin.site.register(FAQ, FAQAdmin)

@@ -10,7 +10,7 @@ from rest_framework import serializers
 from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Event
 from core.permissions import IsMemberOfCommunity
-from core.utils.serializer import raise_validation_errors, add_error_message
+from core.utils.serializer import raise_validation_errors, add_error_message, validate_profanity_serializer
 from membership.models import Membership
 from misc.models import FAQ, Vote
 
@@ -29,7 +29,7 @@ class ExistingVoteSerializer(serializers.ModelSerializer):
         ''' Meta '''
         model = Vote
         exclude = ('voted_by', 'created_at')
-        read_only_fields = ('voted_for',)
+        read_only_fields = ('comment', 'voted_for')
 
 
 class NotExistingVoteSerializer(serializers.ModelSerializer):
@@ -65,7 +65,7 @@ class NotExistingVoteSerializer(serializers.ModelSerializer):
 
         # Validate voter, must be a member
         if not IsMemberOfCommunity().has_object_permission(request, None, event):
-            add_error_message(errors, message='Non-event members are not able to vote.')
+            add_error_message(errors, key='voted_for', message='Non-event members are not able to vote.')
 
         # Validate user receiving a vote, must not be yourself
         if data['voted_for'].user.id == request.user.id:
@@ -75,12 +75,17 @@ class NotExistingVoteSerializer(serializers.ModelSerializer):
         membership_ids = [i.id for i in Membership.objects.filter(community_id=event.id)]
         user_votes = Vote.objects.filter(voted_for_id__in=membership_ids, voted_by_id=request.user.id)
         if len(user_votes) + 1 > VOTE_LIMIT_PER_EVENT:
-            add_error_message(errors, message='User has already voted in this event at the maximum amount.')
+            add_error_message(
+                errors, key='voted_for', message='User has already voted in this event at the maximum amount.'
+            )
 
         # Validate vote, must not be a duplicate
         user_votes = user_votes.filter(voted_for_id=data['voted_for'].id, voted_by_id=request.user.id)
         if len(user_votes) != 0:
-            add_error_message(errors, message='User has already voted for this person in the event.')
+            add_error_message(errors, key='voted_for', message='User has already voted for this person in the event.')
+
+        # Validate profanity
+        validate_profanity_serializer(data, 'comment', errors, field_name='Comment')
 
         raise_validation_errors(errors)
 

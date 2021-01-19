@@ -222,10 +222,14 @@ STUDENT_COMMITTEE_ADVISOR_NAME = 'ดร.อนันตพัฒน์ อน�
 STUDENT_COMMITTEE_PRESIDENT_NAME = 'นายธนพนธ์ วงศ์ประเสริฐ'
 
 
-# Miscellaneous
+# Comment Settings
 
 COMMENT_LIMIT_PER_INTERVAL = 2
 COMMENT_INTERVAL_TIME = 5
+
+
+# Vote Settings
+
 VOTE_LIMIT_PER_EVENT = 3
 
 

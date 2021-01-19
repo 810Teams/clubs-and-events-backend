@@ -54,6 +54,7 @@ class FAQ(models.Model):
 
 class Vote(models.Model):
     ''' Vote model '''
+    comment = models.TextField(max_length=512, blank=True)
     voted_for = models.ForeignKey(Membership, on_delete=models.CASCADE, related_name='vote_voted_for')
     voted_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='vote_voted_by')
     created_at = models.DateTimeField(auto_now_add=True)
