@@ -8,7 +8,7 @@ from django.contrib import admin
 
 from core.utils.files import get_image_size
 from core.utils.general import truncate
-from misc.models import FAQ
+from misc.models import FAQ, Vote
 
 
 class FAQAdmin(admin.ModelAdmin):
@@ -31,4 +31,11 @@ class FAQAdmin(admin.ModelAdmin):
             return 'FileNotFoundError'
 
 
+class VoteAdmin(admin.ModelAdmin):
+    ''' Vote admin '''
+    list_display = ('id', 'voted_for', 'voted_by', 'created_at')
+    list_per_page = 20
+
+
 admin.site.register(FAQ, FAQAdmin)
+admin.site.register(Vote, VoteAdmin)

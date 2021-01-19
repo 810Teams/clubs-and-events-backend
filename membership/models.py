@@ -185,7 +185,7 @@ class Membership(models.Model):
 
     def __str__(self):
         ''' String representation '''
-        return '{}, {}'.format(self.user.__str__(), self.community.__str__())
+        return '{}, {}'.format(self.community.__str__(), self.user.__str__())
 
     def save(self, *args, **kwargs):
         ''' Save instance '''

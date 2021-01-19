@@ -5,11 +5,15 @@
 '''
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
-from core.utils.general import truncate, get_file_extension
+from community.models import Event
+from core.utils.general import truncate, get_file_extension, has_instance
 from core.utils.objects import save_user_attributes
+from membership.models import Membership
 
 
 class FAQ(models.Model):
@@ -46,3 +50,26 @@ class FAQ(models.Model):
                 kwargs.pop('force_insert')
 
         super(FAQ, self).save(*args, **kwargs)
+
+
+class Vote(models.Model):
+    ''' Vote model '''
+    voted_for = models.ForeignKey(Membership, on_delete=models.CASCADE, related_name='vote_voted_for')
+    voted_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, related_name='vote_voted_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        ''' Save instance '''
+        save_user_attributes(self, created_by_field_name='voted_by', updated_by_field_name=None, allows_null=False)
+        super(Vote, self).save(*args, **kwargs)
+
+    def clean(self):
+        ''' Validate on save '''
+        errors = list()
+
+        if not has_instance(self.voted_for.community, Event):
+            errors.append(ValidationError(_('Votes can only be casted in events.'), code='non_event'))
+
+        if len(errors) > 0:
+            raise ValidationError(errors)
+        

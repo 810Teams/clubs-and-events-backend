@@ -6,8 +6,8 @@
 
 from rest_framework import viewsets, filters, permissions
 
-from misc.models import FAQ
-from misc.serializers import FAQSerializer
+from misc.models import FAQ, Vote
+from misc.serializers import FAQSerializer, ExistingVoteSerializer, NotExistingVoteSerializer
 
 
 class FAQViewSet(viewsets.ModelViewSet):
@@ -18,3 +18,16 @@ class FAQViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('question', 'answer')
+
+
+class VoteViewSet(viewsets.ModelViewSet):
+    ''' Vote view set '''
+    queryset = Vote.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
+    http_method_names = ('get', 'post', 'head', 'options')
+
+    def get_serializer_class(self):
+        ''' Get serializer class '''
+        if self.request.method == 'POST':
+            return NotExistingVoteSerializer
+        return ExistingVoteSerializer
