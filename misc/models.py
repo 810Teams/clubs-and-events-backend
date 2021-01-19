@@ -72,4 +72,3 @@ class Vote(models.Model):
 
         if len(errors) > 0:
             raise ValidationError(errors)
-        
