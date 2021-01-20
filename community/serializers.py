@@ -6,10 +6,12 @@
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from asset.models import Comment
+from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent, IsPubliclyVisibleCommunity
 from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
@@ -20,6 +22,7 @@ from core.utils.serializer import field_exists, clean_field
 from core.utils.users import get_client_ip
 from core.utils.nlp import is_th, is_en
 from membership.models import Membership, ApprovalRequest, Invitation, Request
+from misc.models import Vote
 from user.permissions import IsStudent, IsLecturer
 
 
@@ -108,7 +111,6 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         raise_validation_errors(errors)
 
         return data
-
 
     def get_meta(self, obj):
         ''' Retrieve meta data '''
@@ -334,7 +336,6 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
 
         raise_validation_errors(errors)
 
-        # Data Cleaning
         clean_field(data, 'room')
 
         return data
@@ -351,6 +352,8 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
 
 class ApprovedEventSerializer(CommunitySerializerTemplate):
     ''' Approved event serializer '''
+    meta = serializers.SerializerMethodField()
+
     class Meta:
         ''' Meta '''
         model = Event
@@ -366,6 +369,34 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
         raise_validation_errors(errors)
 
         return data
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        meta = super(ApprovedEventSerializer, self).get_meta(obj)
+        meta['remaining_votes'] = self.get_remaining_votes(obj)
+
+        return meta
+
+    def get_remaining_votes(self, obj):
+        ''' Retrieve remaining votes '''
+        request = self.context['request']
+
+        # Event must be approved
+        if not obj.is_approved:
+            return 0
+
+        # Must already ended
+        if obj.end_date > timezone.now().date() and obj.end_time > timezone.now().time():
+            return 0
+
+        # Must be a member of the event
+        if not IsMemberOfCommunity().has_object_permission(request, None, obj):
+            return 0
+
+        membership_ids = [i.id for i in Membership.objects.filter(community_id=obj.id)]
+        user_votes = Vote.objects.filter(voted_for_id__in=membership_ids, voted_by_id=request.user.id)
+
+        return len(user_votes)
 
 
 class UnapprovedEventSerializer(CommunitySerializerTemplate):
@@ -410,10 +441,31 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
     def get_meta(self, obj):
         ''' Retrieve meta data '''
         meta = super(ExistingCommunityEventSerializer, self).get_meta(obj)
+        meta['remaining_votes'] = self.get_remaining_votes(obj)
         meta['created_under_name_en'] = self.get_created_under_name_en(obj)
 
         return meta
 
+    def get_remaining_votes(self, obj):
+        ''' Retrieve remaining votes '''
+        request = self.context['request']
+
+        # Event must be approved
+        if not obj.is_approved:
+            return 0
+
+        # Must already ended
+        if obj.end_date > timezone.now().date() and obj.end_time > timezone.now().time():
+            return 0
+
+        # Must be a member of the event
+        if not IsMemberOfCommunity().has_object_permission(request, None, obj):
+            return 0
+
+        membership_ids = [i.id for i in Membership.objects.filter(community_id=obj.id)]
+        user_votes = Vote.objects.filter(voted_for_id__in=membership_ids, voted_by_id=request.user.id)
+
+        return len(user_votes)
 
     def get_created_under_name_en(self, obj):
         ''' Retrieve community English name created under '''

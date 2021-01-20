@@ -6,12 +6,14 @@
 
 from datetime import datetime
 
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
+from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Community, CommunityEvent, Club, Lab, Event
 from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
-from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
+from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity, IsMemberOfCommunity
 from core.utils.filters import get_previous_membership_log
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
@@ -19,6 +21,7 @@ from core.utils.serializer import field_exists
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToDeleteInvitation
+from misc.models import Vote
 from user.permissions import IsLecturer, IsLecturerObject, IsStudent, IsStudentObject
 
 
@@ -330,6 +333,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             'is_able_to_assign': self.get_is_able_to_assign(obj),
             'is_able_to_remove': self.get_is_able_to_remove(obj),
             'is_able_to_leave': self.get_is_able_to_leave(obj),
+            'is_able_to_vote': self.get_is_able_to_vote(obj),
             'custom_membership_label': self.get_custom_membership_label(obj)
         }
 
@@ -365,6 +369,45 @@ class MembershipSerializer(serializers.ModelSerializer):
     def get_is_able_to_leave(self, obj):
         ''' Retrieve leave-able status '''
         return obj.user.id == self.context['request'].user.id and obj.position != 3 and obj.status in ('A', 'R')
+
+    def get_is_able_to_vote(self, obj):
+        ''' Retrieve vote-able status '''
+        request = self.context['request']
+
+        # Community type must be event
+        try:
+            event = Event.objects.get(pk=obj.community.id)
+        except Event.DoesNotExist:
+            return False
+
+        # Event must be approved
+        if not event.is_approved:
+            return False
+
+        # Must be a member of the event
+        if not IsMemberOfCommunity().has_object_permission(request, None, event):
+            return False
+
+        # Must already ended
+        if event.end_date > timezone.now().date() and event.end_time > timezone.now().time():
+            return False
+
+        # Must not vote for yourself
+        if request.user.id == obj.user.id:
+            return False
+
+        # Must not exceed limit after voting
+        membership_ids = [i.id for i in Membership.objects.filter(community_id=event.id)]
+        user_votes = Vote.objects.filter(voted_for_id__in=membership_ids, voted_by_id=request.user.id)
+        if len(user_votes) + 1 > VOTE_LIMIT_PER_EVENT:
+            return False
+
+        # Must not be a duplicated vote
+        user_votes = user_votes.filter(voted_for_id=obj.user.id, voted_by_id=request.user.id)
+        if len(user_votes) != 0:
+            return False
+
+        return True
 
     def get_custom_membership_label(self, obj):
         ''' Retrieve custom membership label '''
