@@ -269,13 +269,13 @@ class VoteAPITest(APITestCase):
             else:
                 self._test_create_vote(username='user_01', voted_for_id=membership.id, allows_create=False)
 
-
     def _test_create_vote(self, username=str(), voted_for_id=int(), allows_create=True):
         ''' Test create vote '''
         if isinstance(username, str) and username.strip() != str():
             self.client.login(username=username, password='12345678')
 
         response = self.client.post('/api/misc/vote/', {
+            'comment': 'Amazing performance!',
             'voted_for': voted_for_id
         })
 
@@ -286,3 +286,63 @@ class VoteAPITest(APITestCase):
 
         if isinstance(username, str) and username.strip() != str():
             self.client.logout()
+
+    def test_update_vote_as_voter(self):
+        ''' Test update vote as voter '''
+        self.client.login(username='user_01', password='12345678')
+
+        vote = Vote.objects.create(comment='Astonishing!', voted_for_id=self.mp2.id, voted_by_id=self.user_01.id)
+
+        response = self.client.put('/api/misc/vote/{}/'.format(vote.id), {
+            'comment': 'Amazing!'
+        })
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(Vote.objects.get(pk=vote.id).comment, 'Astonishing!')
+
+        response = self.client.patch('/api/misc/vote/{}/'.format(vote.id), {
+            'comment': 'Amazing!'
+        })
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(Vote.objects.get(pk=vote.id).comment, 'Astonishing!')
+
+        self.client.logout()
+
+    def test_update_vote_as_vote_receiver(self):
+        ''' Test update vote as vote receiver '''
+        self.client.login(username='user_02', password='12345678')
+
+        vote = Vote.objects.create(comment='Astonishing!', voted_for_id=self.mp2.id, voted_by_id=self.user_01.id)
+
+        response = self.client.put('/api/misc/vote/{}/'.format(vote.id), {
+            'comment': 'Amazing!'
+        })
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(Vote.objects.get(pk=vote.id).comment, 'Astonishing!')
+
+        response = self.client.patch('/api/misc/vote/{}/'.format(vote.id), {
+            'comment': 'Amazing!'
+        })
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(Vote.objects.get(pk=vote.id).comment, 'Astonishing!')
+
+        self.client.logout()
+
+    def test_delete_vote_as_voter(self):
+        ''' Test delete vote as voter '''
+        self.client.login(username='user_01', password='12345678')
+
+        vote = Vote.objects.create(comment='Astonishing!', voted_for_id=self.mp2.id, voted_by_id=self.user_01.id)
+        response = self.client.delete('/api/misc/vote/{}/'.format(vote.id))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        self.client.logout()
+
+    def test_delete_vote_as_vote_receiver(self):
+        ''' Test delete vote as vote receiver '''
+        self.client.login(username='user_02', password='12345678')
+
+        vote = Vote.objects.create(comment='Astonishing!', voted_for_id=self.mp2.id, voted_by_id=self.user_01.id)
+        response = self.client.delete('/api/misc/vote/{}/'.format(vote.id))
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+        self.client.logout()
