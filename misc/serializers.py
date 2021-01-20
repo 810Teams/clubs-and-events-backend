@@ -23,16 +23,41 @@ class FAQSerializer(serializers.ModelSerializer):
         exclude = ('created_by', 'updated_by')
 
 
-class ExistingVoteSerializer(serializers.ModelSerializer):
-    ''' Existing vote serializer '''
+class VoteSerializerTemplate(serializers.ModelSerializer):
+    ''' Vote serializer template '''
+    meta = serializers.SerializerMethodField()
+
     class Meta:
         ''' Meta '''
         model = Vote
         exclude = ('voted_by', 'created_at')
-        read_only_fields = ('comment', 'voted_for')
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'event': self.get_event(obj),
+            'voted_for_user': self.get_voted_for_user(obj)
+        }
+
+    def get_event(self, obj):
+        ''' Retrieve event '''
+        return obj.voted_for.community.id
+
+    def get_voted_for_user(self, obj):
+        ''' Retrieve user receive a vote '''
+        return obj.voted_for.user.id
 
 
-class NotExistingVoteSerializer(serializers.ModelSerializer):
+class ExistingVoteSerializer(VoteSerializerTemplate):
+    ''' Existing vote serializer '''
+    class Meta:
+        ''' Meta '''
+        model = Vote
+        exclude = ('comment', 'voted_by', 'created_at')
+        read_only_fields = ('voted_for',)
+
+
+class NotExistingVoteSerializer(VoteSerializerTemplate):
     ''' Not existing vote serializer '''
     class Meta:
         ''' Meta '''
@@ -90,3 +115,12 @@ class NotExistingVoteSerializer(serializers.ModelSerializer):
         raise_validation_errors(errors)
 
         return data
+
+
+class OwnVoteSerializer(VoteSerializerTemplate):
+    ''' Own vote serializer '''
+    class Meta:
+        ''' Meta '''
+        model = Vote
+        exclude = ('voted_by', 'created_at')
+        read_only_fields = ('comment', 'voted_for')
