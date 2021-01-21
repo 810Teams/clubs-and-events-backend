@@ -11,6 +11,8 @@ from rest_framework import serializers
 
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
 from core.utils.serializer import field_exists
+from membership.models import Membership
+from misc.models import Vote
 from user.models import EmailPreference, StudentCommitteeAuthority
 
 
@@ -42,7 +44,8 @@ class UserSerializer(serializers.ModelSerializer):
     def get_meta(self, obj):
         ''' Retrieve meta data '''
         return {
-            'is_student_committee': self.get_is_student_committee(obj)
+            'is_student_committee': self.get_is_student_committee(obj),
+            'votes': self.get_votes(obj)
         }
 
     def get_is_student_committee(self, obj):
@@ -52,6 +55,12 @@ class UserSerializer(serializers.ModelSerializer):
             return authority.start_date <= datetime.now().date() <= authority.end_date
         except StudentCommitteeAuthority.DoesNotExist:
             return False
+
+    def get_votes(self, obj):
+        ''' Retrieve vote amount '''
+        membership_ids = [i.id for i in Membership.objects.filter(user_id=obj.id)]
+
+        return len(Vote.objects.filter(voted_for_id__in=membership_ids))
 
 
 class LimitedUserSerializer(serializers.ModelSerializer):
