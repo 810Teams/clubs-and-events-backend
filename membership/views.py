@@ -228,6 +228,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
 
+        # Community Type Filtering
         try:
             query = request.query_params.get('community_type')
             if query == 'club':
@@ -243,6 +244,15 @@ class MembershipViewSet(viewsets.ModelViewSet):
             elif query == 'lab':
                 lab_ids = [i.id for i in Lab.objects.all()]
                 queryset = queryset.filter(community_id__in=lab_ids)
+        except ValueError:
+            queryset = None
+
+        # Custom Searching
+        try:
+            query = request.query_params.get('search')
+            if query is not None:
+                filtered_ids = [i.id for i in queryset if query in i.user.name]
+                queryset = queryset.filter(pk__in=filtered_ids)
         except ValueError:
             queryset = None
 

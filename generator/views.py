@@ -8,7 +8,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
+from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity
 from core.utils.filters import filter_queryset, filter_queryset_permission
 from core.utils.general import get_random_string
 from generator.models import QRCode, JoinKey, GeneratedDocx
@@ -16,8 +16,6 @@ from generator.serializers import ExistingQRCodeSerializer, NotExistingQRCodeSer
 from generator.serializers import ExistingJoinKeySerializer, NotExistingJoinKeySerializer
 from generator.serializers import ExistingGeneratedDocxSerializer, NotExistingGeneratedDocxSerializer
 from membership.models import Membership
-
-import random
 
 
 class QRCodeViewSet(viewsets.ModelViewSet):

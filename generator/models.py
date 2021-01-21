@@ -4,7 +4,6 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -15,6 +14,7 @@ from PIL import Image
 
 from clubs_and_events.settings import STORAGE_BASE_DIR
 from community.models import Club, Event
+from core.utils.objects import save_user_attributes
 from generator.generate_docx import generate_docx
 
 import os
@@ -48,11 +48,7 @@ class QRCode(models.Model):
         self.image.save('qr_code.png', File(buffer), save=False)
         canvas.close()
 
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name=None)
 
         super(QRCode, self).save(*args, **kwargs)
 
@@ -83,12 +79,7 @@ class JoinKey(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name=None)
         super(JoinKey, self).save(*args, **kwargs)
 
 
@@ -164,12 +155,7 @@ class GeneratedDocx(models.Model):
         )
 
         # Save updaters
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
 
         # Save
         super(GeneratedDocx, self).save(*args, **kwargs)

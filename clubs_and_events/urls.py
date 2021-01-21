@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/community/', include('community.urls')),
     path('api/generator/', include('generator.urls')),
     path('api/membership/', include('membership.urls')),
+    path('api/misc/', include('misc.urls')),
     path('api/notification/', include('notification.urls')),
     path('api/user/', include('user.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

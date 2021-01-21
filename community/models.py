@@ -4,7 +4,6 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from crum import get_current_user
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -15,6 +14,7 @@ from category.models import ClubType, EventType, EventSeries
 from clubs_and_events.settings import STORAGE_BASE_DIR, MAX_COMMUNITY_LOGO_DIMENSION, MAX_COMMUNITY_BANNER_DIMENSION
 from core.utils.general import get_file_extension
 from core.utils.files import auto_downscale_image
+from core.utils.objects import save_user_attributes
 
 
 class Community(models.Model):
@@ -79,12 +79,7 @@ class Community(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        user = get_current_user()
-        if user is not None and user.id is None:
-            user = None
-        if self.id is None:
-            self.created_by = user
-        self.updated_by = user
+        save_user_attributes(self, created_by_field_name='created_by', updated_by_field_name='updated_by')
 
         if self.pk is None:
             saved_logo, saved_banner = self.logo, self.banner

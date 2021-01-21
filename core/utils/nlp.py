@@ -7,7 +7,9 @@
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from profanity_filter import ProfanityFilter
+from pythainlp.corpus.common import thai_words
 from pythainlp.tokenize import word_tokenize
+from pythainlp.util import dict_trie
 from textblob import TextBlob
 from textblob.exceptions import TranslatorError
 
@@ -38,12 +40,22 @@ def is_profane_en(text):
 
 def is_profane_th(text):
     ''' Check if the Thai text contains profanity '''
-    words = word_tokenize(text, engine='newmm', keep_whitespace=False)
-    dictionary = open('core/dictionary/profanity_th.txt', encoding='utf-8')
-    dictionary = [i.replace('\n', '').replace('\r', '').strip() for i in dictionary if i[0] != '#']
+    custom_dictionary = set(thai_words())
+    profane_dictionary = open('core/dictionary/profanity_th.txt', encoding='utf-8')
+    profane_dictionary = [i.replace('\n', '').replace('\r', '').strip() for i in profane_dictionary]
+
+    for i in profane_dictionary:
+        custom_dictionary.add(i)
+
+    words = word_tokenize(
+        text.replace(' ', str()).replace('เเ', 'แ'),
+        engine='newmm',
+        keep_whitespace=False,
+        custom_dict=dict_trie(dict_source=custom_dictionary)
+    )
 
     for i in words:
-        if i in dictionary:
+        if i in profane_dictionary:
             return True
 
     return False

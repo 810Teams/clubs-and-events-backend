@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'core',
     'generator',
     'membership',
+    'misc',
     'notification',
     'user',
     'corsheaders',
@@ -210,7 +211,6 @@ MAX_ALBUM_IMAGE_DIMENSION = 4096, 4096
 MAX_COMMUNITY_LOGO_DIMENSION = 1024, 1024
 MAX_COMMUNITY_BANNER_DIMENSION = 2048, 2048
 MAX_PROFILE_PICTURE_DIMENSION = 512, 512
-MAX_COVER_PHOTO_DIMENSION = 1024, 1024
 
 
 # Club Approval and Renewal Settings
@@ -220,6 +220,17 @@ CLUB_VALID_DAY = 31
 CLUB_ADVANCED_RENEWAL = timedelta(days=60)
 STUDENT_COMMITTEE_ADVISOR_NAME = 'ดร.อนันตพัฒน์ อนันตชัย'
 STUDENT_COMMITTEE_PRESIDENT_NAME = 'นายธนพนธ์ วงศ์ประเสริฐ'
+
+
+# Comment Settings
+
+COMMENT_LIMIT_PER_INTERVAL = 2
+COMMENT_INTERVAL_TIME = 5
+
+
+# Vote Settings
+
+VOTE_LIMIT_PER_EVENT = 3
 
 
 # Natural Language Processing (NLP) Settings

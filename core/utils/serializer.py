@@ -28,7 +28,7 @@ def add_error_message(errors, key='non_field_errors', message=str(), wrap=True):
 
 def validate_profanity_serializer(data, key, errors, field_name=str(), lang=('en', 'th')):
     ''' Validate profanity of data in the field, then add the error message to the errors list '''
-    if field_name.strip() == '':
+    if field_name.strip() == str():
         field_name = key.replace('_', ' ').capitalize()
 
     try:
