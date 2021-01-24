@@ -26,7 +26,7 @@ from user.permissions import IsStudent, IsLecturer
 
 class CommunityViewSet(viewsets.ModelViewSet):
     ''' Community view set'''
-    queryset = Community.objects.all()
+    queryset = Community.objects.filter(is_active=True)
     permission_classes = (IsPubliclyVisibleCommunity,)
     serializer_class = CommunitySerializer
     http_method_names = ('get', 'head', 'options')
@@ -51,10 +51,18 @@ class CommunityViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+    def destroy(self, request, *args, **kwargs):
+        ''' Disable instance '''
+        community = self.get_object()
+        community.is_active = False
+        community.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ClubViewSet(viewsets.ModelViewSet):
     ''' Club view set '''
-    queryset = Club.objects.all()
+    queryset = Club.objects.filter(is_active=True)
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description')
@@ -111,10 +119,18 @@ class ClubViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def destroy(self, request, *args, **kwargs):
+        ''' Disable instance '''
+        community = self.get_object()
+        community.is_active = False
+        community.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class EventViewSet(viewsets.ModelViewSet):
     ''' Event view set '''
-    queryset = Event.objects.all()
+    queryset = Event.objects.filter(is_active=True)
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description', 'location')
@@ -180,10 +196,18 @@ class EventViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def destroy(self, request, *args, **kwargs):
+        ''' Disable instance '''
+        community = self.get_object()
+        community.is_active = False
+        community.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class CommunityEventViewSet(viewsets.ModelViewSet):
     ''' Community event view set '''
-    queryset = CommunityEvent.objects.all()
+    queryset = CommunityEvent.objects.filter(is_active=True)
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name_th', 'name_en', 'description', 'location')
@@ -252,10 +276,18 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def destroy(self, request, *args, **kwargs):
+        ''' Disable instance '''
+        community = self.get_object()
+        community.is_active = False
+        community.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class LabViewSet(viewsets.ModelViewSet):
     ''' Lab view set '''
-    queryset = Lab.objects.all()
+    queryset = Lab.objects.filter(is_active=True)
     serializer_class = LabSerializer
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
@@ -302,10 +334,18 @@ class LabViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def destroy(self, request, *args, **kwargs):
+        ''' Disable instance '''
+        community = self.get_object()
+        community.is_active = False
+        community.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class MyCommunityView(generics.ListAPIView):
     ''' My community view '''
-    queryset = Community.objects.all()
+    queryset = Community.objects.filter(is_active=True)
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = CommunitySerializer
 
@@ -321,13 +361,13 @@ class MyCommunityView(generics.ListAPIView):
 
 class MyClubView(MyCommunityView):
     ''' My club view '''
-    queryset = Club.objects.all()
+    queryset = Club.objects.filter(is_active=True)
     serializer_class = OfficialClubSerializer
 
 
 class MyEventView(generics.ListAPIView):
     ''' My event view '''
-    queryset = Event.objects.all()
+    queryset = Event.objects.filter(is_active=True)
     serializer_class = ApprovedEventSerializer
 
     def list(self, request, *args, **kwargs):
@@ -351,11 +391,11 @@ class MyEventView(generics.ListAPIView):
 
 class MyCommunityEventView(MyCommunityView):
     ''' My community event view '''
-    queryset = CommunityEvent.objects.all()
+    queryset = CommunityEvent.objects.filter(is_active=True)
     serializer_class = ExistingCommunityEventSerializer
 
 
 class MyLabView(MyCommunityView):
     ''' My lab view '''
-    queryset = Lab.objects.all()
+    queryset = Lab.objects.filter(is_active=True)
     serializer_class = LabSerializer
