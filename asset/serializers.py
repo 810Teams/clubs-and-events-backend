@@ -224,7 +224,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = Comment
-        exclude = ('created_by', 'ip_address')
+        exclude = ('ip_address', 'is_active', 'created_by')
 
     def get_meta(self, obj):
         ''' Retrieve meta data '''

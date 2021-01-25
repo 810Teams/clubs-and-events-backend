@@ -166,7 +166,7 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     ''' Comment view set '''
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_active=True)
     serializer_class = CommentSerializer
     http_method_names = ('get', 'post', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
@@ -190,3 +190,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        ''' Disable instance '''
+        comment = self.get_object()
+        comment.is_active = False
+        comment.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
