@@ -21,6 +21,10 @@ class CommentAPITest(APITestCase):
     def setUp(self):
         ''' Set up '''
         self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678', name='User One')
+        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678', name='User One')
+        self.user_03 = get_user_model().objects.create_user(username='user_03', password='12345678', name='User One')
+        self.user_04 = get_user_model().objects.create_user(username='user_04', password='12345678', name='User One')
+        self.user_05 = get_user_model().objects.create_user(username='user_05', password='12345678', name='User One')
 
         self.club_public = Club.objects.create(
             name_th='ชุมนุมทดสอบความคิดเห็น สาธารณะ', name_en='Comment Testing Club (Public)',
@@ -42,6 +46,11 @@ class CommentAPITest(APITestCase):
             start_date=datetime.date(2020, 12, 1), end_date=datetime.date(2020, 12, 2),
             start_time=datetime.time(9, 0, 0), end_time=datetime.time(17, 0, 0), is_publicly_visible=False
         )
+
+        Membership.objects.create(community_id=self.event_public.id, user_id=self.user_01.id, position=3)
+        Membership.objects.create(community_id=self.event_public.id, user_id=self.user_02.id, position=2)
+        Membership.objects.create(community_id=self.event_public.id, user_id=self.user_03.id, position=1)
+        Membership.objects.create(community_id=self.event_public.id, user_id=self.user_04.id, position=0)
 
     def test_list_comment_event_authenticated(self):
         ''' Test list comment on events while authenticated '''
@@ -399,12 +408,74 @@ class CommentAPITest(APITestCase):
 
         self.client.logout()
 
-    def test_delete_comment(self):
+    def test_delete_comment_as_leader(self):
+        ''' Test delete comments as leader '''
+        self._test_delete_comment(username='user_01', created_by_id=self.user_01.id, allows_delete=True)
+        self._test_delete_comment(username='user_01', created_by_id=self.user_02.id, allows_delete=True)
+        self._test_delete_comment(username='user_01', created_by_id=self.user_03.id, allows_delete=True)
+        self._test_delete_comment(username='user_01', created_by_id=self.user_04.id, allows_delete=True)
+        self._test_delete_comment(username='user_01', created_by_id=self.user_05.id, allows_delete=True)
+        self._test_delete_comment(username='user_01', created_by_id=None, allows_delete=True)
+
+    def test_delete_comment_as_deputy_leader(self):
+        ''' Test delete comments as deputy leader '''
+        self._test_delete_comment(username='user_02', created_by_id=self.user_01.id, allows_delete=True)
+        self._test_delete_comment(username='user_02', created_by_id=self.user_02.id, allows_delete=True)
+        self._test_delete_comment(username='user_02', created_by_id=self.user_03.id, allows_delete=True)
+        self._test_delete_comment(username='user_02', created_by_id=self.user_04.id, allows_delete=True)
+        self._test_delete_comment(username='user_02', created_by_id=self.user_05.id, allows_delete=True)
+        self._test_delete_comment(username='user_02', created_by_id=None, allows_delete=True)
+
+    def test_delete_comment_as_staff(self):
+        ''' Test delete comments as staff '''
+        self._test_delete_comment(username='user_03', created_by_id=self.user_01.id, allows_delete=False)
+        self._test_delete_comment(username='user_03', created_by_id=self.user_02.id, allows_delete=False)
+        self._test_delete_comment(username='user_03', created_by_id=self.user_03.id, allows_delete=True)
+        self._test_delete_comment(username='user_03', created_by_id=self.user_04.id, allows_delete=False)
+        self._test_delete_comment(username='user_03', created_by_id=self.user_05.id, allows_delete=False)
+        self._test_delete_comment(username='user_03', created_by_id=None, allows_delete=False)
+
+    def test_delete_comment_as_member(self):
+        ''' Test delete comments as member '''
+        self._test_delete_comment(username='user_04', created_by_id=self.user_01.id, allows_delete=False)
+        self._test_delete_comment(username='user_04', created_by_id=self.user_02.id, allows_delete=False)
+        self._test_delete_comment(username='user_04', created_by_id=self.user_03.id, allows_delete=False)
+        self._test_delete_comment(username='user_04', created_by_id=self.user_04.id, allows_delete=True)
+        self._test_delete_comment(username='user_04', created_by_id=self.user_05.id, allows_delete=False)
+        self._test_delete_comment(username='user_04', created_by_id=None, allows_delete=False)
+
+    def test_delete_comment_as_non_member(self):
+        ''' Test delete comments as non-member '''
+        self._test_delete_comment(username='user_05', created_by_id=self.user_01.id, allows_delete=False)
+        self._test_delete_comment(username='user_05', created_by_id=self.user_02.id, allows_delete=False)
+        self._test_delete_comment(username='user_05', created_by_id=self.user_03.id, allows_delete=False)
+        self._test_delete_comment(username='user_05', created_by_id=self.user_04.id, allows_delete=False)
+        self._test_delete_comment(username='user_05', created_by_id=self.user_05.id, allows_delete=True)
+        self._test_delete_comment(username='user_05', created_by_id=None, allows_delete=False)
+
+    def test_delete_comment_unauthenticated(self):
+        ''' Test delete comment while unauthenticated '''
+        self._test_delete_comment(created_by_id=self.user_01.id, allows_delete=False)
+        self._test_delete_comment(created_by_id=self.user_02.id, allows_delete=False)
+        self._test_delete_comment(created_by_id=self.user_03.id, allows_delete=False)
+        self._test_delete_comment(created_by_id=self.user_04.id, allows_delete=False)
+        self._test_delete_comment(created_by_id=self.user_05.id, allows_delete=False)
+        self._test_delete_comment(created_by_id=None, allows_delete=False)
+
+    def _test_delete_comment(self, username=str(), created_by_id=None, allows_delete=True):
         ''' Test delete comment '''
-        self.client.login(username='user_01', password='12345678')
+        if username.strip() != str():
+            self.client.login(username=username, password='12345678')
 
-        comment = Comment.objects.create(text='Greetings!', written_by='Guest', event_id=self.event_public.id)
+        comment = Comment.objects.create(
+            text='Greetings!', written_by='It\'s me', event_id=self.event_public.id, created_by_id=created_by_id
+        )
         response = self.client.delete('/api/asset/comment/{}/'.format(comment.id))
-        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        self.client.logout()
+        if allows_delete:
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        else:
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        if username.strip() != str():
+            self.client.logout()

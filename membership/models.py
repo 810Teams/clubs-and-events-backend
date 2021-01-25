@@ -40,7 +40,7 @@ class Request(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        save_user_attributes(self, created_by_field_name='user', updated_by_field_name='updated_by', allows_null=False)
+        save_user_attributes(self, created_by_field_name='user', updated_by_field_name='updated_by')
         super(Request, self).save(*args, **kwargs)
 
     def clean(self):
@@ -110,7 +110,7 @@ class Invitation(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        save_user_attributes(self, created_by_field_name='invitor', updated_by_field_name=None, allows_null=False)
+        save_user_attributes(self, created_by_field_name='invitor', updated_by_field_name=None)
         super(Invitation, self).save(*args, **kwargs)
 
     def clean(self):
