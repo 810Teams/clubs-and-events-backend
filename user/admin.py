@@ -39,21 +39,21 @@ class StudentCommitteeAuthorityInline(admin.StackedInline):
 class UserAdmin(BaseUserAdmin):
     ''' User admin '''
     list_display = ('id', 'username', 'name', 'user_group', 'is_active', 'is_staff', 'is_superuser',
-                    'profile_picture_size', 'cover_photo_size')
+                    'profile_picture_size')
     inlines = (EmailPreferenceInline, StudentCommitteeAuthorityInline)
     readonly_fields = ('last_login', 'created_at', 'created_by', 'updated_at', 'updated_by')
     list_per_page = 20
 
     fieldsets = (
         (None, {'fields': ('username', 'name', 'password')}),
-        (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
+        (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'birthdate')}),
         (_('Timestamps'), {'fields': ('last_login', 'created_at', 'created_by', 'updated_at', 'updated_by')}),
         (_('Permissions'), {'fields': ('user_group', 'is_active', 'is_staff', 'is_superuser')}),
     )
 
     add_fieldsets = (
         (None, {'fields': ('username', 'name', 'password1', 'password2')}),
-        (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'cover_photo', 'birthdate')}),
+        (_('Profile'), {'fields': ('nickname', 'bio', 'profile_picture', 'birthdate')}),
         (_('Permissions'), {'fields': ('user_group', 'is_active', 'is_staff', 'is_superuser')}),
     )
 
@@ -61,15 +61,6 @@ class UserAdmin(BaseUserAdmin):
         ''' Get profile picture size and dimensions '''
         try:
             return get_image_size(obj.profile_picture)
-        except ValueError:
-            return str()
-        except FileNotFoundError:
-            return 'FileNotFoundError'
-
-    def cover_photo_size(self, obj):
-        ''' Get cover photo size and dimensions '''
-        try:
-            return get_image_size(obj.cover_photo)
         except ValueError:
             return str()
         except FileNotFoundError:
