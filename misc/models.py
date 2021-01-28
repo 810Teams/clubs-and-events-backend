@@ -61,7 +61,7 @@ class Vote(models.Model):
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
-        save_user_attributes(self, created_by_field_name='voted_by', updated_by_field_name=None, allows_null=False)
+        save_user_attributes(self, created_by_field_name='voted_by', updated_by_field_name=None)
         super(Vote, self).save(*args, **kwargs)
 
     def clean(self):
