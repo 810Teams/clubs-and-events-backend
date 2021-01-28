@@ -48,7 +48,7 @@ class ApprovalRequestInline(admin.TabularInline):
 class ClubAdmin(admin.ModelAdmin):
     ''' Club admin '''
     list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'club_type', 'room',
-                    'is_official', 'status', 'valid_through', 'created_at', 'updated_at')
+                    'is_official', 'status', 'valid_through', 'is_active', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline, ApprovalRequestInline)
     list_per_page = 20
@@ -57,7 +57,7 @@ class ClubAdmin(admin.ModelAdmin):
 class EventAdmin(admin.ModelAdmin):
     ''' Event admin '''
     list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'event_type',
-                    'start_date', 'end_date', 'is_approved', 'is_cancelled', 'is_community_event',
+                    'start_date', 'end_date', 'is_approved', 'is_cancelled', 'is_community_event', 'is_active',
                     'created_at', 'updated_at',)
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline, AdvisoryInline, ApprovalRequestInline)
@@ -76,7 +76,7 @@ class CommunityEventAdmin(admin.ModelAdmin):
     ''' Community event admin '''
     list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'event_type',
                     'event_series', 'start_date', 'end_date', 'is_approved', 'is_cancelled', 'created_under',
-                    'allows_outside_participators', 'created_at', 'updated_at')
+                    'allows_outside_participators', 'is_active', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline)
     list_per_page = 20
@@ -91,7 +91,7 @@ class CommunityEventAdmin(admin.ModelAdmin):
 class LabAdmin(admin.ModelAdmin):
     ''' Lab admin '''
     list_display = ('id', 'name_th', 'name_en', 'is_publicly_visible', 'is_accepting_requests', 'room', 'main_tags',
-                    'status', 'created_at', 'updated_at')
+                    'status', 'is_active', 'created_at', 'updated_at')
     readonly_fields = ('created_by', 'updated_by')
     inlines = (MembershipInline, InvitationInline, RequestInline)
     list_per_page = 20

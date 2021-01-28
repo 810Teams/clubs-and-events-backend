@@ -9,7 +9,7 @@ from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 
 from asset.models import Announcement, Album, AlbumImage, Comment
-from asset.permissions import IsAbleToRetrieveAnnouncement
+from asset.permissions import IsAbleToRetrieveAnnouncement, IsAbleToDeleteComment
 from asset.serializers import ExistingAnnouncementSerializer, NotExistingAnnouncementSerializer
 from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerializer
 from asset.serializers import AlbumImageSerializer, CommentSerializer
@@ -166,9 +166,9 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     ''' Comment view set '''
-    queryset = Comment.objects.all()
+    queryset = Comment.objects.filter(is_active=True)
     serializer_class = CommentSerializer
-    http_method_names = ('get', 'post', 'head', 'options')
+    http_method_names = ('get', 'post', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('text', 'written_by')
 
@@ -176,6 +176,8 @@ class CommentViewSet(viewsets.ModelViewSet):
         ''' Get permissions '''
         if self.request.method == 'GET':
             return (IsInPubliclyVisibleCommunity(),)
+        elif self.request.method == 'DELETE':
+            return (IsAbleToDeleteComment(),)
         return tuple()
 
     def list(self, request, *args, **kwargs):
@@ -188,3 +190,11 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        ''' Disable instance '''
+        comment = self.get_object()
+        comment.is_active = False
+        comment.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)

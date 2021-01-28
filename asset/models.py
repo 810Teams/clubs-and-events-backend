@@ -153,6 +153,7 @@ class Comment(models.Model):
     written_by = models.CharField(max_length=64)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     ip_address = models.CharField(max_length=15, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
 

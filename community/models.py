@@ -42,6 +42,9 @@ class Community(models.Model):
     is_publicly_visible = models.BooleanField(default=False)
     is_accepting_requests = models.BooleanField(default=True)
 
+    # Status
+    is_active = models.BooleanField(default=True)
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

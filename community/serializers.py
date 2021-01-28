@@ -33,7 +33,7 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = Community
-        fields = '__all__'
+        exclude = ('is_active',)
         abstract = True
 
     def validate(self, data, get_errors=False):
@@ -311,7 +311,7 @@ class CommunitySerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Community
-        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        exclude = ('is_active', 'created_at', 'updated_at', 'created_by', 'updated_by')
 
     def get_meta(self, obj):
         ''' Retrieve meta data '''
@@ -325,7 +325,7 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Club
-        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        exclude = ('is_active', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_official', 'valid_through')
 
     def validate(self, data, get_errors=False):
@@ -346,7 +346,8 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Club
-        exclude = ('url_id', 'is_publicly_visible', 'room', 'created_at', 'updated_at', 'created_by', 'updated_by')
+        exclude = ('url_id', 'is_publicly_visible', 'room', 'is_active', 'created_at', 'updated_at', 'created_by',
+                   'updated_by')
         read_only_fields = ('is_official', 'valid_through')
 
 
@@ -357,7 +358,7 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Event
-        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        exclude = ('is_active', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
 
     def validate(self, data, get_errors=False):
@@ -404,7 +405,7 @@ class UnapprovedEventSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Event
-        exclude = ('url_id', 'is_publicly_visible', 'created_at', 'updated_at', 'created_by', 'updated_by')
+        exclude = ('is_active', 'url_id', 'is_publicly_visible', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
 
     def validate(self, data, get_errors=False):
@@ -425,7 +426,7 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = CommunityEvent
-        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        exclude = ('is_active', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved', 'created_under')
 
     def validate(self, data, get_errors=False):
@@ -477,7 +478,7 @@ class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = CommunityEvent
-        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        exclude = ('is_active', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
 
     def validate(self, data, get_errors=False):
@@ -518,7 +519,7 @@ class LabSerializer(CommunitySerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Lab
-        exclude = ('created_at', 'updated_at', 'created_by', 'updated_by')
+        exclude = ('is_active', 'created_at', 'updated_at', 'created_by', 'updated_by')
 
     def validate(self, data, get_errors=False):
         ''' Validate data '''

@@ -88,7 +88,7 @@ class AlbumAdmin(admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     ''' Comment admin '''
-    list_display = ('id', 'partial_text', 'written_by', 'event', 'created_at', 'created_by')
+    list_display = ('id', 'partial_text', 'written_by', 'event', 'is_active', 'created_at', 'created_by')
     readonly_fields = ('ip_address', 'created_by')
     list_per_page = 20
 

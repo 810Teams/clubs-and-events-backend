@@ -143,10 +143,6 @@ class MembershipLogAdmin(admin.ModelAdmin):
         ''' Restricts change permission '''
         return False
 
-    def has_delete_permission(self, request, obj=None):
-        ''' Restricts delete permission '''
-        return False
-
 
 class ApprovalRequestAdmin(admin.ModelAdmin):
     ''' Approval request admin '''

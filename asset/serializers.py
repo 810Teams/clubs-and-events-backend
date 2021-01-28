@@ -13,6 +13,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from asset.models import Announcement, Album, Comment, AlbumImage
+from asset.permissions import IsAbleToDeleteComment
 from clubs_and_events.settings import COMMENT_LIMIT_PER_INTERVAL, COMMENT_INTERVAL_TIME
 from community.models import Event, CommunityEvent
 from community.permissions import IsPubliclyVisibleCommunity
@@ -218,10 +219,22 @@ class AlbumImageSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     ''' Comment serializer '''
+    meta = serializers.SerializerMethodField()
+
     class Meta:
         ''' Meta '''
         model = Comment
-        exclude = ('created_by', 'ip_address')
+        exclude = ('ip_address', 'is_active', 'created_by')
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        return {
+            'is_able_to_delete': self.get_is_able_to_delete(obj)
+        }
+
+    def get_is_able_to_delete(self, obj):
+        ''' Retrieve delete-able status '''
+        return IsAbleToDeleteComment().has_object_permission(self.context['request'], None, obj)
 
     def validate(self, data):
         ''' Validate data '''
