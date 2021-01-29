@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from community.models import Club
-from membership.models import Membership
+from membership.models import Membership, Request
 from notification.models import Notification, RequestNotification, AnnouncementNotification
 from notification.models import CommunityEventNotification, EventNotification
 from user.models import StudentCommitteeAuthority
@@ -87,6 +87,25 @@ class NotificationAPITest(APITestCase):
 
         self.client.logout()
 
+    def test_community_event_notification_on_going(self):
+        ''' Test community event, on-going community event '''
+        self.client.login(username='user_01', password='12345678')
+
+        self.assertEqual(len(CommunityEventNotification.objects.all()), 0)
+        self.client.post('/api/community/event/community/', {
+            'name_th': 'นอนกันเถอะ 1',
+            'name_en': 'Let\'s Sleep! 1',
+            'location': 'Anywhere',
+            'start_date': datetime.date(1970, 1, 1),
+            'end_date': datetime.date(2099, 1, 1),
+            'start_time': datetime.time(12, 0, 0),
+            'end_time': datetime.time(12, 30, 0),
+            'created_under': self.club.id
+        })
+        self.assertEqual(len(CommunityEventNotification.objects.all()), self.club_members - 1)
+
+        self.client.logout()
+
     def test_community_event_notification_past(self):
         ''' Test community event, past community event '''
         self.client.login(username='user_01', password='12345678')
@@ -131,6 +150,31 @@ class NotificationAPITest(APITestCase):
 
         self.client.logout()
 
+    def test_event_notification_on_going(self):
+        ''' Test event notification, on-going event '''
+        self.client.login(username='user_01', password='12345678')
+
+        self.assertEqual(len(EventNotification.objects.all()), 0)
+        response = self.client.post('/api/community/event/', {
+            'name_th': 'ไอทีแคมป์ 1',
+            'name_en': 'IT CAMP 1',
+            'location': 'IT KMITL',
+            'start_date': datetime.date(1970, 1, 1),
+            'end_date': datetime.date(2099, 1, 1),
+            'start_time': datetime.time(12, 0, 0),
+            'end_time': datetime.time(12, 30, 0)
+        })
+        self.assertEqual(len(EventNotification.objects.all()), 0)
+        response = self.client.post('/api/membership/approval-request/', {
+            'community': response.data['id'],
+        })
+        self.client.patch('/api/membership/approval-request/{}/'.format(response.data['id']), {
+            'status': 'A'
+        })
+        self.assertEqual(len(EventNotification.objects.all()), self.club_members + self.non_club_members)
+
+        self.client.logout()
+
     def test_event_notification_past(self):
         ''' Test event notification, past event '''
         self.client.login(username='user_01', password='12345678')
@@ -160,9 +204,10 @@ class NotificationAPITest(APITestCase):
         ''' Test list notification '''
         self.client.login(username='user_01', password='12345678')
 
-        Notification.objects.create(user_id=self.user_01.id)
-        Notification.objects.create(user_id=self.user_02.id)
-        Notification.objects.create(user_id=self.user_03.id)
+        request = Request.objects.create(user_id=self.user_05.id, community_id=self.club.id)
+        RequestNotification.objects.create(request_id=request.id, user_id=self.user_01.id)
+        RequestNotification.objects.create(request_id=request.id, user_id=self.user_02.id)
+        RequestNotification.objects.create(request_id=request.id, user_id=self.user_03.id)
         response = self.client.get('/api/notification/notification/')
 
         self.assertEqual(len(response.data), 1)
@@ -182,11 +227,13 @@ class NotificationAPITest(APITestCase):
         ''' Test read own notification '''
         self.client.login(username='user_01', password='12345678')
 
-        notification = Notification.objects.create(user_id=self.user_01.id, is_read=False)
+        request = Request.objects.create(user_id=self.user_05.id, community_id=self.club.id)
+        notification = RequestNotification.objects.create(request_id=request.id, user_id=self.user_01.id, is_read=False)
         response = self.client.patch('/api/notification/notification/{}/'.format(notification.id), {
             'is_read': True
         })
-        self.assertEqual(response.data['is_read'], True)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Notification.objects.get(pk=notification.id).is_read, True)
 
         self.client.logout()
 
@@ -194,11 +241,13 @@ class NotificationAPITest(APITestCase):
         ''' Test read other users' notification '''
         self.client.login(username='user_01', password='12345678')
 
-        notification = Notification.objects.create(user_id=self.user_02.id, is_read=False)
+        request = Request.objects.create(user_id=self.user_05.id, community_id=self.club.id)
+        notification = RequestNotification.objects.create(request_id=request.id, user_id=self.user_02.id, is_read=False)
         response = self.client.patch('/api/notification/notification/{}/'.format(notification.id), {
             'is_read': True
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Notification.objects.get(pk=notification.id).is_read, False)
 
         self.client.logout()
 
@@ -206,11 +255,27 @@ class NotificationAPITest(APITestCase):
         ''' Test unread own notification '''
         self.client.login(username='user_01', password='12345678')
 
-        notification = Notification.objects.create(user_id=self.user_01.id, is_read=True)
+        request = Request.objects.create(user_id=self.user_05.id, community_id=self.club.id)
+        notification = RequestNotification.objects.create(request_id=request.id, user_id=self.user_01.id, is_read=True)
         response = self.client.patch('/api/notification/notification/{}/'.format(notification.id), {
             'is_read': False
         })
-        self.assertEqual(response.data['is_read'], False)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Notification.objects.get(pk=notification.id).is_read, False)
+
+        self.client.logout()
+
+    def test_unread_notification_other(self):
+        ''' Test unread other users' notification '''
+        self.client.login(username='user_01', password='12345678')
+
+        request = Request.objects.create(user_id=self.user_05.id, community_id=self.club.id)
+        notification = RequestNotification.objects.create(request_id=request.id, user_id=self.user_02.id, is_read=True)
+        response = self.client.patch('/api/notification/notification/{}/'.format(notification.id), {
+            'is_read': False
+        })
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Notification.objects.get(pk=notification.id).is_read, True)
 
         self.client.logout()
 
@@ -218,10 +283,12 @@ class NotificationAPITest(APITestCase):
         ''' Test delete own notification '''
         self.client.login(username='user_01', password='12345678')
 
-        notification = Notification.objects.create(user_id=self.user_01.id, is_read=False)
+        request = Request.objects.create(user_id=self.user_05.id, community_id=self.club.id)
+        notification = RequestNotification.objects.create(request_id=request.id, user_id=self.user_01.id, is_read=False)
         self.assertEqual(len(Notification.objects.all()), 1)
 
-        self.client.delete('/api/notification/notification/{}/'.format(notification.id))
+        response = self.client.delete('/api/notification/notification/{}/'.format(notification.id))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(len(Notification.objects.all()), 0)
 
         self.client.logout()
@@ -230,10 +297,12 @@ class NotificationAPITest(APITestCase):
         ''' Test delete other users' notification '''
         self.client.login(username='user_01', password='12345678')
 
-        notification = Notification.objects.create(user_id=self.user_02.id, is_read=False)
-        self.assertEqual(len(Notification.objects.all()), 1)
+        request = Request.objects.create(user_id=self.user_05.id, community_id=self.club.id)
+        notification = RequestNotification.objects.create(request_id=request.id, user_id=self.user_02.id, is_read=False)
+        self.assertEqual(len(RequestNotification.objects.all()), 1)
 
         response = self.client.delete('/api/notification/notification/{}/'.format(notification.id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(len(Notification.objects.all()), 1)
 
         self.client.logout()

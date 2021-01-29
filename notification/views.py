@@ -7,6 +7,7 @@
 from rest_framework import permissions, viewsets
 from rest_framework.response import Response
 
+from core.permissions import IsInActiveCommunity
 from core.utils.filters import filter_queryset_permission
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
@@ -20,7 +21,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     ''' Notification view set '''
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-    permission_classes = (permissions.IsAuthenticated, IsNotificationOwner)
+    permission_classes = (permissions.IsAuthenticated, IsInActiveCommunity, IsNotificationOwner)
     http_method_names = ('get', 'put', 'patch', 'delete', 'head', 'options')
 
     def list(self, request, *args, **kwargs):

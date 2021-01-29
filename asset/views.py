@@ -13,7 +13,7 @@ from asset.permissions import IsAbleToRetrieveAnnouncement, IsAbleToDeleteCommen
 from asset.serializers import ExistingAnnouncementSerializer, NotExistingAnnouncementSerializer
 from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerializer
 from asset.serializers import AlbumImageSerializer, CommentSerializer
-from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity
+from core.permissions import IsStaffOfCommunity, IsInPubliclyVisibleCommunity, IsInActiveCommunity
 from core.utils.filters import filter_queryset, filter_queryset_permission, limit_queryset
 from membership.models import Membership
 from notification.notifier import notify
@@ -29,11 +29,11 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsAbleToRetrieveAnnouncement(),)
+            return (IsInActiveCommunity(), IsAbleToRetrieveAnnouncement())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
-            return (permissions.IsAuthenticated(), IsStaffOfCommunity())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsStaffOfCommunity())
         return tuple()
 
     def get_serializer_class(self):
@@ -81,11 +81,11 @@ class AlbumViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
+            return (IsInActiveCommunity(), IsInPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
-            return (permissions.IsAuthenticated(), IsStaffOfCommunity())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsStaffOfCommunity())
         return tuple()
 
     def get_serializer_class(self):
@@ -116,11 +116,11 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
+            return (IsInActiveCommunity(), IsInPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsStaffOfCommunity())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsStaffOfCommunity())
         return tuple()
 
     def list(self, request, *args, **kwargs):
@@ -175,9 +175,9 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
+            return (IsInActiveCommunity(), IsInPubliclyVisibleCommunity())
         elif self.request.method == 'DELETE':
-            return (IsAbleToDeleteComment(),)
+            return (IsInActiveCommunity(), IsAbleToDeleteComment(),)
         return tuple()
 
     def list(self, request, *args, **kwargs):
