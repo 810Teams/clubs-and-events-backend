@@ -38,9 +38,11 @@ class IsInActiveCommunity(permissions.BasePermission):
     ''' Permission for checking if the object is in or related to an active community '''
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
-        ref = get_community_reference(obj)
-        if ref is not None:
-            return ref.is_active
+        community = get_community_reference(obj)
+        if community is not None:
+            if isinstance(community, CommunityEvent):
+                return community.is_active and community.created_under.is_active
+            return community.is_active
         return False
 
 

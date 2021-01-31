@@ -17,7 +17,7 @@ from community.serializers import CommunitySerializer, OfficialClubSerializer, U
 from community.serializers import ApprovedEventSerializer, UnapprovedEventSerializer
 from community.serializers import ExistingCommunityEventSerializer, NotExistingCommunityEventSerializer
 from community.serializers import LabSerializer
-from core.permissions import IsDeputyLeaderOfCommunity, IsMemberOfCommunity
+from core.permissions import IsDeputyLeaderOfCommunity, IsMemberOfCommunity, IsInActiveCommunity
 from core.utils.filters import filter_queryset, filter_queryset_permission, filter_queryset_exclude_own
 from membership.models import Membership
 from notification.notifier import notify
@@ -215,13 +215,13 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsPubliclyVisibleCommunity(),)
+            return (IsInActiveCommunity(), IsPubliclyVisibleCommunity(),)
         elif self.request.method == 'POST':
-            return (permissions.IsAuthenticated(),)
+            return (permissions.IsAuthenticated(), IsInActiveCommunity())
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsAbleToUpdateCommunityEvent())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToUpdateCommunityEvent())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsAbleToDeleteCommunityEvent())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToDeleteCommunityEvent())
         return tuple()
 
     def get_serializer_class(self):

@@ -169,25 +169,27 @@ class IsRenewableClub(permissions.BasePermission):
         return False
 
 
+# TODO: Consider a better deletable condition
 class IsDeletableClub(permissions.BasePermission):
     ''' Deletable club permission '''
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
         if isinstance(obj, Club):
-            return not obj.is_official
+            return True
         return False
 
 
+# TODO: Consider a better deletable condition
 class IsDeletableEvent(permissions.BasePermission):
     ''' Deletable event permission '''
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
         if isinstance(obj, Event):
-            return not obj.is_approved
+            return True
         return False
 
 
-# TODO: Implements a better deletable condition
+# TODO: Consider a better deletable condition
 class IsDeletableCommunityEvent(permissions.BasePermission):
     ''' Deletable community event permission '''
     def has_object_permission(self, request, view, obj):
@@ -197,7 +199,7 @@ class IsDeletableCommunityEvent(permissions.BasePermission):
         return False
 
 
-# TODO: Implements a better deletable condition
+# TODO: Consider a better deletable condition
 class IsDeletableLab(permissions.BasePermission):
     ''' Deletable lab permission '''
     def has_object_permission(self, request, view, obj):
