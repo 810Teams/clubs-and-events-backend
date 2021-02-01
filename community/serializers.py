@@ -505,7 +505,7 @@ class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
         # Restrict creation under non-active clubs or labs
         if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['created_under']):
             add_error_message(
-                errors, key='community', message='Comments are not able to be created in non-active events.'
+                errors, key='created_under', message='Comments are not able to be created in non-active events.'
             )
 
         # Raise validation errors

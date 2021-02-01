@@ -211,7 +211,7 @@ class AlbumImageSerializer(serializers.ModelSerializer):
 
         if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['album']):
             add_error_message(
-                errors, key='community',
+                errors, key='album',
                 message='Album images are not able to be created in albums of non-active communities.'
             )
 
@@ -294,7 +294,7 @@ class CommentSerializer(serializers.ModelSerializer):
         # Prevent comment creation in non-active community
         if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['event']):
             add_error_message(
-                errors, key='community', message='Comments are not able to be created in non-active events.'
+                errors, key='event', message='Comments are not able to be created in non-active events.'
             )
 
         # Check profanity
