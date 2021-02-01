@@ -13,7 +13,7 @@ from rest_framework import serializers
 from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Community, CommunityEvent, Club, Lab, Event
 from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
-from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity, IsMemberOfCommunity
+from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity, IsMemberOfCommunity, IsInActiveCommunity
 from core.utils.filters import get_previous_membership_log
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
@@ -114,6 +114,12 @@ class NotExistingRequestSerializer(serializers.ModelSerializer):
             add_error_message(
                 errors, key='community',
                 message='Requests are not able to be made if the pending invitation to the community exists.'
+            )
+
+        # Case 7: Non-active communities
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['community']):
+            add_error_message(
+                errors, key='community', message='Requests are not able to be made to non-active communities.'
             )
 
         raise_validation_errors(errors)
@@ -234,6 +240,12 @@ class NotExistingInvitationSerializer(serializers.ModelSerializer):
                 errors, key='invitee',
                 message='Invitations are not able to be made from the community if the user already has a pending ' +
                         'request.'
+            )
+
+        # Case 7: Non-active communities
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['community']):
+            add_error_message(
+                errors, key='community', message='Invitations are not able to be made from non-active communities.'
             )
 
         raise_validation_errors(errors)
@@ -455,6 +467,13 @@ class NotExistingCustomMembershipLabelSerializer(serializers.ModelSerializer):
                 message='Custom membership labels are only applicable on staff and deputy leader.'
             )
 
+        # Case 3: Non-active communities
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['membership']):
+            add_error_message(
+                errors, key='membership',
+                message='Custom membership labels are not able to be created for memberships in non-active communities.'
+            )
+
         validate_profanity_serializer(data, 'label', errors, field_name='Custom membership label')
 
         raise_validation_errors(errors)
@@ -573,6 +592,12 @@ class AdvisorySerializer(serializers.ModelSerializer):
                     errors, message='Advisory time overlapped. A community can only have one advisor at a time.'
                 )
 
+        # Non-active communities
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['community']):
+            add_error_message(
+                errors, key='community', message='Advisories are not able to be created for non-active communities.'
+            )
+
         raise_validation_errors(errors)
 
         return data
@@ -664,6 +689,13 @@ class NotExistingApprovalRequestSerializer(serializers.ModelSerializer):
                 errors, key='community',
                 message='Approval requests are not able to be made if the community already has a pending approval ' +
                         'request.'
+            )
+
+        # Case 5: Non-active communities
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['community']):
+            add_error_message(
+                errors, key='community',
+                message='Approval requests are not able to be made from non-active communities.'
             )
 
         validate_profanity_serializer(data, 'message', errors, field_name='Approval request message')

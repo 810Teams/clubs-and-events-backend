@@ -11,11 +11,10 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from asset.models import Comment
-from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent, IsPubliclyVisibleCommunity
 from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
-from core.permissions import IsMemberOfCommunity, IsStaffOfCommunity
+from core.permissions import IsMemberOfCommunity, IsStaffOfCommunity, IsInActiveCommunity
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
 from core.utils.serializer import field_exists, clean_field
@@ -333,9 +332,7 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
         errors = super(OfficialClubSerializer, self).validate(data, get_errors=True)
 
         validate_profanity_serializer(data, 'room', errors, field_name='Club room')
-
         raise_validation_errors(errors)
-
         clean_field(data, 'room')
 
         return data
@@ -366,7 +363,6 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
         errors = super(ApprovedEventSerializer, self).validate(data, get_errors=True)
 
         validate_profanity_serializer(data, 'location', errors, field_name='Event location')
-
         raise_validation_errors(errors)
 
         return data
@@ -413,7 +409,6 @@ class UnapprovedEventSerializer(CommunitySerializerTemplate):
         errors = super(UnapprovedEventSerializer, self).validate(data, get_errors=True)
 
         validate_profanity_serializer(data, 'location', errors, field_name='Event location')
-
         raise_validation_errors(errors)
 
         return data
@@ -434,7 +429,6 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
         errors = super(ExistingCommunityEventSerializer, self).validate(data, get_errors=True)
 
         validate_profanity_serializer(data, 'location', errors, field_name='Event location')
-
         raise_validation_errors(errors)
 
         return data
@@ -506,6 +500,12 @@ class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
         if has_instance(data['created_under'], Event):
             add_error_message(
                 errors, key='created_under', message='Community events are not able to be created under events.'
+            )
+
+        # Restrict creation under non-active clubs or labs
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['created_under']):
+            add_error_message(
+                errors, key='community', message='Comments are not able to be created in non-active events.'
             )
 
         # Raise validation errors

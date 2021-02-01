@@ -17,7 +17,7 @@ from asset.permissions import IsAbleToDeleteComment
 from clubs_and_events.settings import COMMENT_LIMIT_PER_INTERVAL, COMMENT_INTERVAL_TIME
 from community.models import Event, CommunityEvent
 from community.permissions import IsPubliclyVisibleCommunity
-from core.permissions import IsStaffOfCommunity, IsMemberOfCommunity
+from core.permissions import IsStaffOfCommunity, IsMemberOfCommunity, IsInActiveCommunity
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
 from core.utils.serializer import field_exists
@@ -46,9 +46,9 @@ class AnnouncementSerializerTemplate(serializers.ModelSerializer):
         return data
 
 
+# TODO: Remove `is_able_to_edit` when the front-end is able to fix the bug where calling `meta` is undefined.
 class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     ''' Existing announcement serializer '''
-    # TODO: Remove `is_able_to_edit` when the front-end is able to fix the bug where calling `meta` is undefined.
     meta = serializers.SerializerMethodField()
     is_able_to_edit = serializers.SerializerMethodField()
 
@@ -57,14 +57,6 @@ class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
         model = Announcement
         fields = '__all__'
         read_only_fields = ('community', 'created_by', 'updated_by')
-
-    def validate(self, data, get_errors=False):
-        ''' Validate data '''
-        errors = super(ExistingAnnouncementSerializer, self).validate(data, get_errors=True)
-
-        raise_validation_errors(errors)
-
-        return data
 
     def get_meta(self, obj):
         ''' Retrieve meta data '''
@@ -90,7 +82,15 @@ class NotExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
         errors = super(NotExistingAnnouncementSerializer, self).validate(data, get_errors=True)
 
         if not IsStaffOfCommunity().has_object_permission(self.context['request'], None, data['community']):
-            errors['community'] = _('Announcements are not able to be created in communities the user is not a staff.')
+            add_error_message(
+                errors, key='community',
+                message='Announcements are not able to be created in communities the user is not a staff.'
+            )
+
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['community']):
+            add_error_message(
+                errors, key='community', message='Announcements are not able to be created in non-active communities.'
+            )
 
         raise_validation_errors(errors)
 
@@ -147,14 +147,6 @@ class ExistingAlbumSerializer(AlbumSerializerTemplate):
         fields = '__all__'
         read_only_fields = ('community', 'created_by', 'updated_by')
 
-    def validate(self, data, get_errors=False):
-        ''' Validate data '''
-        errors = super(ExistingAlbumSerializer, self).validate(data, get_errors=True)
-
-        raise_validation_errors(errors)
-
-        return data
-
     def get_meta(self, obj):
         ''' Retrieve meta data '''
         return {
@@ -189,6 +181,11 @@ class NotExistingAlbumSerializer(AlbumSerializerTemplate):
         if has_instance(data['community'], CommunityEvent):
             errors['community'] = (_('Albums are not able to be created under community events.'))
 
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['community']):
+            add_error_message(
+                errors, key='community', message='Albums are not able to be created in non-active communities.'
+            )
+
         raise_validation_errors(errors)
 
         return data
@@ -210,6 +207,12 @@ class AlbumImageSerializer(serializers.ModelSerializer):
             add_error_message(
                 errors, key='album',
                 message='Album images can only be created or deleted by staff of the community the album is created in.'
+            )
+
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['album']):
+            add_error_message(
+                errors, key='community',
+                message='Album images are not able to be created in albums of non-active communities.'
             )
 
         raise_validation_errors(errors)
@@ -287,6 +290,12 @@ class CommentSerializer(serializers.ModelSerializer):
                 add_error_message(
                     errors, key='event', message='Comments limit reached, please try again after a while.'
                 )
+
+        # Prevent comment creation in non-active community
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['event']):
+            add_error_message(
+                errors, key='community', message='Comments are not able to be created in non-active events.'
+            )
 
         # Check profanity
         validate_profanity_serializer(data, 'text', errors, field_name='Comment text')
