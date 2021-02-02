@@ -9,7 +9,7 @@ from rest_framework import serializers
 
 from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Event
-from core.permissions import IsMemberOfCommunity
+from core.permissions import IsMemberOfCommunity, IsInActiveCommunity
 from core.utils.serializer import raise_validation_errors, add_error_message, validate_profanity_serializer
 from membership.models import Membership
 from misc.models import FAQ, Vote
@@ -108,6 +108,13 @@ class NotExistingVoteSerializer(VoteSerializerTemplate):
         user_votes = user_votes.filter(voted_for_id=data['voted_for'].id, voted_by_id=request.user.id)
         if len(user_votes) != 0:
             add_error_message(errors, key='voted_for', message='User has already voted for this person in the event.')
+
+        # Non-active communities
+        if not IsInActiveCommunity().has_object_permission(self.context['request'], None, data['voted_for']):
+            add_error_message(
+                errors, key='voted_for',
+                message='Votes are not able to be casted for memberships in non non-active communities.'
+            )
 
         # Validate profanity
         validate_profanity_serializer(data, 'comment', errors, field_name='Comment')

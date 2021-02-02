@@ -206,7 +206,7 @@ class VoteAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_retrieve_vote_authenticated(self):
-        ''' Test retrieve vote while unauthenticated '''
+        ''' Test retrieve vote while authenticated '''
         self.client.login(username='user_01', password='12345678')
 
         vote = Vote.objects.create(voted_for_id=self.mp1.id, voted_by_id=self.user_03.id)

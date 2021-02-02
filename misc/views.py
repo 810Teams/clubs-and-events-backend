@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import viewsets, filters, permissions, generics
 from rest_framework.response import Response
 
+from core.permissions import IsInActiveCommunity
 from membership.models import Membership
 from misc.models import FAQ, Vote
 from misc.serializers import FAQSerializer, ExistingVoteSerializer, NotExistingVoteSerializer, OwnVoteSerializer
@@ -26,7 +27,7 @@ class FAQViewSet(viewsets.ModelViewSet):
 class VoteViewSet(viewsets.ModelViewSet):
     ''' Vote view set '''
     queryset = Vote.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsInActiveCommunity)
     http_method_names = ('get', 'post', 'head', 'options')
 
     def get_serializer_class(self):
@@ -63,7 +64,7 @@ class VoteViewSet(viewsets.ModelViewSet):
 class MyVoteView(generics.ListAPIView):
     ''' My user view '''
     queryset = Vote.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, IsInActiveCommunity)
     serializer_class = OwnVoteSerializer
 
     def list(self, request, *args, **kwargs):

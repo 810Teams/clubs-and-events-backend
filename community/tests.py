@@ -53,6 +53,17 @@ class CommunityAPITest(APITestCase):
             end_time=datetime.time(17, 0, 0),
             is_publicly_visible=False
         )
+        self.event_unapproved = Event.objects.create(
+            name_th='กิจกรรมทดสอบสังคม (ยังไม่ได้รับการอนุมัติ)',
+            name_en='Advisory Testing Event (Unapproved)',
+            is_approved=False,
+            location='L207 IT KMITL',
+            start_date=datetime.date(2020, 12, 1),
+            end_date=datetime.date(2020, 12, 2),
+            start_time=datetime.time(9, 0, 0),
+            end_time=datetime.time(17, 0, 0),
+            is_publicly_visible=False
+        )
         self.lab = Lab.objects.create(name_th='ห้องปฏิบัติการทดสอบสังคม', name_en='Community Testing Lab')
         self.community_event = CommunityEvent.objects.create(
             name_th='กิจกรรมชุมนุมทดสอบสังคม',
@@ -82,6 +93,11 @@ class CommunityAPITest(APITestCase):
         Membership.objects.create(community_id=self.event.id, user_id=self.user_03.id, position=1)
         Membership.objects.create(community_id=self.event.id, user_id=self.user_04.id, position=0)
 
+        Membership.objects.create(community_id=self.event_unapproved.id, user_id=self.user_01.id, position=3)
+        Membership.objects.create(community_id=self.event_unapproved.id, user_id=self.user_02.id, position=2)
+        Membership.objects.create(community_id=self.event_unapproved.id, user_id=self.user_03.id, position=1)
+        Membership.objects.create(community_id=self.event_unapproved.id, user_id=self.user_04.id, position=0)
+
         Membership.objects.create(community_id=self.community_event.id, user_id=self.user_01.id, position=3)
         Membership.objects.create(community_id=self.community_event.id, user_id=self.user_02.id, position=2)
         Membership.objects.create(community_id=self.community_event.id, user_id=self.user_03.id, position=1)
@@ -97,7 +113,7 @@ class CommunityAPITest(APITestCase):
         self.client.login(username='user_05', password='12345678')
 
         self._test_list_community(instance_path='club', expected_length=2)
-        self._test_list_community(instance_path='event', expected_length=2)
+        self._test_list_community(instance_path='event', expected_length=3)
         self._test_list_community(instance_path='event/community', expected_length=1)
         self._test_list_community(instance_path='lab', expected_length=1)
 
@@ -455,3 +471,188 @@ class CommunityAPITest(APITestCase):
             self.assertEqual(Community.objects.get(pk=community_id).description, description)
         else:
             self.assertIn(response.status_code, (status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN))
+
+        if username.strip() != str():
+            self.client.logout()
+
+    def test_delete_community_as_leader(self):
+        ''' Test delete community as leader '''
+        self._test_delete_community(
+            username='user_01', community_id=self.community_event.id,
+            instance_path='event/community', allows_delete=True
+        )
+        self._test_delete_community(
+            username='user_01', community_id=self.club_public.id,
+            instance_path='club', allows_delete=True
+        )
+        self._test_delete_community(
+            username='user_01', community_id=self.club_private.id,
+            instance_path='club', allows_delete=True
+        )
+        self._test_delete_community(
+            username='user_01', community_id=self.event.id,
+            instance_path='event', allows_delete=True
+        )
+        self._test_delete_community(
+            username='user_01', community_id=self.event_unapproved.id,
+            instance_path='event', allows_delete=True
+        )
+        self._test_delete_community(
+            username='lecturer_01', community_id=self.lab.id,
+            instance_path='lab', allows_delete=True
+        )
+
+    def test_delete_community_as_deputy_leader(self):
+        ''' Test delete community as deputy leader '''
+        self._test_delete_community(
+            username='user_02', community_id=self.community_event.id,
+            instance_path='event/community', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_02', community_id=self.club_public.id,
+            instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_02', community_id=self.club_private.id,
+            instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_02', community_id=self.event.id,
+            instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_02', community_id=self.event_unapproved.id,
+            instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username='lecturer_02', community_id=self.lab.id,
+            instance_path='lab', allows_delete=False
+        )
+
+    def test_delete_community_as_staff(self):
+        ''' Test delete community as staff '''
+        self._test_delete_community(
+            username='user_03', community_id=self.community_event.id,
+            instance_path='event/community', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_03', community_id=self.club_public.id,
+            instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_03', community_id=self.club_private.id,
+            instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_03', community_id=self.event.id,
+            instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_03', community_id=self.event_unapproved.id,
+            instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_03', community_id=self.lab.id,
+            instance_path='lab', allows_delete=False
+        )
+
+    def test_delete_community_as_member(self):
+        ''' Test delete community as member '''
+        self._test_delete_community(
+            username='user_04', community_id=self.community_event.id,
+            instance_path='event/community', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_04', community_id=self.club_public.id,
+            instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_04', community_id=self.club_private.id,
+            instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_04', community_id=self.event.id,
+            instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_04', community_id=self.event_unapproved.id,
+            instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_04', community_id=self.lab.id,
+            instance_path='lab', allows_delete=False
+        )
+
+    def test_delete_community_as_non_member(self):
+        ''' Test delete community as non-member '''
+        self._test_delete_community(
+            username='user_05', community_id=self.community_event.id,
+            instance_path='event/community', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_05', community_id=self.club_public.id,
+            instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_05', community_id=self.club_private.id,
+            instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_05', community_id=self.event.id,
+            instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_05', community_id=self.event_unapproved.id,
+            instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username='user_05', community_id=self.lab.id,
+            instance_path='lab', allows_delete=False
+        )
+
+    def test_delete_community_unauthenticated(self):
+        ''' Test delete community while unauthenticated '''
+        self._test_delete_community(
+            username=str(), community_id=self.community_event.id, instance_path='event/community', allows_delete=False
+        )
+        self._test_delete_community(
+            username=str(), community_id=self.club_public.id, instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username=str(), community_id=self.club_private.id, instance_path='club', allows_delete=False
+        )
+        self._test_delete_community(
+            username=str(), community_id=self.event.id, instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username=str(), community_id=self.event_unapproved.id, instance_path='event', allows_delete=False
+        )
+        self._test_delete_community(
+            username=str(), community_id=self.lab.id, instance_path='lab', allows_delete=False
+        )
+
+    def test_delete_club_then_community_event(self):
+        ''' Test delete club then community event '''
+        self._test_delete_community(
+            username='user_01', community_id=self.club_public.id,
+            instance_path='club', allows_delete=True
+        )
+        self._test_delete_community(
+            username='user_01', community_id=self.community_event.id,
+            instance_path='event/community', allows_delete=False
+        )
+
+    def _test_delete_community(self, username=str(), community_id=int(), instance_path='club', allows_delete=True):
+        ''' Test delete community '''
+        if username.strip() != str():
+            self.client.login(username=username, password='12345678')
+
+        response = self.client.delete('/api/community/{}/{}/'.format(instance_path, community_id))
+
+        if allows_delete:
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        else:
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        if username.strip() != str():
+            self.client.logout()

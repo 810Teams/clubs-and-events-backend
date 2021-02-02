@@ -6,6 +6,7 @@
 
 from django.core.exceptions import ValidationError
 
+from community.models import Community
 from core.permissions import IsMemberOfCommunity
 from membership.models import Membership, MembershipLog
 
@@ -87,3 +88,13 @@ def get_latest_membership_log(membership):
     if len(logs) > 0:
         return logs[len(logs) - 1]
     return None
+
+
+def get_active_community_ids():
+    ''' Get all active community IDs '''
+    return [i.id for i in Community.objects.filter(is_active=True)]
+
+
+def get_membership_in_active_community_ids():
+    ''' Get all memberships in active communities IDs '''
+    return [i.id for i in Membership.objects.filter(community_id__in=get_active_community_ids())]

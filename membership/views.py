@@ -15,9 +15,9 @@ from rest_framework.response import Response
 from clubs_and_events.settings import CLUB_VALID_MONTH, CLUB_VALID_DAY, CLUB_ADVANCED_RENEWAL
 from community.models import Club, Event, CommunityEvent, Lab, Community
 from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
-from core.permissions import IsDeputyLeaderOfCommunity
-from core.permissions import IsInPubliclyVisibleCommunity
+from core.permissions import IsInPubliclyVisibleCommunity, IsInActiveCommunity, IsDeputyLeaderOfCommunity
 from core.utils.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
+from core.utils.filters import get_active_community_ids
 from core.utils.general import has_instance, remove_duplicates
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
@@ -42,13 +42,13 @@ class RequestViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (permissions.IsAuthenticated(), IsAbleToRetrieveRequest())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToRetrieveRequest())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsAbleToUpdateRequest())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToUpdateRequest())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsAbleToDeleteRequest())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToDeleteRequest())
         return tuple()
 
     def get_serializer_class(self):
@@ -143,13 +143,13 @@ class InvitationViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (permissions.IsAuthenticated(), IsAbleToRetrieveInvitation())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToRetrieveInvitation())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsAbleToUpdateInvitation())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToUpdateInvitation())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsAbleToDeleteInvitation())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToDeleteInvitation())
         return tuple()
 
     def get_serializer_class(self):
@@ -213,9 +213,9 @@ class MembershipViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
+            return (IsInActiveCommunity(), IsInPubliclyVisibleCommunity())
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsAbleToUpdateMembership())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToUpdateMembership())
         return tuple()
 
     def list(self, request, *args, **kwargs):
@@ -303,13 +303,13 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
+            return (IsInActiveCommunity(), IsInPubliclyVisibleCommunity())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsAbleToUpdateCustomMembershipLabel())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToUpdateCustomMembershipLabel())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsDeputyLeaderOfCommunity())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsDeputyLeaderOfCommunity())
         return tuple()
 
     def get_serializer_class(self):
@@ -336,7 +336,7 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsInPubliclyVisibleCommunity(),)
+            return (IsInActiveCommunity(), IsInPubliclyVisibleCommunity())
         return tuple()
 
     def list(self, request, *args, **kwargs):
@@ -421,13 +421,13 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (permissions.IsAuthenticated(), IsAbleToRetrieveApprovalRequest())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToRetrieveApprovalRequest())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH'):
-            return (permissions.IsAuthenticated(), IsAbleToUpdateApprovalRequest())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToUpdateApprovalRequest())
         elif self.request.method == 'DELETE':
-            return (permissions.IsAuthenticated(), IsAbleToDeleteApprovalRequest())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsAbleToDeleteApprovalRequest())
         return (permissions.IsAuthenticated(),)
 
     def get_serializer_class(self):
@@ -522,7 +522,9 @@ def get_past_memberships(request, user_id):
     except get_user_model().DoesNotExist:
         return Response({'message': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-    memberships = Membership.objects.filter(user_id=user_id).exclude(status='A')
+    memberships = Membership.objects.filter(
+        user_id=user_id, community_id__in=get_active_community_ids()
+    ).exclude(status='A')
 
     if not request.user.is_authenticated:
         memberships = [i for i in memberships if i.community.is_publicly_visible]
