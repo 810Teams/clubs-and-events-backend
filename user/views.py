@@ -72,7 +72,7 @@ class UserViewSet(viewsets.ModelViewSet):
                         excluded_ids += [
                             i.id for i in get_user_model().objects.all() if not IsStudentObject().has_object_permission(
                                 get_current_request(), None, i
-                            ) and not IsLecturerObject().has_object_permission(
+                            ) or not IsLecturerObject().has_object_permission(
                                 get_current_request(), None, i
                             )
                         ]
@@ -82,10 +82,12 @@ class UserViewSet(viewsets.ModelViewSet):
                         community_event = CommunityEvent.objects.get(pk=community.id)
                         if not community_event.allows_outside_participators:
                             base_community = Community.objects.get(pk=community_event.created_under.id)
-                            base_membership_ids = [i.id for i in Membership.objects.filter(
+                            base_membership_user_ids = [i.user.id for i in Membership.objects.filter(
                                 community_id=base_community.id, status__in=('A', 'R')
                             )]
-                            excluded_ids += [i.id for i in get_user_model().objects.exclude(pk__in=base_membership_ids)]
+                            excluded_ids += [i.id for i in get_user_model().objects.exclude(
+                                pk__in=base_membership_user_ids
+                            )]
 
                     # Case 4: Already a member
                     excluded_ids += [i.user.id for i in Membership.objects.filter(
