@@ -12,6 +12,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext as _
 
 from core.utils.files import get_image_size
+from core.utils.general import truncate
 from user.models import EmailPreference, StudentCommitteeAuthority
 
 
@@ -26,6 +27,7 @@ class EmailPreferenceInline(admin.StackedInline):
     model = EmailPreference
     form = AlwaysChangedModelForm
     extra = 1
+    readonly_fields = ('unsubscribe_key',)
 
 
 class StudentCommitteeAuthorityInline(admin.StackedInline):
@@ -69,9 +71,18 @@ class UserAdmin(BaseUserAdmin):
 
 class EmailPreferenceAdmin(admin.ModelAdmin):
     ''' Email preference admin '''
+    readonly_fields = ('unsubscribe_key',)
     list_display = ('id', 'user', 'name', 'receive_request', 'receive_announcement', 'receive_community_event',
-                    'receive_event', 'receive_invitation')
+                    'receive_event', 'receive_invitation', 'partial_unsubscribe_key')
     list_per_page = 20
+
+    def has_add_permission(self, request):
+        ''' Disable add permission '''
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        ''' Disable delete permission '''
+        return False
 
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
@@ -82,6 +93,10 @@ class EmailPreferenceAdmin(admin.ModelAdmin):
     def name(self, obj):
         ''' Get name of the user '''
         return obj.user.name
+
+    def partial_unsubscribe_key(self, obj):
+        ''' Get truncated unsubscribe key '''
+        return truncate(obj.unsubscribe_key, max_length=24)
 
 
 class StudentCommitteeAuthorityAdmin(admin.ModelAdmin):
