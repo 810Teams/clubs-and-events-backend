@@ -43,7 +43,7 @@ def is_profane_th(text):
     # Dictionary set-up
     custom_dictionary = set(thai_words())
     profane_dictionary = open('core/dictionary/profanity_th.txt', encoding='utf-8')
-    profane_dictionary = [i.replace('\n', '').replace('\r', '').strip() for i in profane_dictionary]
+    profane_dictionary = [i.replace('\n', str()).replace('\r', str()).strip() for i in profane_dictionary]
 
     for i in profane_dictionary:
         custom_dictionary.add(i)
@@ -53,10 +53,7 @@ def is_profane_th(text):
 
     # Tokenize
     words = word_tokenize(
-        text,
-        engine='newmm',
-        keep_whitespace=False,
-        custom_dict=dict_trie(dict_source=custom_dictionary)
+        text, engine='newmm', keep_whitespace=False, custom_dict=dict_trie(dict_source=custom_dictionary)
     )
 
     # Text scan
