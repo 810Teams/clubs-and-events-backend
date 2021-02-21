@@ -331,3 +331,74 @@ class MyStudentCommitteeAuthorityAPITest(APITestCase):
         self.assertEqual(response.data['user'], get_user_model().objects.get(username='user_01').id)
 
         self.client.logout()
+
+
+class UnsubscribeAPITest(APITestCase):
+    ''' Unsubscribe API test '''
+    def setUp(self):
+        ''' Set up '''
+        self.user_01 = get_user_model().objects.create_user(username='user_01', password='12345678')
+        self.user_02 = get_user_model().objects.create_user(username='user_02', password='12345678')
+        self.email_pref_01 = EmailPreference.objects.create(user_id=self.user_01.id)
+        self.email_pref_02 = EmailPreference.objects.create(user_id=self.user_02.id)
+
+    def test_unsubscribe(self):
+        ''' Test unsubscribe '''
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_request, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_announcement, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_community_event, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_event, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_invitation, True)
+
+        response = self.client.post('/api/user/unsubscribe/', {
+            'key': self.email_pref_01.unsubscribe_key
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_request, False)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_announcement, False)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_community_event, False)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_event, False)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_invitation, False)
+
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_request, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_announcement, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_community_event, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_event, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_invitation, True)
+
+        response = self.client.post('/api/user/unsubscribe/', {
+            'key': self.email_pref_02.unsubscribe_key
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_request, False)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_announcement, False)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_community_event, False)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_event, False)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_02.id).receive_invitation, False)
+
+    def test_unsubscribe_invalid(self):
+        ''' Test unsubscribe with invalid unsubscribe key '''
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_request, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_announcement, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_community_event, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_event, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_invitation, True)
+
+        response = self.client.post('/api/user/unsubscribe/', {
+            'key': 'This is obviously an invalid key.'
+        })
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_request, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_announcement, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_community_event, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_event, True)
+        self.assertEqual(EmailPreference.objects.get(pk=self.email_pref_01.id).receive_invitation, True)
+
+    def test_unsubscribe_unprovided(self):
+        ''' Test unsubscribe without providing the unsubscribe key '''
+        response = self.client.post('/api/user/unsubscribe/', {})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

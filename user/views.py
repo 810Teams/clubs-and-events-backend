@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import viewsets, filters, status, generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework import permissions
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
@@ -72,7 +73,7 @@ class UserViewSet(viewsets.ModelViewSet):
                         excluded_ids += [
                             i.id for i in get_user_model().objects.all() if not IsStudentObject().has_object_permission(
                                 get_current_request(), None, i
-                            ) and not IsLecturerObject().has_object_permission(
+                            ) or not IsLecturerObject().has_object_permission(
                                 get_current_request(), None, i
                             )
                         ]
@@ -82,10 +83,12 @@ class UserViewSet(viewsets.ModelViewSet):
                         community_event = CommunityEvent.objects.get(pk=community.id)
                         if not community_event.allows_outside_participators:
                             base_community = Community.objects.get(pk=community_event.created_under.id)
-                            base_membership_ids = [i.id for i in Membership.objects.filter(
+                            base_membership_user_ids = [i.user.id for i in Membership.objects.filter(
                                 community_id=base_community.id, status__in=('A', 'R')
                             )]
-                            excluded_ids += [i.id for i in get_user_model().objects.exclude(pk__in=base_membership_ids)]
+                            excluded_ids += [i.id for i in get_user_model().objects.exclude(
+                                pk__in=base_membership_user_ids
+                            )]
 
                     # Case 4: Already a member
                     excluded_ids += [i.user.id for i in Membership.objects.filter(
@@ -181,3 +184,26 @@ class MyStudentCommitteeAuthorityView(generics.ListAPIView):
             return Response(serializer.data)
         except StudentCommitteeAuthority.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+def unsubscribe(request):
+    ''' Unsubscribe from emails '''
+    # Check unsubscribe key from POST request data
+    try:
+        key = request.data['key']
+    except KeyError:
+        return Response({'detail': 'Unsubscribe key was not provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Validate unsubscribe key
+    try:
+        email_preference = EmailPreference.objects.get(unsubscribe_key=key)
+        email_preference.receive_request = False
+        email_preference.receive_announcement = False
+        email_preference.receive_community_event = False
+        email_preference.receive_event = False
+        email_preference.receive_invitation = False
+        email_preference.save()
+        return Response({'detail': 'Unsubscribe successful.'}, status=status.HTTP_200_OK)
+    except EmailPreference.DoesNotExist:
+        return Response({'detail': 'Invalid unsubscribe key.'}, status=status.HTTP_404_NOT_FOUND)

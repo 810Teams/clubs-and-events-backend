@@ -40,20 +40,23 @@ def is_profane_en(text):
 
 def is_profane_th(text):
     ''' Check if the Thai text contains profanity '''
+    # Dictionary set-up
     custom_dictionary = set(thai_words())
     profane_dictionary = open('core/dictionary/profanity_th.txt', encoding='utf-8')
-    profane_dictionary = [i.replace('\n', '').replace('\r', '').strip() for i in profane_dictionary]
+    profane_dictionary = [i.replace('\n', str()).replace('\r', str()).strip() for i in profane_dictionary]
 
     for i in profane_dictionary:
         custom_dictionary.add(i)
 
+    # Data preparation
+    text = text.replace(' ', str()).replace('เเ', 'แ').replace('ํา', 'ำ')
+
+    # Tokenize
     words = word_tokenize(
-        text.replace(' ', str()).replace('เเ', 'แ'),
-        engine='newmm',
-        keep_whitespace=False,
-        custom_dict=dict_trie(dict_source=custom_dictionary)
+        text, engine='newmm', keep_whitespace=False, custom_dict=dict_trie(dict_source=custom_dictionary)
     )
 
+    # Text scan
     for i in words:
         if i in profane_dictionary:
             return True

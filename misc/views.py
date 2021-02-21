@@ -62,7 +62,7 @@ class VoteViewSet(viewsets.ModelViewSet):
 
 
 class MyVoteView(generics.ListAPIView):
-    ''' My user view '''
+    ''' My vote view '''
     queryset = Vote.objects.all()
     permission_classes = (permissions.IsAuthenticated, IsInActiveCommunity)
     serializer_class = OwnVoteSerializer

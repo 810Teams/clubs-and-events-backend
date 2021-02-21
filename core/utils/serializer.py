@@ -7,8 +7,10 @@
 from collections import OrderedDict
 
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
+from community.models import Event
 from core.utils.nlp import validate_profanity
 
 
@@ -62,3 +64,15 @@ def clean_field(data, field_name, replacement=None):
             if data[field_name].replace('\n', str()).replace('\r', str()).strip() == str():
                 data[field_name] = replacement
     return data
+
+
+def is_ended_event(event):
+    ''' Verify if the event has ended or not '''
+    if not isinstance(event, Event):
+        return False
+
+    if event.end_date < timezone.now().date():
+        return True
+    elif event.end_date == timezone.now().date() and event.end_time <= timezone.now().time():
+        return True
+    return False

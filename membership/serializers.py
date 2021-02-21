@@ -6,7 +6,6 @@
 
 from datetime import datetime
 
-from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -17,7 +16,7 @@ from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity, IsM
 from core.utils.filters import get_previous_membership_log
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
-from core.utils.serializer import field_exists
+from core.utils.serializer import field_exists, is_ended_event
 from membership.models import Request, Invitation, Membership, CustomMembershipLabel, Advisory, MembershipLog
 from membership.models import ApprovalRequest
 from membership.permissions import IsAbleToDeleteInvitation
@@ -401,7 +400,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             return False
 
         # Must already ended
-        if event.end_date > timezone.now().date() and event.end_time > timezone.now().time():
+        if not is_ended_event(event):
             return False
 
         # Must not vote for yourself

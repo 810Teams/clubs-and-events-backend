@@ -12,7 +12,7 @@ from django.utils.translation import gettext as _
 
 from clubs_and_events.settings import STORAGE_BASE_DIR, LDAP_USER_GROUPS
 from clubs_and_events.settings import MAX_PROFILE_PICTURE_DIMENSION
-from core.utils.general import get_file_extension
+from core.utils.general import get_file_extension, get_random_string
 from core.utils.files import auto_downscale_image
 from core.utils.objects import save_user_attributes
 
@@ -91,6 +91,7 @@ class EmailPreference(models.Model):
     receive_community_event = models.BooleanField(default=True)
     receive_event = models.BooleanField(default=True)
     receive_invitation = models.BooleanField(default=True)
+    unsubscribe_key = models.CharField(max_length=64, unique=True)
 
     def __str__(self):
         ''' String representation '''
@@ -99,6 +100,13 @@ class EmailPreference(models.Model):
     def save(self, *args, **kwargs):
         ''' Save instance '''
         self.user.save()
+
+        if self.unsubscribe_key is None or self.unsubscribe_key == str():
+            random_string = get_random_string(length=64)
+            while random_string in [i.unsubscribe_key for i in EmailPreference.objects.all()]:
+                random_string = get_random_string(length=64)
+            self.unsubscribe_key = random_string
+
         super(EmailPreference, self).save(*args, **kwargs)
 
 

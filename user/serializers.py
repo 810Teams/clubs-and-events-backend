@@ -77,7 +77,7 @@ class EmailPreferenceSerializer(serializers.ModelSerializer):
     class Meta:
         ''' Meta '''
         model = EmailPreference
-        fields = '__all__'
+        exclude = ('unsubscribe_key',)
         read_only_fields = ('user',)
 
 

@@ -11,13 +11,14 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from asset.models import Comment
+from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent, IsPubliclyVisibleCommunity
 from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
 from core.permissions import IsMemberOfCommunity, IsStaffOfCommunity, IsInActiveCommunity
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
-from core.utils.serializer import field_exists, clean_field
+from core.utils.serializer import field_exists, clean_field, is_ended_event
 from core.utils.users import get_client_ip
 from core.utils.nlp import is_th, is_en
 from membership.models import Membership, ApprovalRequest, Invitation, Request
@@ -348,7 +349,23 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
         read_only_fields = ('is_official', 'valid_through')
 
 
-class ApprovedEventSerializer(CommunitySerializerTemplate):
+class EventSerializerTemplate(CommunitySerializerTemplate):
+    meta = serializers.SerializerMethodField()
+
+    class Meta:
+        ''' Meta '''
+        model = Event
+        exclude = ('is_active',)
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        meta = super(EventSerializerTemplate, self).get_meta(obj)
+        meta['is_ended'] = is_ended_event(obj)
+
+        return meta
+
+
+class ApprovedEventSerializer(EventSerializerTemplate):
     ''' Approved event serializer '''
     meta = serializers.SerializerMethodField()
 
@@ -383,7 +400,7 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
             return 0
 
         # Must already ended
-        if obj.end_date > timezone.now().date() and obj.end_time > timezone.now().time():
+        if not is_ended_event(obj):
             return 0
 
         # Must be a member of the event
@@ -393,10 +410,10 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
         membership_ids = [i.id for i in Membership.objects.filter(community_id=obj.id)]
         user_votes = Vote.objects.filter(voted_for_id__in=membership_ids, voted_by_id=request.user.id)
 
-        return len(user_votes)
+        return VOTE_LIMIT_PER_EVENT - len(user_votes)
 
 
-class UnapprovedEventSerializer(CommunitySerializerTemplate):
+class UnapprovedEventSerializer(EventSerializerTemplate):
     ''' Unapproved event serializer '''
     class Meta:
         ''' Meta '''
@@ -414,7 +431,7 @@ class UnapprovedEventSerializer(CommunitySerializerTemplate):
         return data
 
 
-class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
+class ExistingCommunityEventSerializer(EventSerializerTemplate):
     ''' Existing community event serializer '''
     meta = serializers.SerializerMethodField()
     
@@ -450,7 +467,7 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
             return 0
 
         # Must already ended
-        if obj.end_date > timezone.now().date() and obj.end_time > timezone.now().time():
+        if not is_ended_event(obj):
             return 0
 
         # Must be a member of the event
@@ -460,14 +477,14 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
         membership_ids = [i.id for i in Membership.objects.filter(community_id=obj.id)]
         user_votes = Vote.objects.filter(voted_for_id__in=membership_ids, voted_by_id=request.user.id)
 
-        return len(user_votes)
+        return VOTE_LIMIT_PER_EVENT - len(user_votes)
 
     def get_created_under_name_en(self, obj):
         ''' Retrieve community English name created under '''
         return obj.created_under.name_en
 
 
-class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
+class NotExistingCommunityEventSerializer(EventSerializerTemplate):
     ''' Not existing community event serializer '''
     class Meta:
         ''' Meta '''
