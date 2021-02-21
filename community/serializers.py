@@ -349,7 +349,23 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
         read_only_fields = ('is_official', 'valid_through')
 
 
-class ApprovedEventSerializer(CommunitySerializerTemplate):
+class EventSerializerTemplate(CommunitySerializerTemplate):
+    meta = serializers.SerializerMethodField()
+
+    class Meta:
+        ''' Meta '''
+        model = Event
+        exclude = ('is_active',)
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        meta = super(EventSerializerTemplate, self).get_meta(obj)
+        meta['is_ended'] = is_ended_event(obj)
+
+        return meta
+
+
+class ApprovedEventSerializer(EventSerializerTemplate):
     ''' Approved event serializer '''
     meta = serializers.SerializerMethodField()
 
@@ -397,7 +413,7 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
         return VOTE_LIMIT_PER_EVENT - len(user_votes)
 
 
-class UnapprovedEventSerializer(CommunitySerializerTemplate):
+class UnapprovedEventSerializer(EventSerializerTemplate):
     ''' Unapproved event serializer '''
     class Meta:
         ''' Meta '''
@@ -415,7 +431,7 @@ class UnapprovedEventSerializer(CommunitySerializerTemplate):
         return data
 
 
-class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
+class ExistingCommunityEventSerializer(EventSerializerTemplate):
     ''' Existing community event serializer '''
     meta = serializers.SerializerMethodField()
     
@@ -468,7 +484,7 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
         return obj.created_under.name_en
 
 
-class NotExistingCommunityEventSerializer(CommunitySerializerTemplate):
+class NotExistingCommunityEventSerializer(EventSerializerTemplate):
     ''' Not existing community event serializer '''
     class Meta:
         ''' Meta '''
