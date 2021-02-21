@@ -4,13 +4,13 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from django.utils import timezone
 from rest_framework import serializers
 
 from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Event
 from core.permissions import IsMemberOfCommunity, IsInActiveCommunity
 from core.utils.serializer import raise_validation_errors, add_error_message, validate_profanity_serializer
+from core.utils.serializer import is_ended_event
 from membership.models import Membership
 from misc.models import FAQ, Vote
 
@@ -83,7 +83,7 @@ class NotExistingVoteSerializer(VoteSerializerTemplate):
             add_error_message(errors, key='voted_for', message='Votes are not able to be casted in unapproved events.')
 
         # Validate event, must already ended
-        if event.end_date > timezone.now().date() and event.end_time > timezone.now().time():
+        if not is_ended_event(event):
             add_error_message(
                 errors, key='voted_for', message='Votes are not able to be casted in on-going or future events.'
             )

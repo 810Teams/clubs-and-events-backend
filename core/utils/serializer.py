@@ -71,8 +71,8 @@ def is_ended_event(event):
     if not isinstance(event, Event):
         return False
 
-    if event.end_date > timezone.now().date():
+    if event.end_date < timezone.now().date():
         return True
-    elif event.end_date == timezone.now().date() and event.end_time > timezone.now().time():
+    elif event.end_date == timezone.now().date() and event.end_time <= timezone.now().time():
         return True
     return False
