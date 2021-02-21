@@ -18,7 +18,7 @@ from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommuni
 from core.permissions import IsMemberOfCommunity, IsStaffOfCommunity, IsInActiveCommunity
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
-from core.utils.serializer import field_exists, clean_field
+from core.utils.serializer import field_exists, clean_field, is_ended_event
 from core.utils.users import get_client_ip
 from core.utils.nlp import is_th, is_en
 from membership.models import Membership, ApprovalRequest, Invitation, Request
@@ -384,7 +384,7 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
             return 0
 
         # Must already ended
-        if obj.end_date > timezone.now().date() and obj.end_time > timezone.now().time():
+        if not is_ended_event(obj):
             return 0
 
         # Must be a member of the event
@@ -451,7 +451,7 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
             return 0
 
         # Must already ended
-        if obj.end_date > timezone.now().date() and obj.end_time > timezone.now().time():
+        if not is_ended_event(obj):
             return 0
 
         # Must be a member of the event
@@ -461,7 +461,7 @@ class ExistingCommunityEventSerializer(CommunitySerializerTemplate):
         membership_ids = [i.id for i in Membership.objects.filter(community_id=obj.id)]
         user_votes = Vote.objects.filter(voted_for_id__in=membership_ids, voted_by_id=request.user.id)
 
-        return len(user_votes)
+        return VOTE_LIMIT_PER_EVENT - len(user_votes)
 
     def get_created_under_name_en(self, obj):
         ''' Retrieve community English name created under '''
