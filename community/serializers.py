@@ -11,6 +11,7 @@ from django.utils.translation import gettext as _
 from rest_framework import serializers
 
 from asset.models import Comment
+from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from community.permissions import IsRenewableClub, IsAbleToDeleteClub, IsAbleToDeleteEvent, IsPubliclyVisibleCommunity
 from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommunityEvent, IsAbleToDeleteLab
@@ -393,7 +394,7 @@ class ApprovedEventSerializer(CommunitySerializerTemplate):
         membership_ids = [i.id for i in Membership.objects.filter(community_id=obj.id)]
         user_votes = Vote.objects.filter(voted_for_id__in=membership_ids, voted_by_id=request.user.id)
 
-        return len(user_votes)
+        return VOTE_LIMIT_PER_EVENT - len(user_votes)
 
 
 class UnapprovedEventSerializer(CommunitySerializerTemplate):
