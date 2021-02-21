@@ -364,6 +364,33 @@ class EventSerializerTemplate(CommunitySerializerTemplate):
 
         return meta
 
+    def validate(self, data, get_errors=False):
+        ''' Validate data '''
+        errors = super(EventSerializerTemplate, self).validate(data, get_errors=True)
+
+        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
+
+        if data['start_date'] > data['end_date']:
+            add_error_message(errors, key='start_date', message='Start date is not able to come before the end date.')
+            add_error_message(errors, key='end_date', message='End date is not able to come after the start date.')
+
+        if data['start_date'] == data['end_date'] and data['start_time'] > data['end_time']:
+            add_error_message(
+                errors, key='start_time',
+                message='Start time is not able to come before the end time if the event is 1 day in length.'
+            )
+            add_error_message(
+                errors, key='end_time',
+                message='End time is not able to come before the start time if the event is 1 day in length.'
+            )
+
+        if get_errors:
+            return errors
+
+        raise_validation_errors(errors)
+
+        return data
+
 
 class ApprovedEventSerializer(EventSerializerTemplate):
     ''' Approved event serializer '''
@@ -374,15 +401,6 @@ class ApprovedEventSerializer(EventSerializerTemplate):
         model = Event
         exclude = ('is_active', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
-
-    def validate(self, data, get_errors=False):
-        ''' Validate data '''
-        errors = super(ApprovedEventSerializer, self).validate(data, get_errors=True)
-
-        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
-        raise_validation_errors(errors)
-
-        return data
 
     def get_meta(self, obj):
         ''' Retrieve meta data '''
@@ -421,15 +439,6 @@ class UnapprovedEventSerializer(EventSerializerTemplate):
         exclude = ('is_active', 'url_id', 'is_publicly_visible', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved',)
 
-    def validate(self, data, get_errors=False):
-        ''' Validate data '''
-        errors = super(UnapprovedEventSerializer, self).validate(data, get_errors=True)
-
-        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
-        raise_validation_errors(errors)
-
-        return data
-
 
 class ExistingCommunityEventSerializer(EventSerializerTemplate):
     ''' Existing community event serializer '''
@@ -440,15 +449,6 @@ class ExistingCommunityEventSerializer(EventSerializerTemplate):
         model = CommunityEvent
         exclude = ('is_active', 'created_at', 'updated_at', 'created_by', 'updated_by')
         read_only_fields = ('is_approved', 'created_under')
-
-    def validate(self, data, get_errors=False):
-        ''' Validate data '''
-        errors = super(ExistingCommunityEventSerializer, self).validate(data, get_errors=True)
-
-        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
-        raise_validation_errors(errors)
-
-        return data
 
     def get_meta(self, obj):
         ''' Retrieve meta data '''
@@ -495,8 +495,6 @@ class NotExistingCommunityEventSerializer(EventSerializerTemplate):
     def validate(self, data, get_errors=False):
         ''' Validate data '''
         errors = super(NotExistingCommunityEventSerializer, self).validate(data, get_errors=True)
-
-        validate_profanity_serializer(data, 'location', errors, field_name='Event location')
 
         # Creation permission validation
         base_community = Community.objects.get(pk=data['created_under'].id)
