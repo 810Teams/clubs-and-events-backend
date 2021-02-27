@@ -187,6 +187,7 @@ EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'community.it.kmitl@gmail.com'
 EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
 EMAIL_USE_TLS = True
+FRONT_END_URL = '127.0.0.1:8080'
 
 
 # Notification Settings

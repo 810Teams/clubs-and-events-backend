@@ -10,7 +10,7 @@ from django.utils.translation import gettext as _
 from email.mime.image import MIMEImage
 
 from asset.models import Announcement
-from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS, SEND_IMAGES_AS_ATTACHMENTS
+from clubs_and_events.settings import EMAIL_HOST_USER, EMAIL_NOTIFICATIONS, SEND_IMAGES_AS_ATTACHMENTS, FRONT_END_URL
 from community.models import CommunityEvent, Event
 from core.utils.users import get_email
 from core.utils.filters import get_previous_membership_log, get_latest_membership_log
@@ -178,6 +178,7 @@ def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False)
         html_content = str().join(list(open('notification/templates/mail.html')))
         html_content = html_content.replace('{title}', title)
         html_content = html_content.replace('{message}', message)
+        html_content = html_content.replace('{front_end_url}', FRONT_END_URL)
 
         if SEND_IMAGES_AS_ATTACHMENTS:
             for j in attachments:
