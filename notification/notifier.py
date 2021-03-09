@@ -19,6 +19,7 @@ from notification.models import RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 from user.models import EmailPreference
 
+import socket
 import threading
 
 
@@ -129,7 +130,7 @@ def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False)
         )
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_announcement]
         try:
-            attachments.append(obj.image.path)
+            attachments.append(obj.image.url)
         except ValueError:
             pass
     elif isinstance(obj, CommunityEvent):
@@ -178,7 +179,12 @@ def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False)
         html_content = str().join(list(open('notification/templates/mail.html')))
         html_content = html_content.replace('{title}', title)
         html_content = html_content.replace('{message}', message)
-        html_content = html_content.replace('{front_end_url}', FRONT_END_URL)
+        html_content = html_content.replace(
+            '{unsubscribe_url}',
+            'https://{}/unsubscribe/?key={}'.format(
+                FRONT_END_URL, EmailPreference.objects.get(user_id=i.id).unsubscribe_key
+            )
+        )
 
         if SEND_IMAGES_AS_ATTACHMENTS:
             for j in attachments:
@@ -188,7 +194,11 @@ def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False)
             html_content = html_content.replace('{images}', str())
         else:
             html_image_component = str().join(list(open('notification/templates/image.html')))
-            html_image_content = '\n'.join([html_image_component.replace('{path}', j) for j in attachments])
+            html_image_content = '\n'.join([
+                html_image_component.replace(
+                    '{path}', 'http://{}:8000{}'.format(socket.gethostbyname(socket.gethostname()), j)
+                ) for j in attachments
+            ])
             html_content = html_content.replace('{images}', html_image_content)
 
         email.attach_alternative(html_content, 'text/html')
