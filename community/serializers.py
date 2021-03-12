@@ -370,10 +370,22 @@ class EventSerializerTemplate(CommunitySerializerTemplate):
 
         validate_profanity_serializer(data, 'location', errors, field_name='Event location')
 
+        # Fill missing fields for validation
+        if not field_exists(data, 'start_date'):
+            data['start_date'] = self.instance.start_date
+        if not field_exists(data, 'end_date'):
+            data['end_date'] = self.instance.end_date
+        if not field_exists(data, 'start_time'):
+            data['start_time'] = self.instance.start_time
+        if not field_exists(data, 'end_time'):
+            data['end_time'] = self.instance.end_time
+
+        # Validate start date and end date
         if data['start_date'] > data['end_date']:
             add_error_message(errors, key='start_date', message='Start date is not able to come before the end date.')
             add_error_message(errors, key='end_date', message='End date is not able to come after the start date.')
 
+        # Validate end time and end time
         if data['start_date'] == data['end_date'] and data['start_time'] > data['end_time']:
             add_error_message(
                 errors, key='start_time',
