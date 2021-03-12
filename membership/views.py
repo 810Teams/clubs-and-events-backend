@@ -569,8 +569,8 @@ def get_past_memberships(request, user_id):
             'start_datetime': min([j.start_datetime for j in _membership_logs]),
             'end_datetime': max([j.end_datetime for j in _membership_logs]),
             'position': _position,
-            'position_start_datetime': min([j.start_datetime for j in _membership_logs.filter(position=_position)]),
-            'position_end_datetime': max([j.end_datetime for j in _membership_logs.filter(position=_position)])
+            'position_start_datetime': min([j.start_datetime for j in _membership_logs if j.position == _position]),
+            'position_end_datetime': max([j.end_datetime for j in _membership_logs if j.position == _position])
         })
 
     return Response(past_memberships, status=status.HTTP_200_OK)
