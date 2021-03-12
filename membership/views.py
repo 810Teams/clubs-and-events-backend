@@ -530,7 +530,7 @@ def get_past_memberships(request, user_id):
 
     # Exclude non-publicly visible communities if the current user is unauthenticated
     if not request.user.is_authenticated:
-        memberships = memberships.exclude(is_publicly_visible=False)
+        memberships = [i for i in memberships if i.community.is_publicly_visible]
 
     # Retrieve all past logs excluding the latest one
     membership_logs = MembershipLog.objects.filter(
@@ -557,7 +557,7 @@ def get_past_memberships(request, user_id):
             _community_type = 'community'
 
         # Filter membership logs of a certain community
-        _membership_logs = membership_logs.filter(membership_id__in=[j.id for j in memberships.filter(community_id=i)])
+        _membership_logs = [j for j in membership_logs if j.membership.community.id == i]
 
         # Retrieve position
         _position = max([j.position for j in _membership_logs])
