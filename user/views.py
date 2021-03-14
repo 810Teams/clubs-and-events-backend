@@ -71,11 +71,9 @@ class UserViewSet(viewsets.ModelViewSet):
                     # Case 2: Exclude non-students and non-lecturers if the community is lab
                     elif has_instance(community, Lab):
                         excluded_ids += [
-                            i.id for i in get_user_model().objects.all() if not IsStudentObject().has_object_permission(
-                                get_current_request(), None, i
-                            ) or not IsLecturerObject().has_object_permission(
-                                get_current_request(), None, i
-                            )
+                            i.id for i in get_user_model().objects.all()
+                            if not (IsStudentObject().has_object_permission(get_current_request(), None, i)
+                                    or IsLecturerObject().has_object_permission(get_current_request(), None, i))
                         ]
 
                     # Case 3: Community is community event and doesn't allow outside participators

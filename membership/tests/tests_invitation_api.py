@@ -87,25 +87,25 @@ class InvitationAPITest(APITestCase):
             invitor_id=self.user_01.id, invitee_id=self.user_05.id, community_id=self.club.id
         )
 
-        # Access request as leader position
+        # Access invitation as leader position
         self.client.login(username='user_01', password='12345678')
         response = self.client.get('/api/membership/invitation/{}/'.format(invitation.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.client.logout()
 
-        # Access request as deputy leader position
+        # Access invitation as deputy leader position
         self.client.login(username='user_02', password='12345678')
         response = self.client.get('/api/membership/invitation/{}/'.format(invitation.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.client.logout()
 
-        # Access request as staff position
+        # Access invitation as staff position
         self.client.login(username='user_03', password='12345678')
         response = self.client.get('/api/membership/invitation/{}/'.format(invitation.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.client.logout()
 
-        # Access request as member position
+        # Access invitation as member position
         self.client.login(username='user_04', password='12345678')
         response = self.client.get('/api/membership/invitation/{}/'.format(invitation.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
