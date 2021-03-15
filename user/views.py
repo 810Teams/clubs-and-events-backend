@@ -63,9 +63,8 @@ class UserViewSet(viewsets.ModelViewSet):
                     # Case 1: Exclude non-students if the community is club
                     if has_instance(community, Club):
                         excluded_ids += [
-                            i.id for i in get_user_model().objects.all() if not IsStudentObject().has_object_permission(
-                                get_current_request(), None, i
-                            )
+                            i.id for i in get_user_model().objects.all()
+                            if not IsStudentObject().has_object_permission(get_current_request(), None, i)
                         ]
 
                     # Case 2: Exclude non-students and non-lecturers if the community is lab
@@ -140,8 +139,7 @@ class EmailPreferenceViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         ''' List email preferences '''
         return Response(
-            {'detail': 'You do not have permission to perform this action.'},
-            status=status.HTTP_403_FORBIDDEN
+            {'detail': 'You do not have permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN
         )
 
 
