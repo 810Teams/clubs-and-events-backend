@@ -350,17 +350,27 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     def get_is_able_to_assign(self, obj):
         ''' Retrieve assignable positions '''
+        is_able_to_assign = {3: False, 2: False, 1: False, 0: False}
+
+        # Retrieve own membership
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.community.id, status='A'
             )
-
-            if membership.id == obj.id or obj.status not in ('A', 'R') or membership.position <= obj.position:
-                return list()
-
-            return [i for i in range(0, membership.position + (membership.position == 3)) if i != obj.position]
         except Membership.DoesNotExist:
-            return list()
+            return is_able_to_assign
+
+        # Own membership, non-active membership, or not having a higher position than the membership
+        if membership.id == obj.id or obj.status != 'A' or membership.position <= obj.position:
+            return is_able_to_assign
+
+        # All positions up until before own membership's position can be adjusted, including leader position transfer
+        for i in range(0, membership.position + (membership.position == 3)):
+            if i != obj.position:
+                is_able_to_assign[i] = True
+
+        # Return
+        return is_able_to_assign
 
     def get_is_able_to_remove(self, obj):
         ''' Retrieve removable status '''
