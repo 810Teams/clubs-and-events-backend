@@ -344,7 +344,7 @@ class UnsubscribeAPITest(APITestCase):
 
     def test_unsubscribe(self):
         ''' Test unsubscribe '''
-        # User 01 - Before unsubscribe
+        # User 01
         self._assertEqualEmailPreference(EmailPreference.objects.get(pk=self.email_pref_01.id), True)
 
         response = self.client.post('/api/user/unsubscribe/', {

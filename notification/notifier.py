@@ -181,8 +181,10 @@ def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False)
         html_content = html_content.replace('{message}', message)
         html_content = html_content.replace(
             '{unsubscribe_url}',
-            'https://{}/unsubscribe/?key={}'.format(
-                FRONT_END_URL, EmailPreference.objects.get(user_id=i.id).unsubscribe_key
+            'https://{}/unsubscribe/?username={}key={}'.format(
+                FRONT_END_URL,
+                EmailPreference.objects.get(user_id=i.id).user.username,
+                EmailPreference.objects.get(user_id=i.id).unsubscribe_key
             )
         )
 
