@@ -517,27 +517,34 @@ def get_membership_default_labels(request):
 @api_view(['GET'])
 def get_past_memberships(request, user_id):
     ''' Get past memberships of a certain user API '''
+    # Validate user
     try:
         get_user_model().objects.get(pk=user_id)
     except get_user_model().DoesNotExist:
         return Response({'message': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+    # Filter past memberships of the user in active communities
     memberships = Membership.objects.filter(
         user_id=user_id, community_id__in=get_active_community_ids()
     ).exclude(status='A')
 
+    # Exclude non-publicly visible communities if the current user is unauthenticated
     if not request.user.is_authenticated:
         memberships = [i for i in memberships if i.community.is_publicly_visible]
 
-    membership_ids = [i.id for i in memberships]
-    membership_logs = MembershipLog.objects.filter(membership_id__in=membership_ids).exclude(end_datetime=None)
+    # Retrieve all past logs excluding the latest one
+    membership_logs = MembershipLog.objects.filter(
+        membership_id__in=[i.id for i in memberships]
+    ).exclude(end_datetime=None)
+
+    # Retrieve all related community IDs
     community_ids = remove_duplicates([i.membership.community.id for i in membership_logs])
     past_memberships = list()
 
+    # Retrieve data according to each community ID
     for i in community_ids:
+        # Retrieve community type
         _community = Community.objects.get(pk=i)
-        _community_type = 'community'
-
         if has_instance(_community, Club):
             _community_type = 'club'
         elif has_instance(_community, Event) and not has_instance(_community, CommunityEvent):
@@ -546,17 +553,24 @@ def get_past_memberships(request, user_id):
             _community_type = 'community_event'
         elif has_instance(_community, Lab):
             _community_type = 'lab'
+        else:
+            _community_type = 'community'
 
-        _position = max([j.position for j in membership_logs])
+        # Filter membership logs of a certain community
+        _membership_logs = [j for j in membership_logs if j.membership.community.id == i]
 
+        # Retrieve position
+        _position = max([j.position for j in _membership_logs])
+
+        # Retrieve other data
         past_memberships.append({
             'community_id': i,
             'community_type': _community_type,
-            'start_datetime': min([j.start_datetime for j in membership_logs]),
-            'end_datetime': max([j.end_datetime for j in membership_logs]),
+            'start_datetime': min([j.start_datetime for j in _membership_logs]),
+            'end_datetime': max([j.end_datetime for j in _membership_logs]),
             'position': _position,
-            'position_start_datetime': min([j.start_datetime for j in membership_logs.filter(position=_position)]),
-            'position_end_datetime': max([j.end_datetime for j in membership_logs.filter(position=_position)])
+            'position_start_datetime': min([j.start_datetime for j in _membership_logs if j.position == _position]),
+            'position_end_datetime': max([j.end_datetime for j in _membership_logs if j.position == _position])
         })
 
-    return Response(past_memberships)
+    return Response(past_memberships, status=status.HTTP_200_OK)

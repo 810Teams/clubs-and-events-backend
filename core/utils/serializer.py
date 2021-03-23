@@ -5,9 +5,9 @@
 '''
 
 from collections import OrderedDict
+from datetime import datetime
 
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from community.models import Event
@@ -71,8 +71,8 @@ def is_ended_event(event):
     if not isinstance(event, Event):
         return False
 
-    if event.end_date < timezone.now().date():
+    if event.end_date < datetime.now().date():
         return True
-    elif event.end_date == timezone.now().date() and event.end_time <= timezone.now().time():
+    elif event.end_date == datetime.now().date() and event.end_time <= datetime.now().time():
         return True
     return False

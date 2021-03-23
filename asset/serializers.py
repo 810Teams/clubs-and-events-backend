@@ -46,11 +46,9 @@ class AnnouncementSerializerTemplate(serializers.ModelSerializer):
         return data
 
 
-# TODO: Remove `is_able_to_edit` when the front-end is able to fix the bug where calling `meta` is undefined.
 class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     ''' Existing announcement serializer '''
     meta = serializers.SerializerMethodField()
-    is_able_to_edit = serializers.SerializerMethodField()
 
     class Meta:
         ''' Meta '''

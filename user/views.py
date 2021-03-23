@@ -63,19 +63,16 @@ class UserViewSet(viewsets.ModelViewSet):
                     # Case 1: Exclude non-students if the community is club
                     if has_instance(community, Club):
                         excluded_ids += [
-                            i.id for i in get_user_model().objects.all() if not IsStudentObject().has_object_permission(
-                                get_current_request(), None, i
-                            )
+                            i.id for i in get_user_model().objects.all()
+                            if not IsStudentObject().has_object_permission(get_current_request(), None, i)
                         ]
 
                     # Case 2: Exclude non-students and non-lecturers if the community is lab
                     elif has_instance(community, Lab):
                         excluded_ids += [
-                            i.id for i in get_user_model().objects.all() if not IsStudentObject().has_object_permission(
-                                get_current_request(), None, i
-                            ) or not IsLecturerObject().has_object_permission(
-                                get_current_request(), None, i
-                            )
+                            i.id for i in get_user_model().objects.all()
+                            if not (IsStudentObject().has_object_permission(get_current_request(), None, i)
+                                    or IsLecturerObject().has_object_permission(get_current_request(), None, i))
                         ]
 
                     # Case 3: Community is community event and doesn't allow outside participators
@@ -142,8 +139,7 @@ class EmailPreferenceViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         ''' List email preferences '''
         return Response(
-            {'detail': 'You do not have permission to perform this action.'},
-            status=status.HTTP_403_FORBIDDEN
+            {'detail': 'You do not have permission to perform this action.'}, status=status.HTTP_403_FORBIDDEN
         )
 
 
@@ -189,21 +185,32 @@ class MyStudentCommitteeAuthorityView(generics.ListAPIView):
 @api_view(['POST'])
 def unsubscribe(request):
     ''' Unsubscribe from emails '''
-    # Check unsubscribe key from POST request data
+    # Retrieve username and unsubscribe key from POST request data
     try:
+        username = request.data['username']
         key = request.data['key']
     except KeyError:
-        return Response({'detail': 'Unsubscribe key was not provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'detail': 'Username and unsubscribe key were not provided simultaneously.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
-    # Validate unsubscribe key
+    # Validate username and unsubscribe key
     try:
-        email_preference = EmailPreference.objects.get(unsubscribe_key=key)
-        email_preference.receive_request = False
-        email_preference.receive_announcement = False
-        email_preference.receive_community_event = False
-        email_preference.receive_event = False
-        email_preference.receive_invitation = False
-        email_preference.save()
-        return Response({'detail': 'Unsubscribe successful.'}, status=status.HTTP_200_OK)
-    except EmailPreference.DoesNotExist:
-        return Response({'detail': 'Invalid unsubscribe key.'}, status=status.HTTP_404_NOT_FOUND)
+        user = get_user_model().objects.get(username=username)
+        email_preference = EmailPreference.objects.get(unsubscribe_key=key, user_id=user.id)
+    except (get_user_model().DoesNotExist, EmailPreference.DoesNotExist):
+        return Response(
+            {'detail': 'Invalid unsubscribe key for the specified username.'}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Unsubscribe
+    email_preference.receive_request = False
+    email_preference.receive_announcement = False
+    email_preference.receive_community_event = False
+    email_preference.receive_event = False
+    email_preference.receive_invitation = False
+    email_preference.save()
+
+    # Return
+    return Response({'detail': 'Unsubscribe successful.'}, status=status.HTTP_200_OK)

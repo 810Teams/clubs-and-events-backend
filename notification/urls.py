@@ -9,7 +9,7 @@ from rest_framework.routers import DefaultRouter
 
 from notification.views import NotificationViewSet, RequestNotificationViewSet, MembershipLogNotificationViewSet
 from notification.views import AnnouncementNotificationViewSet, CommunityEventNotificationViewSet
-from notification.views import EventNotificationViewSet
+from notification.views import EventNotificationViewSet, test_send_mail
 
 
 router = DefaultRouter()
@@ -21,5 +21,6 @@ router.register('notification/event', EventNotificationViewSet)
 router.register('notification', NotificationViewSet)
 
 urlpatterns = [
-    path('', include(router.urls))
+    path('', include(router.urls)),
+    path('test-send-mail/', test_send_mail)
 ]
