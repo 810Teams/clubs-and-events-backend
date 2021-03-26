@@ -350,7 +350,12 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     def get_is_able_to_assign(self, obj):
         ''' Retrieve assignable positions '''
-        is_able_to_assign = {3: False, 2: False, 1: False, 0: False}
+        is_able_to_assign = [
+            {'position': 3, 'is_assignable': False},
+            {'position': 2, 'is_assignable': False},
+            {'position': 1, 'is_assignable': False},
+            {'position': 0, 'is_assignable': False},
+        ]
 
         # Retrieve own membership
         try:
@@ -367,7 +372,7 @@ class MembershipSerializer(serializers.ModelSerializer):
         # All positions up until before own membership's position can be adjusted, including leader position transfer
         for i in range(0, membership.position + (membership.position == 3)):
             if i != obj.position:
-                is_able_to_assign[i] = True
+                is_able_to_assign[3 - i]['is_assignable'] = True
 
         # Return
         return is_able_to_assign
