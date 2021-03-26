@@ -5,9 +5,11 @@
 '''
 
 from django.core.exceptions import ValidationError
-from rest_framework import viewsets, filters, permissions, generics
+from rest_framework import viewsets, filters, permissions, generics, status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from clubs_and_events.settings import VOTE_LIMIT_PER_EVENT
 from core.permissions import IsInActiveCommunity
 from membership.models import Membership
 from misc.models import FAQ, Vote
@@ -75,3 +77,9 @@ class MyVoteView(generics.ListAPIView):
         serializer = self.get_serializer(votes, many=True)
 
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+def get_vote_info(request):
+    ''' Get vote information API '''
+    return Response({'vote_limit': VOTE_LIMIT_PER_EVENT}, status=status.HTTP_200_OK)
