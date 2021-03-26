@@ -350,32 +350,32 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     def get_is_able_to_assign(self, obj):
         ''' Retrieve assignable positions '''
-        is_able_to_assign = [
-            {'position': 3, 'is_assignable': False},
-            {'position': 2, 'is_assignable': False},
-            {'position': 1, 'is_assignable': False},
-            {'position': 0, 'is_assignable': False},
-        ]
-
         # Retrieve own membership
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.community.id, status='A'
             )
         except Membership.DoesNotExist:
-            return is_able_to_assign
+            return list()
 
         # Own membership, non-active membership, or not having a higher position than the membership
         if membership.id == obj.id or obj.status != 'A' or membership.position <= obj.position:
-            return is_able_to_assign
+            return list()
 
-        # All positions up until before own membership's position can be adjusted, including leader position transfer
-        for i in range(0, membership.position + (membership.position == 3)):
-            if i != obj.position:
-                is_able_to_assign[3 - i]['is_assignable'] = True
-
-        # Return
-        return is_able_to_assign
+        # Position assignable data
+        if membership.position == 3:
+            return [
+                {'position': 3, 'is_assignable': True},
+                {'position': 2, 'is_assignable': (2 != obj.position)},
+                {'position': 1, 'is_assignable': (1 != obj.position)},
+                {'position': 0, 'is_assignable': (0 != obj.position)}
+            ]
+        elif membership.position == 2:
+            return [
+                {'position': 1, 'is_assignable': (1 != obj.position)},
+                {'position': 0, 'is_assignable': (0 != obj.position)}
+            ]
+        return list()
 
     def get_is_able_to_remove(self, obj):
         ''' Retrieve removable status '''
