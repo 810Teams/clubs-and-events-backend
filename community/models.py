@@ -140,7 +140,6 @@ class Club(Community):
                     code='not_null_valid_through_date'
                 ))
 
-
         elif self.is_official and self.valid_through is None:
             errors.append(ValidationError(
                 _('Official clubs must have a valid through date.'),

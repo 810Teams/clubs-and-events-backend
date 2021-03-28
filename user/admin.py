@@ -80,10 +80,6 @@ class EmailPreferenceAdmin(admin.ModelAdmin):
         ''' Disable add permission '''
         return False
 
-    def has_delete_permission(self, request, obj=None):
-        ''' Disable delete permission '''
-        return False
-
     def get_readonly_fields(self, request, obj=None):
         ''' Get read-only fields '''
         if obj is not None:
