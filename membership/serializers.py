@@ -362,7 +362,15 @@ class MembershipSerializer(serializers.ModelSerializer):
         if membership.id == obj.id or obj.status != 'A' or membership.position <= obj.position:
             return list()
 
-        # Position assignable data
+        # Position assignable data - Special case
+        if has_instance(obj.community, Lab) and membership.position in (2, 3):
+            if not IsLecturerObject().has_object_permission(None, None, obj.user):
+                return [
+                    {'position': 1, 'is_assignable': (1 != obj.position)},
+                    {'position': 0, 'is_assignable': (0 != obj.position)}
+                ]
+
+        # Position assignable data - Normal case
         if membership.position == 3:
             return [
                 {'position': 3, 'is_assignable': True},
