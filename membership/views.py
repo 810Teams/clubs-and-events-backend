@@ -486,32 +486,68 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 def get_membership_default_labels(request):
     ''' Get membership default labels API '''
-    return Response({
-        'club': {
-            '3': _('President'),
-            '2': _('Vice President'),
-            '1': _('Staff'),
-            '0': _('Member'),
+    return Response([
+        {
+            'position': 3,
+            'labels': {
+                'club': _('President'),
+                'event': _('President'),
+                'community_event': _('Event Creator'),
+                'lab': _('Lab Supervisor')
+            },
+            'labels_th': {
+                'club': _('ประธาน'),
+                'event': _('ประธาน'),
+                'community_event': _('ผู้สร้างกิจกรรม'),
+                'lab': _('อาจารย์ผู้ดูแลห้องปฏิบัติการ')
+            }
         },
-        'event': {
-            '3': _('President'),
-            '2': _('Vice President'),
-            '1': _('Staff'),
-            '0': _('Participator'),
+        {
+            'position': 2,
+            'labels': {
+                'club': _('Vice President'),
+                'event': _('Vice President'),
+                'community_event': _('Event Co-Creator'),
+                'lab': _('Lab Co-Supervisor')
+            },
+            'labels_th': {
+                'club': _('รองประธาน'),
+                'event': _('รองประธาน'),
+                'community_event': _('ผู้ร่วมสร้างกิจกรรม'),
+                'lab': _('อาจารย์ผู้ร่วมดูแลห้องปฏิบัติการ')
+            }
         },
-        'community_event': {
-            '3': _('Event Creator'),
-            '2': _('Event Co-Creator'),
-            '1': _('Staff'),
-            '0': _('Participator'),
+        {
+            'position': 1,
+            'labels': {
+                'club': _('Staff'),
+                'event': _('Staff'),
+                'community_event': _('Staff'),
+                'lab': _('Lab Helper')
+            },
+            'labels_th': {
+                'club': _('ทีมงาน'),
+                'event': _('ทีมงาน'),
+                'community_event': _('ทีมงาน'),
+                'lab': _('ผู้ช่วยดูแลห้องปฏิบัติการ')
+            }
         },
-        'lab': {
-            '3': _('Lab Supervisor'),
-            '2': _('Lab Co-Supervisor'),
-            '1': _('Lab Helper'),
-            '0': _('Lab Member'),
-        }
-    })
+        {
+            'position': 0,
+            'labels': {
+                'club': _('Member'),
+                'event': _('Participator'),
+                'community_event': _('Participator'),
+                'lab': _('Lab Member')
+            },
+            'labels_th': {
+                'club': _('สมาชิก'),
+                'event': _('ผู้เข้าร่วม'),
+                'community_event': _('ผู้เข้าร่วม'),
+                'lab': _('สมาชิกห้องปฏิบัติการ')
+            }
+        },
+    ], status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
