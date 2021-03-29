@@ -55,7 +55,14 @@ def notify(users=tuple(), obj=None):
 
     # Send email notifications
     if mail and len(users) > 0:
-        send_mail_notification(users=users, obj=obj, fail_silently=False)
+        send_mail_notification(
+            users=[i for i in users if EmailPreference.objects.get(user_id=i.id).email_language == 'en'],
+            obj=obj, lang='en', fail_silently=False
+        )
+        send_mail_notification(
+            users=[i for i in users if EmailPreference.objects.get(user_id=i.id).email_language == 'th'],
+            obj=obj, lang='th', fail_silently=False
+        )
 
 
 def notify_membership_log(obj):
@@ -83,99 +90,188 @@ def notify_membership_log(obj):
             notify(users=tuple([i.user for i in memberships]), obj=obj)
 
 
-def send_mail_notification(users=tuple(), obj=None, fail_silently=False):
+def send_mail_notification(users=tuple(), obj=None, lang='en', fail_silently=False):
     ''' Send email notifications script (function) '''
-    thread = threading.Thread(target=send_mail_notification_process, args=[users, obj, fail_silently])
+    thread = threading.Thread(target=send_mail_notification_process, args=[users, obj, lang, fail_silently])
     thread.start()
 
 
-def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False):
+def send_mail_notification_process(users=tuple(), obj=None, lang='en', fail_silently=False):
     ''' Send email notifications script (process) '''
     # Initialization
     email_preferences = EmailPreference.objects.all()
-    attachments = list()
+    subject, title, message = str(), str(), str()
+    recipients, attachments = list(), list()
 
     # Email Content
+    # Request Notification
     if isinstance(obj, Request):
+        # New request
         if obj.status == 'W':
-            subject = 'New join request: {}'.format(obj.community.name_en)
-            title = 'New Join Request in {}'.format(obj.community.name_en)
-            message = '{} ({}) has requested to join <b>{}</b>. Sign in and visit the requests tab of the ' + \
-                      'community page to respond to this request.'
-            message = message.format(
-                obj.user.name,
-                obj.user.username,
-                obj.community.name_en
-            )
+            if lang == 'en':
+                subject = 'New join request: {}'.format(obj.community.name_en)
+                title = 'New Join Request in {}'.format(obj.community.name_en)
+                message = '{} ({}) has requested to join <b>{}</b>. Sign in and visit the requests tab of the ' + \
+                          'community page to respond to this request.'
+                message = message.format(
+                    obj.user.name,
+                    obj.user.username,
+                    obj.community.name_en
+                )
+            elif lang == 'th':
+                subject = 'คำขอเข้าร่วมใหม่: {}'.format(obj.community.name_th)
+                title = 'คำขอเข้าร่วมใหม่: {}'.format(obj.community.name_th)
+                message = '{} ({}) ได้ส่งคำขอเข้าร่วม <b>{}</b> คุณสามารถเข้าสู่ระบบและไปยังแท็บคำขอเข้าร่วมเพื่อตอบรับคำขอเข้าร่วมดังกล่าวได้'
+                message = message.format(
+                    obj.user.name,
+                    obj.user.username,
+                    obj.community.name_th
+                )
+        # Accepted request
         elif obj.status == 'A':
-            subject = 'Join request accepted: {}'.format(obj.community.name_en)
-            title = 'Join Request Accepted: {}'.format(obj.community.name_en)
-            message = 'Your request to join <b>{}</b> sent on {} is accepted by {}. You can now view all ' + \
-                      'community-private content by signing in and visit the community page.'
-            message = message.format(
-                obj.community.name_en,
-                obj.created_at,
-                obj.updated_by.name
-            )
+            if lang == 'en':
+                subject = 'Join request accepted: {}'.format(obj.community.name_en)
+                title = 'Join Request Accepted: {}'.format(obj.community.name_en)
+                message = 'Your request to join <b>{}</b> sent on {} is accepted by {}. You can now view all ' + \
+                          'community-private content by signing in and visit the community page.'
+                message = message.format(
+                    obj.community.name_en,
+                    obj.created_at,
+                    obj.updated_by.name
+                )
+            elif lang == 'th':
+                subject = 'คำขอเข้าร่วมถูกตอบรับ: {}'.format(obj.community.name_th)
+                title = 'คำขอเข้าร่วมถูกตอบรับ: {}'.format(obj.community.name_th)
+                message = 'คำขอเข้าร่วมของคุณสู่ <b>{}</b> ที่ได้ส่งเมื่อ {} ถูกตอบรับโดย {} คุณสามารถดูเนื้อหาภายในชุมชนได้โดยเข้าสู่ระบบและ' + \
+                          'เยี่ยมชมหน้าชุมชนนั้น ๆ'
+                message = message.format(
+                    obj.community.name_th,
+                    obj.created_at,
+                    obj.updated_by.name
+                )
+        # Declined request, should never occur
         else:
             raise InvalidNotificationType
+
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_request]
+
+    # Announcement Notification
     elif isinstance(obj, Announcement):
-        subject = 'New announcement: {}'.format(obj.community.name_en)
-        title = 'New Announcement in {}'.format(obj.community.name_en)
-        message = 'A new announcement is created in {}. The announcement message is as follows.<br><br>{}'
-        message = message.format(
-            obj.community.name_en,
-            obj.text
-        )
+        if lang == 'en':
+            subject = 'New announcement: {}'.format(obj.community.name_en)
+            title = 'New Announcement in {}'.format(obj.community.name_en)
+            message = 'A new announcement is created in {}. The announcement message is as follows.<br><br>{}'
+            message = message.format(
+                obj.community.name_en,
+                obj.text
+            )
+        elif lang == 'th':
+            subject = 'ประกาศใหม่: {}'.format(obj.community.name_th)
+            title = 'ประกาศใหม่: {}'.format(obj.community.name_th)
+            message = 'ประกาศใหม่ได้ถูกสร้างใน {} ข้อความของประกาศเป็นดังนี้.<br><br>{}'
+            message = message.format(
+                obj.community.name_th,
+                obj.text
+            )
+
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_announcement]
+
         try:
             attachments.append(obj.image.url)
         except ValueError:
             pass
+
+    # Community Event Notification
     elif isinstance(obj, CommunityEvent):
-        subject = 'New community event: {}'.format(obj.name_en)
-        title = 'New Community Event: {}'.format(obj.name_en)
-        message = 'A new event <b>{}</b> from {} is created! The event will take place on {} to {} during {} to ' + \
-                  '{}. Apply yourself as a participator by signing in and send a join request to this event.'
-        message = message.format(
-            obj.name_en,
-            obj.created_under.name_en,
-            obj.start_time,
-            obj.end_time,
-            obj.start_date,
-            obj.end_date
-        )
+        if lang == 'en':
+            subject = 'New community event: {}'.format(obj.name_en)
+            title = 'New Community Event: {}'.format(obj.name_en)
+            message = 'A new event <b>{}</b> from {} is created! The event will take place on {} to {} during {} ' + \
+                      'to {}. Apply yourself as a participator by signing in and send a join request to this event.'
+            message = message.format(
+                obj.name_en,
+                obj.created_under.name_en,
+                obj.start_time,
+                obj.end_time,
+                obj.start_date,
+                obj.end_date
+            )
+        elif lang == 'th':
+            subject = 'กิจกรรมใหม่: {}'.format(obj.name_th)
+            title = 'กิจกรรมใหม่: {}'.format(obj.name_th)
+            message = 'กิจกรรมใหม่ <b>{}</b> จาก {} จะถูกจัดขึ้น! กิจกรรมจะจัดขึ้นในวันที่ {} ถึง {} เป็นเวลาตั้งแต่ {} ถึงเวลา {} ' + \
+                      'คุณสามารถเข้าร่วมได้โดยการเข้าสู่ระบบและส่งคำขอเข้าร่วมกิจกรรมดังกล่าวได้'
+            message = message.format(
+                obj.name_th,
+                obj.created_under.name_th,
+                obj.start_time,
+                obj.end_time,
+                obj.start_date,
+                obj.end_date
+            )
+
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_community_event]
+
+    # Event Notification
     elif isinstance(obj, Event) and not isinstance(obj, CommunityEvent):
-        subject = 'New event: {}'.format(obj.name_en)
-        title = 'New Event: {}'.format(obj.name_en)
-        message = 'A new event <b>{}</b> is announced! The event will take place on {} to {} during {} to {}.' + \
-                  'Apply yourself as a participator by signing in and send a join request to this event.'
-        message = message.format(
-            obj.name_en,
-            obj.start_time,
-            obj.end_time,
-            obj.start_date,
-            obj.end_date
-        )
+        if lang == 'en':
+            subject = 'New event: {}'.format(obj.name_en)
+            title = 'New Event: {}'.format(obj.name_en)
+            message = 'A new event <b>{}</b> is announced! The event will take place on {} to {} during {} to {}.' + \
+                      'Apply yourself as a participator by signing in and send a join request to this event.'
+            message = message.format(
+                obj.name_en,
+                obj.start_time,
+                obj.end_time,
+                obj.start_date,
+                obj.end_date
+            )
+        elif lang == 'th':
+            subject = 'กิจกรรมใหม่: {}'.format(obj.name_th)
+            title = 'กิจกรรมใหม่: {}'.format(obj.name_th)
+            message = 'กิจกรรมใหม่ <b>{}</b> จะถูกจัดขึ้น! กิจกรรมจะจัดขึ้นในวันที่ {} ถึง {} เป็นเวลาตั้งแต่ {} ถึงเวลา {} ' + \
+                      'คุณสามารถเข้าร่วมได้โดยการเข้าสู่ระบบและส่งคำขอเข้าร่วมกิจกรรมดังกล่าวได้'
+            message = message.format(
+                obj.name_th,
+                obj.start_time,
+                obj.end_time,
+                obj.start_date,
+                obj.end_date
+            )
+
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_event]
+
+    # Invitation Notification
     elif isinstance(obj, Invitation):
-        subject = 'New invitation: {}'.format(obj.community.name_en)
-        title = 'New Invitation: {}'.format(obj.community.name_en)
-        message = '<b>{}</b> has invited you to join <b>{}</b>. Sign in to respond to this invitation.'
-        message = message.format(
-            obj.invitor.name,
-            obj.community.name_en
-        )
+        if lang == 'en':
+            subject = 'New invitation: {}'.format(obj.community.name_en)
+            title = 'New Invitation: {}'.format(obj.community.name_en)
+            message = '<b>{}</b> has invited you to join <b>{}</b>. Sign in to respond to this invitation.'
+            message = message.format(
+                obj.invitor.name,
+                obj.community.name_en
+            )
+        elif lang == 'th':
+            subject = 'คำเชิญใหม่: {}'.format(obj.community.name_th)
+            title = 'คำเชิญใหม่: {}'.format(obj.community.name_th)
+            message = '<b>{}</b> ได้ส่งคำเชิญให้คุณเพื่อเข้าร่วม <b>{}</b> เข้าสู่ระบบเพื่อตอบรับคำเชิญนี้'
+            message = message.format(
+                obj.invitor.name,
+                obj.community.name_th
+            )
+
         recipients = [i for i in users if email_preferences.get(user_id=i.id).receive_invitation]
+
+    # Invalid Notification Type
     else:
         raise InvalidNotificationType
 
     # Email Delivery
     for i in recipients:
+        # Email object
         email = EmailMultiAlternatives(_(subject), _(message), EMAIL_HOST_USER, [get_email(i)])
 
+        # Replacing email template with contents
         html_content = str().join(list(open('notification/templates/mail.html')))
         html_content = html_content.replace('{title}', title)
         html_content = html_content.replace('{message}', message)
@@ -188,6 +284,7 @@ def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False)
             )
         )
 
+        # Images
         if SEND_IMAGES_AS_ATTACHMENTS:
             for j in attachments:
                 with open(j, mode='rb') as f:
@@ -203,5 +300,6 @@ def send_mail_notification_process(users=tuple(), obj=None, fail_silently=False)
             ])
             html_content = html_content.replace('{images}', html_image_content)
 
+        # Send
         email.attach_alternative(html_content, 'text/html')
         email.send(fail_silently=fail_silently)

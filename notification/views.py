@@ -95,6 +95,12 @@ def test_send_mail(request):
     except KeyError:
         return Response({'detail': 'Object ID was not provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Check language
+    try:
+        lang = request.data['lang']
+    except KeyError:
+        lang = 'en'
+
     # Check object type
     if obj_type.lower() == 'request':
         obj = Request.objects.get(pk=obj_id)
@@ -110,8 +116,9 @@ def test_send_mail(request):
         return Response({'detail': 'Invalid object type.'}, status=status.HTTP_400_BAD_REQUEST)
 
     # Send mail notification
-    send_mail_notification(users=(request.user,), obj=obj)
+    send_mail_notification(users=(request.user,), lang=lang, obj=obj)
 
+    # Response
     return Response(
         {'detail': 'Mail notification sent to {}.'.format(get_email(request.user))}, status=status.HTTP_200_OK
     )
