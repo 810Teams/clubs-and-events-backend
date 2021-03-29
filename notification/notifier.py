@@ -272,7 +272,7 @@ def send_mail_notification_process(users=tuple(), obj=None, lang='en', fail_sile
         email = EmailMultiAlternatives(_(subject), _(message), EMAIL_HOST_USER, [get_email(i)])
 
         # Replacing email template with contents
-        html_content = str().join(list(open('notification/templates/mail.html')))
+        html_content = str().join(list(open('notification/templates/mail-{}.html'.format(lang), encoding='utf-8')))
         html_content = html_content.replace('{title}', title)
         html_content = html_content.replace('{message}', message)
         html_content = html_content.replace(
