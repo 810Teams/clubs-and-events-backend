@@ -256,24 +256,27 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
         request = self.context['request']
         user = request.user
 
-        is_able_to_send_request, code, message = True, None, None
+        is_able_to_send_request, code, message, message_th = True, None, None, None
 
         # Joining Allowance
         if not Community.objects.get(pk=obj.id).is_accepting_requests:
             is_able_to_send_request = False
             code = 'restricted'
             message = 'This community does not accept requests.'
+            message_th = 'ไม่เปิดรับคำขอเข้าร่วม'
 
         # Joining Permissions
         if has_instance(obj, Club) and not IsStudent().has_permission(request, None):
             is_able_to_send_request = False
             code = 'restricted'
             message = 'Only students are able to join the club.'
+            message_th = 'เฉพาะนักศึกษาเท่านั้นที่สามารถเข้าร่วมชุมนุมได้'
         elif has_instance(obj, Lab):
             if not IsStudent().has_permission(request, None) and not IsLecturer().has_permission(request, None):
                 is_able_to_send_request = False
                 code = 'restricted'
-                message = 'Only students and lecturers are able to join the club.'
+                message = 'Only students and lecturers are able to join the lab.'
+                message_th = 'เฉพาะนักศึกษาและอาจารย์เท่านั้นที่สามารถเข้าร่วมห้องปฏิบัติการได้'
         elif has_instance(obj, CommunityEvent):
             community_event = CommunityEvent.objects.get(pk=obj.id)
             if not community_event.allows_outside_participators:
@@ -281,28 +284,37 @@ class CommunitySerializerTemplate(serializers.ModelSerializer):
                     is_able_to_send_request = False
                     code = 'restricted'
                     message = 'The event does not allow outside participators.'
+                    message_th = 'กิจกรรมไม่เปิดรับผู้เข้าร่วมภายนอก'
 
         # Joining Validations
         if IsMemberOfCommunity().has_object_permission(request, None, obj):
             is_able_to_send_request = False
             code = 'already_member'
             message = 'You are already a member of the community.'
+            message_th = 'คุณเป็นสมาชิกอยู่แล้ว'
         elif user.id in [i.invitee.id for i in Invitation.objects.filter(community_id=obj.id, status='W')]:
             is_able_to_send_request = False
             code = 'pending_invitation'
             message = 'You already have a pending invitation from this community.'
+            message_th = 'คุณมีคำเชิญที่ยังไม่ได้ตอบรับอยู่'
         elif user.id in [i.user.id for i in Request.objects.filter(community_id=obj.id, status='W')]:
             is_able_to_send_request = False
             code = 'pending_request'
             message = 'You have already sent a pending request to this community.'
+            message_th = 'คุณได้ส่งคำขอเข้าร่วมแล้ว'
 
+        # Wrapping
         if message is not None:
             message = _(message)
+        if message_th is not None:
+            message_th = _(message_th)
 
+        # Return
         return {
             'is_able_to_send_request': is_able_to_send_request,
             'code': code,
-            'message': message
+            'message': message,
+            'message_th': message_th
         }
 
 
