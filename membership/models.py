@@ -333,8 +333,7 @@ class Advisory(models.Model):
         # Community validation
         if has_instance(self.community, CommunityEvent):
             errors.append(ValidationError(
-                _('Advisories are not applicable on community events.'),
-                code='advisory_feature'
+                _('Advisories are not applicable on community events.'), code='advisory_feature'
             ))
         elif has_instance(self.community, Lab):
             errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))
