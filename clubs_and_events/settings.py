@@ -159,7 +159,9 @@ AUTHENTICATION_BACKENDS = [
 REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication'
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication'
     ]
 }
 
@@ -187,7 +189,6 @@ EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'community.it.kmitl@gmail.com'
 EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
 EMAIL_USE_TLS = True
-FRONT_END_URL = '127.0.0.1:8080'
 
 
 # Notification Settings
@@ -195,6 +196,7 @@ FRONT_END_URL = '127.0.0.1:8080'
 EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
 EMAIL_NOTIFICATIONS = False
 SEND_IMAGES_AS_ATTACHMENTS = False
+FRONT_END_URL = '127.0.0.1:8080'
 
 
 # Media Path Settings
@@ -226,7 +228,7 @@ STUDENT_COMMITTEE_PRESIDENT_NAME = 'นายธนพนธ์ วงศ์ป�
 # Comment Settings
 
 COMMENT_LIMIT_PER_INTERVAL = 2
-COMMENT_INTERVAL_TIME = 5
+COMMENT_INTERVAL_TIME = timedelta(minutes=5)
 
 
 # Vote Settings

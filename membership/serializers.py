@@ -350,27 +350,40 @@ class MembershipSerializer(serializers.ModelSerializer):
 
     def get_is_able_to_assign(self, obj):
         ''' Retrieve assignable positions '''
-        is_able_to_assign = {3: False, 2: False, 1: False, 0: False}
-
         # Retrieve own membership
         try:
             membership = Membership.objects.get(
                 user_id=self.context['request'].user.id, community_id=obj.community.id, status='A'
             )
         except Membership.DoesNotExist:
-            return is_able_to_assign
+            return list()
 
         # Own membership, non-active membership, or not having a higher position than the membership
         if membership.id == obj.id or obj.status != 'A' or membership.position <= obj.position:
-            return is_able_to_assign
+            return list()
 
-        # All positions up until before own membership's position can be adjusted, including leader position transfer
-        for i in range(0, membership.position + (membership.position == 3)):
-            if i != obj.position:
-                is_able_to_assign[i] = True
+        # Position assignable data - Special case
+        if has_instance(obj.community, Lab) and membership.position in (2, 3):
+            if not IsLecturerObject().has_object_permission(None, None, obj.user):
+                return [
+                    {'position': 1, 'is_assignable': (1 != obj.position)},
+                    {'position': 0, 'is_assignable': (0 != obj.position)}
+                ]
 
-        # Return
-        return is_able_to_assign
+        # Position assignable data - Normal case
+        if membership.position == 3:
+            return [
+                {'position': 3, 'is_assignable': True},
+                {'position': 2, 'is_assignable': (2 != obj.position)},
+                {'position': 1, 'is_assignable': (1 != obj.position)},
+                {'position': 0, 'is_assignable': (0 != obj.position)}
+            ]
+        elif membership.position == 2:
+            return [
+                {'position': 1, 'is_assignable': (1 != obj.position)},
+                {'position': 0, 'is_assignable': (0 != obj.position)}
+            ]
+        return list()
 
     def get_is_able_to_remove(self, obj):
         ''' Retrieve removable status '''
@@ -505,7 +518,8 @@ class MembershipLogSerializer(serializers.ModelSerializer):
         return {
             'user': self.get_user(obj),
             'community': self.get_community(obj),
-            'log_text': self.get_log_text(obj)
+            'log_text': self.get_log_text(obj),
+            'log_text_th': self.get_log_text_th(obj)
         }
 
     def get_user(self, obj):
@@ -563,6 +577,59 @@ class MembershipLogSerializer(serializers.ModelSerializer):
                 return _('{} is promoted to deputy leader by {}.'.format(obj.membership.user.name, obj.updated_by.name))
             elif obj.position == 3:
                 return _('{} is promoted to leader by {}.'.format(obj.membership.user.name, obj.updated_by.name))
+
+        return None
+
+    def get_log_text_th(self, obj):
+        ''' Retrieve log text in the Thai language '''
+        previous = get_previous_membership_log(obj)
+
+        # Retrieve the community type
+        community_type = 'สังคม'
+
+        if has_instance(obj.membership.community, Club):
+            community_type = 'ชุมนุม'
+        elif has_instance(obj.membership.community, CommunityEvent):
+            if has_instance(obj.membership.community.created_under, Club):
+                community_type = 'กิจกรรมชุมนุม'
+            elif has_instance(obj.membership.community.created_under, Lab):
+                community_type = 'กิจกรรมห้องปฏิบัติการ'
+        elif has_instance(obj.membership.community, Event):
+            community_type = 'กิจกรรม'
+        elif has_instance(obj.membership.community, Lab):
+            community_type = 'ห้องปฏิบัติการ'
+
+        # If the first log
+        if previous is None:
+            return _('{} ได้เข้าร่วม {}'.format(obj.membership.user.name, community_type))
+
+        # If not the first log, the difference is the status
+        if previous.status != obj.status:
+            if (previous.status, obj.status) == ('R', 'A'):
+                return _('{} ได้กลับมาเป็นสมาชิก'.format(obj.membership.user.name))
+            elif obj.status == 'A':
+                return _('{} ได้เข้าร่วม{}'.format(obj.membership.user.name, community_type))
+            elif obj.status == 'R':
+                return _('{} ได้ถอนตัวจาก{}'.format(obj.membership.user.name, community_type))
+            elif obj.status == 'L':
+                return _('{} ได้ออกจาก{}'.format(obj.membership.user.name, community_type))
+            elif obj.status == 'X':
+                return _('{} ถูกนำออกจาก{}'.format(obj.membership.user.name, community_type))
+
+        # If not the first log, the difference is the position
+        elif previous.position != obj.position:
+            if obj.position == 0:
+                return _('{} ถูกลดระดับเป็นสมาชิกโดย {}'.format(obj.membership.user.name, obj.updated_by.name))
+            elif previous.position > obj.position and obj.position == 1:
+                return _('{} ถูกลดระดับเป็นทีมงานโดย {}'.format(obj.membership.user.name, obj.updated_by.name))
+            elif previous.position < obj.position and obj.position == 1:
+                return _('{} ถูกยกระดับเป็นทีมงานโดย {}'.format(obj.membership.user.name, obj.updated_by.name))
+            elif previous.position > obj.position and obj.position == 2:
+                return _('{} ถูกลดระดับเป็นรองประธาน'.format(obj.membership.user.name))
+            elif previous.position < obj.position and obj.position == 2:
+                return _('{} ถูกเพิ่มระดับเป็นรองประธานโดย {}'.format(obj.membership.user.name, obj.updated_by.name))
+            elif obj.position == 3:
+                return _('{} ถูกแต่งตั้งเป็นประธานโดย {}'.format(obj.membership.user.name, obj.updated_by.name))
 
         return None
 

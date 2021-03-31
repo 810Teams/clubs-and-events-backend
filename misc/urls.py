@@ -7,7 +7,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from misc.views import FAQViewSet, VoteViewSet, MyVoteView
+from misc.views import FAQViewSet, VoteViewSet, MyVoteView, get_vote_info
 
 
 router = DefaultRouter()
@@ -16,5 +16,6 @@ router.register('vote', VoteViewSet)
 
 urlpatterns = [
     path('vote/me/', MyVoteView.as_view()),
+    path('vote/info/', get_vote_info),
     path('', include(router.urls))
 ]

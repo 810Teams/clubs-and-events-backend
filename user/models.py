@@ -91,6 +91,7 @@ class EmailPreference(models.Model):
     receive_community_event = models.BooleanField(default=True)
     receive_event = models.BooleanField(default=True)
     receive_invitation = models.BooleanField(default=True)
+    email_language = models.CharField(max_length=2, choices=(('en', 'English'), ('th', 'Thai')), default='en')
     unsubscribe_key = models.CharField(max_length=64, unique=True)
 
     def __str__(self):
