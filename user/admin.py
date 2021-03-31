@@ -73,7 +73,7 @@ class EmailPreferenceAdmin(admin.ModelAdmin):
     ''' Email preference admin '''
     readonly_fields = ('unsubscribe_key',)
     list_display = ('id', 'user', 'name', 'receive_request', 'receive_announcement', 'receive_community_event',
-                    'receive_event', 'receive_invitation', 'partial_unsubscribe_key')
+                    'receive_event', 'receive_invitation', 'email_language', 'partial_unsubscribe_key')
     list_per_page = 20
 
     def has_add_permission(self, request):

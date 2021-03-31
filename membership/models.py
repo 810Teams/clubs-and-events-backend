@@ -219,10 +219,10 @@ class Membership(models.Model):
                     ))
 
         # Duplicated membership validation
-        memberships = Membership.objects.all()
+        memberships = Membership.objects.filter(user_id=self.user.id, community_id=self.community.id)
         if self.id is not None:
             memberships = memberships.exclude(pk=self.id)
-        if (self.user.id, self.community.id) in [(i.user.id, i.community.id) for i in memberships]:
+        if len(memberships) > 0:
             errors.append(ValidationError(
                 _('The membership of this user already exists in this community.'), code='duplicated_membership'
             ))

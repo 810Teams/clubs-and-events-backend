@@ -557,7 +557,7 @@ def get_past_memberships(request, user_id):
     try:
         get_user_model().objects.get(pk=user_id)
     except get_user_model().DoesNotExist:
-        return Response({'message': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'message': _('User not found.')}, status=status.HTTP_404_NOT_FOUND)
 
     # Filter past memberships of the user in active communities
     memberships = Membership.objects.filter(

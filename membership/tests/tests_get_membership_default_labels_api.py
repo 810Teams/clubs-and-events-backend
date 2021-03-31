@@ -17,47 +17,41 @@ class GetMembershipDefaultLabelsAPITest(APITestCase):
         # Response status assertion
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        # Length assertion
+        self.assertEqual(len(response.data), 4)
+
+        # Keys assertion
+        for i in range(4):
+            self.assertIn('position', response.data[i].keys())
+            self.assertIn('labels', response.data[i].keys())
+            self.assertIn('labels_th', response.data[i].keys())
+
+            self.assertIsInstance(response.data[i]['position'], int)
+            self.assertIsInstance(response.data[i]['labels'], dict)
+            self.assertIsInstance(response.data[i]['labels_th'], dict)
+
         # Community types assertion
-        self.assertIn('club', response.data.keys())
-        self.assertIn('event', response.data.keys())
-        self.assertIn('community_event', response.data.keys())
-        self.assertIn('lab', response.data.keys())
+        for i in range(4):
+            self.assertIn('club', response.data[i]['labels'].keys())
+            self.assertIn('event', response.data[i]['labels'].keys())
+            self.assertIn('community_event', response.data[i]['labels'].keys())
+            self.assertIn('lab', response.data[i]['labels'].keys())
 
-        # Membership positions assertion
-        self.assertIn('3', response.data['club'])
-        self.assertIn('2', response.data['club'])
-        self.assertIn('1', response.data['club'])
-        self.assertIn('0', response.data['club'])
-        self.assertIn('3', response.data['event'])
-        self.assertIn('2', response.data['event'])
-        self.assertIn('1', response.data['event'])
-        self.assertIn('0', response.data['event'])
-        self.assertIn('3', response.data['community_event'])
-        self.assertIn('2', response.data['community_event'])
-        self.assertIn('1', response.data['community_event'])
-        self.assertIn('0', response.data['community_event'])
-        self.assertIn('3', response.data['lab'])
-        self.assertIn('2', response.data['lab'])
-        self.assertIn('1', response.data['lab'])
-        self.assertIn('0', response.data['lab'])
+            self.assertIsInstance(response.data[i]['labels']['club'], str)
+            self.assertIsInstance(response.data[i]['labels']['event'], str)
+            self.assertIsInstance(response.data[i]['labels']['community_event'], str)
+            self.assertIsInstance(response.data[i]['labels']['lab'], str)
 
-        # Membership label type assertion
-        self.assertIsInstance(response.data['club']['3'], str)
-        self.assertIsInstance(response.data['club']['2'], str)
-        self.assertIsInstance(response.data['club']['1'], str)
-        self.assertIsInstance(response.data['club']['0'], str)
-        self.assertIsInstance(response.data['event']['3'], str)
-        self.assertIsInstance(response.data['event']['2'], str)
-        self.assertIsInstance(response.data['event']['1'], str)
-        self.assertIsInstance(response.data['event']['0'], str)
-        self.assertIsInstance(response.data['community_event']['3'], str)
-        self.assertIsInstance(response.data['community_event']['2'], str)
-        self.assertIsInstance(response.data['community_event']['1'], str)
-        self.assertIsInstance(response.data['community_event']['0'], str)
-        self.assertIsInstance(response.data['lab']['3'], str)
-        self.assertIsInstance(response.data['lab']['2'], str)
-        self.assertIsInstance(response.data['lab']['1'], str)
-        self.assertIsInstance(response.data['lab']['0'], str)
+            self.assertIn('club', response.data[i]['labels_th'].keys())
+            self.assertIn('event', response.data[i]['labels_th'].keys())
+            self.assertIn('community_event', response.data[i]['labels_th'].keys())
+            self.assertIn('lab', response.data[i]['labels_th'].keys())
+
+            self.assertIsInstance(response.data[i]['labels_th']['club'], str)
+            self.assertIsInstance(response.data[i]['labels_th']['event'], str)
+            self.assertIsInstance(response.data[i]['labels_th']['community_event'], str)
+            self.assertIsInstance(response.data[i]['labels_th']['lab'], str)
+
 
     def test_create_default_membership_labels(self):
         ''' Test create default membership labels '''
