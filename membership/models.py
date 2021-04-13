@@ -318,14 +318,6 @@ class Advisory(models.Model):
         if not IsLecturerObject().has_object_permission(get_current_request(), None, self.advisor):
             errors.append(ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor'))
 
-        # Overlapping validation
-        advisors = Advisory.objects.filter(community_id=self.community.id)
-        if self.id is not None:
-            advisors = advisors.exclude(pk=self.id)
-        for i in advisors:
-            if self.start_date <= i.end_date or i.start_date <= self.end_date:
-                errors.append(ValidationError(_('Advisory time overlapped.'), code='advisory_overlap'))
-
         # Date validation
         if self.start_date > self.end_date:
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
