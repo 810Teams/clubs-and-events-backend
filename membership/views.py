@@ -222,13 +222,16 @@ class MembershipViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         ''' List memberships '''
-        queryset = self.get_queryset()
+        # Retrieve and order queryset
+        queryset = self.get_queryset().order_by('-position')
 
+        # Queryset Filters
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='user', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = limit_queryset(queryset, request)
 
         # Community Type Filtering
         try:
@@ -258,6 +261,7 @@ class MembershipViewSet(viewsets.ModelViewSet):
         except ValueError:
             queryset = None
 
+        # Serialize and return response
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
