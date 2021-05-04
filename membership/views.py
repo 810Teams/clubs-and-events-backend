@@ -16,7 +16,7 @@ from clubs_and_events.settings import CLUB_VALID_MONTH, CLUB_VALID_DAY, CLUB_ADV
 from community.models import Club, Event, CommunityEvent, Lab, Community
 from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
 from core.permissions import IsInPubliclyVisibleCommunity, IsInActiveCommunity, IsDeputyLeaderOfCommunity
-from core.utils.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
+from core.utils.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log, limit_queryset
 from core.utils.filters import get_active_community_ids
 from core.utils.general import has_instance, remove_duplicates
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
@@ -394,6 +394,7 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='advisor', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
+        queryset = limit_queryset(queryset, request)
 
         try:
             query = request.query_params.get('is_active')
@@ -443,6 +444,7 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = limit_queryset(queryset, request)
 
         serializer = self.get_serializer(queryset, many=True)
 

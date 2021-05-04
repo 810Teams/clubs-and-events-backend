@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from asset.models import Announcement
 from community.models import Event, CommunityEvent
 from core.permissions import IsInActiveCommunity
-from core.utils.filters import filter_queryset_permission
+from core.utils.filters import filter_queryset_permission, limit_queryset
 from core.utils.users import get_email
 from membership.models import Request, Invitation
 from notification.models import Notification, RequestNotification, MembershipLogNotification
@@ -33,14 +33,9 @@ class NotificationViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         ''' List notifications '''
         queryset = self.get_queryset()
-        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
 
-        try:
-            limit = request.query_params.get('limit')
-            if limit is not None:
-                queryset = queryset[max(len(queryset) - int(limit), 0):len(queryset)]
-        except ValueError:
-            queryset = None
+        queryset = filter_queryset_permission(queryset, request, self.get_permissions())
+        queryset = limit_queryset(queryset, request)
 
         serializer = self.get_serializer(queryset, many=True)
 

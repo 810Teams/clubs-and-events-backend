@@ -48,14 +48,30 @@ def filter_queryset_exclude_own(queryset, request, target_param='exclude_own'):
     return queryset
 
 
-def limit_queryset(queryset, request, target_param='limit'):
+def limit_queryset(queryset, request, target_param='limit', block_param='block', reverse_param='reversed'):
     ''' Limit queryset items not to exceed a specific amount '''
+    # Retrieve reverse status and reverse the queryset
+    try:
+        is_reversed = request.query_params.get(reverse_param)
+        if is_reversed is not None and bool(int(is_reversed)):
+            queryset = list(reversed(queryset))
+    except TypeError:
+        pass
+
+    # Retrieve block number
+    try:
+        block = int(request.query_params.get(block_param))
+    except TypeError:
+        block = 0
+
+    # Retrieve limit and slice queryset
     try:
         limit = request.query_params.get(target_param)
         if limit is not None:
-            queryset = queryset[:min(int(limit), len(queryset))]
-    except ValueError:
-        queryset = None
+            limit = int(limit)
+            queryset = queryset[block * limit:min(block * limit + limit, len(queryset))]
+    except IndexError:
+        pass
 
     return queryset
 
