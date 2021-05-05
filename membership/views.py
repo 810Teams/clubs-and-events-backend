@@ -231,7 +231,6 @@ class MembershipViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
-        queryset = limit_queryset(queryset, request)
 
         # Community Type Filtering
         try:
@@ -260,6 +259,9 @@ class MembershipViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(pk__in=filtered_ids)
         except ValueError:
             queryset = None
+
+        # Query Set Limiting
+        queryset = limit_queryset(queryset, request)
 
         # Serialize and return response
         serializer = self.get_serializer(queryset, many=True)
@@ -400,7 +402,6 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='advisor', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
-        queryset = limit_queryset(queryset, request)
 
         try:
             query = request.query_params.get('is_active')
@@ -414,6 +415,8 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
                     queryset = queryset.exclude(pk__in=active_ids)
         except ValueError:
             queryset = None
+
+        queryset = limit_queryset(queryset, request)
 
         serializer = self.get_serializer(queryset, many=True)
 
