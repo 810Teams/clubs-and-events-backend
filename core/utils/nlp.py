@@ -29,7 +29,11 @@ def validate_profanity(text, lang=('en', 'th')):
 
 def is_profane_en(text):
     ''' Check if the English text contains profanity '''
-    nlp = spacy.load(NLP_EN_MODEL)
+    try:
+        nlp = spacy.load(NLP_EN_MODEL)
+    except OSError:
+        return False
+
     profanity_filter = ProfanityFilter(nlps={'en': nlp})
     nlp.add_pipe(profanity_filter.spacy_component, last=True)
 
