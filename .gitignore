@@ -140,3 +140,4 @@ dmypy.json
 !*/migrations/__init__.py
 _keys/
 _storage/
+static/

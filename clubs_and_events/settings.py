@@ -30,7 +30,11 @@ SECRET_KEY = load_key(key='secret', decrypt=True)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '0.0.0.0', 'localhost', '*']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'https://it-community-dev-03.et.r.appspot.com/',
+    '*'
+]
 
 
 # Application definition
@@ -76,7 +80,7 @@ ROOT_URLCONF = 'clubs_and_events.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -94,6 +98,7 @@ WSGI_APPLICATION = 'clubs_and_events.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
+
 
 DATABASES = {
     'default': {
@@ -144,6 +149,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static'
 
 
 # Authentication Settings
