@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from datetime import timedelta
+from google.oauth2 import service_account
 from pathlib import Path
 
 from core.utils.loaders import load_key, load_project_path
@@ -245,3 +246,14 @@ VOTE_LIMIT_PER_EVENT = 3
 # Natural Language Processing (NLP) Settings
 
 NLP_EN_MODEL = 'en_core_web_sm'
+
+
+# Google Cloud Storage
+# Comment all variables in this section to disable Google Cloud Storage and use local storage
+
+GOOGLE_APPLICATION_CREDENTIALS = '_keys/it-community-dev-03-caaeadc2e996.json'
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_PROJECT_ID = 'it-community-dev-03'
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file('_keys/it-community-dev-03-caaeadc2e996.json')
+GS_BUCKET_NAME = 'it-community-dev-03.appspot.com'
+GS_DEFAULT_ACL = 'publicRead'

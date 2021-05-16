@@ -1,6 +1,6 @@
 # [START django_app]
 runtime: python38
-instance_class: F4
+instance_class: F4_HIGHMEM
 handlers:
 # This configures Google App Engine to serve the files in the app's
 # static directory.
