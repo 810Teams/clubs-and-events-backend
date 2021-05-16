@@ -6,24 +6,18 @@
 
 from datetime import datetime
 
+from django.core.files.storage import default_storage
 from docx import Document
 
 from clubs_and_events.settings import STORAGE_BASE_DIR, STUDENT_COMMITTEE_PRESIDENT_NAME, STUDENT_COMMITTEE_ADVISOR_NAME
 from membership.models import Membership
 
 
-def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, objective=str(), objective_list=tuple(),
+def generate_docx(file_name, existing_docx=None, club=None, advisor=None, objective=str(), objective_list=tuple(),
                   room=str(), schedule=str(), plan_list=tuple(), merit=str(), save=False):
     ''' Generate Microsoft Word document based on template '''
     # Init Document
     document = Document('generator/docx/{}'.format(file_name))
-
-    # Init Generated File Name
-    if generated_file_name is None:
-        generated_file_name = 'generated-' + file_name
-
-    # Init Generated Document Directories
-    path = '{}/generated_docx/{}/{}'.format(STORAGE_BASE_DIR, club.id, generated_file_name)
 
     # Storing Data
     data = {
@@ -84,7 +78,9 @@ def generate_docx(file_name, generated_file_name=None, club=None, advisor=None, 
 
     # Document Saving
     if save:
-        document.save(path)
+        storage_access = default_storage.open(existing_docx.name, 'wb')
+        document.save(storage_access)
+        storage_access.close()
 
     # Return
     return document
