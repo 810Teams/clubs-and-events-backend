@@ -234,7 +234,7 @@ class Membership(models.Model):
 class CustomMembershipLabel(models.Model):
     ''' Custom membership label model '''
     membership = models.OneToOneField(Membership, on_delete=models.CASCADE)
-    label = models.CharField(max_length=64)
+    label = models.CharField(max_length=64, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
