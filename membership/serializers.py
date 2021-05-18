@@ -345,6 +345,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             'is_able_to_remove': self.get_is_able_to_remove(obj),
             'is_able_to_leave': self.get_is_able_to_leave(obj),
             'is_able_to_vote': self.get_is_able_to_vote(obj),
+            'is_able_to_set_custom_label':  self.get_is_able_to_set_custom_label(obj),
             'custom_membership_label': self.get_custom_membership_label(obj)
         }
 
@@ -443,10 +444,23 @@ class MembershipSerializer(serializers.ModelSerializer):
 
         return True
 
+    def get_is_able_to_set_custom_label(self, obj):
+        ''' Retrieve set custom label availability status '''
+        try:
+            Membership.objects.get(
+                user_id=self.context['request'].user.id, community_id=obj.community.id, status='A', position__in=(2, 3)
+            )
+        except Membership.DoesNotExist:
+            return False
+
+        return obj.position in (1, 2)
+
     def get_custom_membership_label(self, obj):
         ''' Retrieve custom membership label '''
         try:
-            return CustomMembershipLabel.objects.get(membership_id=obj.id).label
+            if obj.position in (1, 2):
+                return CustomMembershipLabel.objects.get(membership_id=obj.id).label
+            return None
         except CustomMembershipLabel.DoesNotExist:
             return None
 
