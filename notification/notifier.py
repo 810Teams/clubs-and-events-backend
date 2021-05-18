@@ -19,7 +19,6 @@ from notification.models import RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
 from user.models import EmailPreference
 
-import socket
 import threading
 
 
@@ -277,8 +276,8 @@ def send_mail_notification_process(users=tuple(), obj=None, lang='en', fail_sile
         html_content = html_content.replace('{message}', message)
         html_content = html_content.replace(
             '{unsubscribe_url}',
-            'https://{}/unsubscribe/?username={}key={}'.format(
-                FRONT_END_URL,
+            '{}/unsubscribe/?username={}&key={}'.format(
+                FRONT_END_URL[0:len(FRONT_END_URL) - (FRONT_END_URL[-1] == '/')],
                 EmailPreference.objects.get(user_id=i.id).user.username,
                 EmailPreference.objects.get(user_id=i.id).unsubscribe_key
             )
@@ -295,7 +294,7 @@ def send_mail_notification_process(users=tuple(), obj=None, lang='en', fail_sile
             html_image_component = str().join(list(open('notification/templates/image.html')))
             html_image_content = '\n'.join([
                 html_image_component.replace(
-                    '{path}', 'http://{}:8000{}'.format(socket.gethostbyname(socket.gethostname()), j)
+                    '{path}', '{}'.format(j)
                 ) for j in attachments
             ])
             html_content = html_content.replace('{images}', html_image_content)

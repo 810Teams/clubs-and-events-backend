@@ -203,7 +203,7 @@ EMAIL_USE_TLS = True
 EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
 EMAIL_NOTIFICATIONS = False
 SEND_IMAGES_AS_ATTACHMENTS = False
-FRONT_END_URL = '127.0.0.1:8080'
+FRONT_END_URL = 'https://napontunglukmongkol.github.io/clubs-and-events-frontend/#/'
 
 
 # Media Path Settings

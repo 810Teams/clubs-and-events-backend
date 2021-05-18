@@ -438,7 +438,7 @@ class MembershipSerializer(serializers.ModelSerializer):
             return False
 
         # Must not be a duplicated vote
-        user_votes = user_votes.filter(voted_for_id=obj.user.id, voted_by_id=request.user.id)
+        user_votes = user_votes.filter(voted_for_id=obj.id, voted_by_id=request.user.id)
         if len(user_votes) != 0:
             return False
 
