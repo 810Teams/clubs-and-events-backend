@@ -459,7 +459,10 @@ class MembershipSerializer(serializers.ModelSerializer):
         ''' Retrieve custom membership label '''
         try:
             if obj.position in (1, 2):
-                return CustomMembershipLabel.objects.get(membership_id=obj.id).label
+                label = CustomMembershipLabel.objects.get(membership_id=obj.id).label
+                if label.strip() != str():
+                    return label
+                return None
             return None
         except CustomMembershipLabel.DoesNotExist:
             return None
