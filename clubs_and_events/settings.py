@@ -201,7 +201,7 @@ EMAIL_USE_TLS = True
 # Notification Settings
 
 EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
-EMAIL_NOTIFICATIONS = False
+EMAIL_NOTIFICATIONS = True
 SEND_IMAGES_AS_ATTACHMENTS = False
 FRONT_END_URL = 'https://napontunglukmongkol.github.io/clubs-and-events-frontend/#/'
 
