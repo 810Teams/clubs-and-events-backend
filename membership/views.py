@@ -329,8 +329,16 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         ''' List custom membership labels '''
         queryset = self.get_queryset()
+
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
-        serializer = self.get_serializer(queryset, many=True)
+        queryset = filter_queryset(queryset, request, target_param='membership', is_foreign_key=False)
+
+        if request.query_params.get('membership') is not None and len(queryset) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        elif request.query_params.get('membership') is not None and len(queryset) == 1:
+            serializer = self.get_serializer(queryset[0], many=False)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
 
