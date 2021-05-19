@@ -169,7 +169,6 @@ class EventViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='is_cancelled', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
         queryset = filter_queryset_exclude_own(queryset, request)
-        queryset = limit_queryset(queryset, request)
 
         try:
             query = request.query_params.get('exclude_community_events')
@@ -178,6 +177,8 @@ class EventViewSet(viewsets.ModelViewSet):
                 queryset = queryset.exclude(pk__in=community_event_list)
         except ValueError:
             queryset = None
+
+        queryset = limit_queryset(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
