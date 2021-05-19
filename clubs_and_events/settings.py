@@ -187,6 +187,7 @@ LDAP_USER_GROUPS = (
 )
 LDAP_USERNAME_FIELD = 'sAMAccountName'
 LDAP_DISPLAY_NAME_FIELD = 'displayName'
+SHOW_LDAP_ERROR_MESSAGE = False
 
 
 # Email Settings
