@@ -34,6 +34,18 @@ def filter_queryset_permission(queryset, request, permissions):
     return queryset
 
 
+def exclude_queryset(queryset, request, target_param=None, is_foreign_key=False):
+    ''' Filters queryset by target parameter '''
+    try:
+        query = request.query_params.get(target_param)
+        if query is not None:
+            queryset = eval('queryset.exclude({}{}=query)'.format(target_param, '_id' * is_foreign_key))
+    except (ValueError, ValidationError):
+        queryset = None
+
+    return queryset
+
+
 def filter_queryset_exclude_own(queryset, request, target_param='exclude_own'):
     ''' Filters queryset by excluding communities which the user is the member '''
     try:

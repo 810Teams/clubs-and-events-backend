@@ -19,6 +19,7 @@ from community.serializers import ExistingCommunityEventSerializer, NotExistingC
 from community.serializers import LabSerializer
 from core.permissions import IsDeputyLeaderOfCommunity, IsMemberOfCommunity, IsInActiveCommunity
 from core.utils.filters import filter_queryset, filter_queryset_permission, filter_queryset_exclude_own, limit_queryset
+from core.utils.filters import exclude_queryset
 from membership.models import Membership
 from notification.notifier import notify
 from user.permissions import IsStudent, IsLecturer
@@ -41,6 +42,7 @@ class CommunityViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
         queryset = filter_queryset_exclude_own(queryset, request)
+        queryset = exclude_queryset(queryset, request, target_param='status_exclude', is_foreign_key=False)
         queryset = limit_queryset(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
@@ -99,6 +101,7 @@ class ClubViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
         queryset = filter_queryset_exclude_own(queryset, request)
+        queryset = exclude_queryset(queryset, request, target_param='status_exclude', is_foreign_key=False)
         queryset = limit_queryset(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
@@ -169,6 +172,7 @@ class EventViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='is_cancelled', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
         queryset = filter_queryset_exclude_own(queryset, request)
+        queryset = exclude_queryset(queryset, request, target_param='status_exclude', is_foreign_key=False)
 
         try:
             query = request.query_params.get('exclude_community_events')
@@ -250,6 +254,7 @@ class CommunityEventViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='allows_outside_participators', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
         queryset = filter_queryset_exclude_own(queryset, request)
+        queryset = exclude_queryset(queryset, request, target_param='status_exclude', is_foreign_key=False)
         queryset = limit_queryset(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
@@ -318,6 +323,7 @@ class LabViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
         queryset = filter_queryset_exclude_own(queryset, request)
+        queryset = exclude_queryset(queryset, request, target_param='status_exclude', is_foreign_key=False)
         queryset = limit_queryset(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:
