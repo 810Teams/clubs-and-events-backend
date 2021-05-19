@@ -39,7 +39,7 @@ def exclude_queryset(queryset, request, target_param=None, is_foreign_key=False)
     try:
         query = request.query_params.get(target_param)
         if query is not None:
-            queryset = eval('queryset.exclude({}{}=query)'.format(target_param, '_id' * is_foreign_key))
+            queryset = eval('queryset.exclude({}_exclude{}=query)'.format(target_param, '_id' * is_foreign_key))
     except (ValueError, ValidationError):
         queryset = None
 
