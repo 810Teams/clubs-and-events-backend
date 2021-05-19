@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from datetime import timedelta
+from google.oauth2 import service_account
 from pathlib import Path
 
 from core.utils.loaders import load_key, load_project_path
@@ -30,7 +31,11 @@ SECRET_KEY = load_key(key='secret', decrypt=True)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '0.0.0.0', 'localhost', '*']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'https://it-community-dev-03.et.r.appspot.com/',
+    '*'
+]
 
 
 # Application definition
@@ -76,7 +81,7 @@ ROOT_URLCONF = 'clubs_and_events.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -94,6 +99,7 @@ WSGI_APPLICATION = 'clubs_and_events.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
+
 
 DATABASES = {
     'default': {
@@ -144,6 +150,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static'
 
 
 # Authentication Settings
@@ -180,6 +187,7 @@ LDAP_USER_GROUPS = (
 )
 LDAP_USERNAME_FIELD = 'sAMAccountName'
 LDAP_DISPLAY_NAME_FIELD = 'displayName'
+SHOW_LDAP_ERROR_MESSAGE = False
 
 
 # Email Settings
@@ -194,9 +202,9 @@ EMAIL_USE_TLS = True
 # Notification Settings
 
 EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
-EMAIL_NOTIFICATIONS = False
+EMAIL_NOTIFICATIONS = True
 SEND_IMAGES_AS_ATTACHMENTS = False
-FRONT_END_URL = '127.0.0.1:8080'
+FRONT_END_URL = 'https://napontunglukmongkol.github.io/clubs-and-events-frontend/#/'
 
 
 # Media Path Settings
@@ -239,3 +247,14 @@ VOTE_LIMIT_PER_EVENT = 3
 # Natural Language Processing (NLP) Settings
 
 NLP_EN_MODEL = 'en_core_web_sm'
+
+
+# Google Cloud Storage
+# Comment all variables in this section to disable Google Cloud Storage and use local storage
+
+GOOGLE_APPLICATION_CREDENTIALS = '_keys/it-community-dev-03-caaeadc2e996.json'
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_PROJECT_ID = 'it-community-dev-03'
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file('_keys/it-community-dev-03-caaeadc2e996.json')
+GS_BUCKET_NAME = 'it-community-dev-03.appspot.com'
+GS_DEFAULT_ACL = 'publicRead'

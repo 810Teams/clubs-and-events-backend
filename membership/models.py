@@ -219,10 +219,10 @@ class Membership(models.Model):
                     ))
 
         # Duplicated membership validation
-        memberships = Membership.objects.all()
+        memberships = Membership.objects.filter(user_id=self.user.id, community_id=self.community.id)
         if self.id is not None:
             memberships = memberships.exclude(pk=self.id)
-        if (self.user.id, self.community.id) in [(i.user.id, i.community.id) for i in memberships]:
+        if len(memberships) > 0:
             errors.append(ValidationError(
                 _('The membership of this user already exists in this community.'), code='duplicated_membership'
             ))
@@ -234,7 +234,7 @@ class Membership(models.Model):
 class CustomMembershipLabel(models.Model):
     ''' Custom membership label model '''
     membership = models.OneToOneField(Membership, on_delete=models.CASCADE)
-    label = models.CharField(max_length=64)
+    label = models.CharField(max_length=64, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True,
@@ -318,14 +318,6 @@ class Advisory(models.Model):
         if not IsLecturerObject().has_object_permission(get_current_request(), None, self.advisor):
             errors.append(ValidationError(_('Advisor must be a lecturer.'), code='invalid_advisor'))
 
-        # Overlapping validation
-        advisors = Advisory.objects.filter(community_id=self.community.id)
-        if self.id is not None:
-            advisors = advisors.exclude(pk=self.id)
-        for i in advisors:
-            if self.start_date <= i.end_date or i.start_date <= self.end_date:
-                errors.append(ValidationError(_('Advisory time overlapped.'), code='advisory_overlap'))
-
         # Date validation
         if self.start_date > self.end_date:
             errors.append(ValidationError(_('Start date must come before the end date.'), code='date_period_error'))
@@ -333,8 +325,7 @@ class Advisory(models.Model):
         # Community validation
         if has_instance(self.community, CommunityEvent):
             errors.append(ValidationError(
-                _('Advisories are not applicable on community events.'),
-                code='advisory_feature'
+                _('Advisories are not applicable on community events.'), code='advisory_feature'
             ))
         elif has_instance(self.community, Lab):
             errors.append(ValidationError(_('Advisories are not applicable on labs.'), code='advisory_feature'))

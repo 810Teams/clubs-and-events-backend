@@ -6,6 +6,7 @@
 
 from django.core.files import File
 from django.core.files.images import ImageFile
+from django.core.files.storage import default_storage
 
 from PIL import Image
 
@@ -51,20 +52,20 @@ def simplify_file_size(size, unit='B'):
     return '{:.2f} {}'.format(int(size * 100) / 100, unit)
 
 
-def auto_downscale_image(image, threshold=(1024, 1024), optimize=True, quality=95, round_function=round):
+def auto_downscale_image(image, threshold=(1024, 1024), round_function=round):
     ''' Downscale image size for storage space saving complete function for easy usage '''
     if DO_IMAGE_DOWNSCALING:
         try:
             downscale_image(
-                image.path, threshold=threshold, optimize=optimize, quality=quality, round_function=round_function
+                image, threshold=threshold, round_function=round_function
             )
         except (ValueError, FileNotFoundError):
             pass
 
 
-def downscale_image(path, threshold=(1024, 1024), optimize=True, quality=95, round_function=round):
+def downscale_image(image_in, threshold=(1024, 1024), round_function=round):
     ''' Downscale image size for storage space saving '''
-    image = Image.open(path)
+    image = Image.open(image_in)
 
     width_ratio = image.width / threshold[0]
     height_ratio = image.height / threshold[1]
@@ -79,4 +80,10 @@ def downscale_image(path, threshold=(1024, 1024), optimize=True, quality=95, rou
             (round_function(image.width * downscale_ratio), round_function(image.height * downscale_ratio)),
             Image.ANTIALIAS
         )
-        image.save(path, optimize=optimize, quality=quality)
+
+        storage_access = default_storage.open(image_in.name, 'wb')
+        image_format = image_in.name.split('.')[-1]
+        if image_format.lower() == 'jpg':
+            image_format = 'jpeg'
+        image.save(storage_access, image_format)
+        storage_access.close()

@@ -11,7 +11,11 @@ import pathlib
 
 def load_project_path():
     ''' Load project path '''
-    return str(pathlib.Path().absolute()).replace('\\', '/') + '/'
+    project_path = str(pathlib.Path().absolute()).replace('\\', '/') + '/'
+
+    if project_path == '/':
+        return str()
+    return project_path
 
 
 def load_key(key=str(), decrypt=False):

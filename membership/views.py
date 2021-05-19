@@ -16,7 +16,7 @@ from clubs_and_events.settings import CLUB_VALID_MONTH, CLUB_VALID_DAY, CLUB_ADV
 from community.models import Club, Event, CommunityEvent, Lab, Community
 from community.permissions import IsRenewableClub, IsMemberOfBaseCommunity
 from core.permissions import IsInPubliclyVisibleCommunity, IsInActiveCommunity, IsDeputyLeaderOfCommunity
-from core.utils.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log
+from core.utils.filters import filter_queryset, filter_queryset_permission, get_latest_membership_log, limit_queryset
 from core.utils.filters import get_active_community_ids
 from core.utils.general import has_instance, remove_duplicates
 from membership.models import Request, Membership, Invitation, CustomMembershipLabel, Advisory, MembershipLog
@@ -65,6 +65,7 @@ class RequestViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='user', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = limit_queryset(queryset, request)
 
         serializer = self.get_serializer(queryset, many=True)
 
@@ -167,6 +168,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='invitee', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = limit_queryset(queryset, request)
 
         serializer = self.get_serializer(queryset, many=True)
 
@@ -220,8 +222,10 @@ class MembershipViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         ''' List memberships '''
-        queryset = self.get_queryset()
+        # Retrieve and order queryset
+        queryset = self.get_queryset().order_by('-position')
 
+        # Queryset Filters
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='user', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
@@ -256,6 +260,10 @@ class MembershipViewSet(viewsets.ModelViewSet):
         except ValueError:
             queryset = None
 
+        # Query Set Limiting
+        queryset = limit_queryset(queryset, request)
+
+        # Serialize and return response
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
@@ -321,8 +329,16 @@ class CustomMembershipLabelViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         ''' List custom membership labels '''
         queryset = self.get_queryset()
+
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
-        serializer = self.get_serializer(queryset, many=True)
+        queryset = filter_queryset(queryset, request, target_param='membership', is_foreign_key=False)
+
+        if request.query_params.get('membership') is not None and len(queryset) == 0:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        elif request.query_params.get('membership') is not None and len(queryset) == 1:
+            serializer = self.get_serializer(queryset[0], many=False)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
 
@@ -408,6 +424,8 @@ class AdvisoryViewSet(viewsets.ModelViewSet):
         except ValueError:
             queryset = None
 
+        queryset = limit_queryset(queryset, request)
+
         serializer = self.get_serializer(queryset, many=True)
 
         return Response(serializer.data)
@@ -443,6 +461,7 @@ class ApprovalRequestViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset_permission(queryset, request, self.get_permissions())
         queryset = filter_queryset(queryset, request, target_param='community', is_foreign_key=True)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = limit_queryset(queryset, request)
 
         serializer = self.get_serializer(queryset, many=True)
 
@@ -557,7 +576,7 @@ def get_past_memberships(request, user_id):
     try:
         get_user_model().objects.get(pk=user_id)
     except get_user_model().DoesNotExist:
-        return Response({'message': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'message': _('User not found.')}, status=status.HTTP_404_NOT_FOUND)
 
     # Filter past memberships of the user in active communities
     memberships = Membership.objects.filter(

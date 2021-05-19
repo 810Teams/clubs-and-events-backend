@@ -128,10 +128,6 @@ class GeneratedDocx(models.Model):
             template_file_name = 'form-club-renewal-template.docx'
             generated_file_name = 'generated-form-club-renewal.docx'
 
-        # Remove old file if exists
-        if os.path.isfile(self.get_file_path(generated_file_name)):
-            os.remove(self.get_file_path(generated_file_name))
-
         # Save an empty file as a path for model
         self.document.save(
             generated_file_name,
@@ -142,7 +138,7 @@ class GeneratedDocx(models.Model):
         # Save an actual Microsoft Word document file
         generate_docx(
             template_file_name,
-            generated_file_name=generated_file_name,
+            existing_docx=self.document,
             club=self.club,
             advisor=self.advisor,
             objective=self.objective,
