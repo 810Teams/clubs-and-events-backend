@@ -37,9 +37,9 @@ def filter_queryset_permission(queryset, request, permissions):
 def exclude_queryset(queryset, request, target_param=None, is_foreign_key=False):
     ''' Filters queryset by target parameter '''
     try:
-        query = request.query_params.get(target_param)
+        query = request.query_params.get(target_param + '_exclude')
         if query is not None:
-            queryset = eval('queryset.exclude({}_exclude{}=query)'.format(target_param, '_id' * is_foreign_key))
+            queryset = eval('queryset.exclude({}{}=query)'.format(target_param, '_id' * is_foreign_key))
     except (ValueError, ValidationError):
         queryset = None
 
