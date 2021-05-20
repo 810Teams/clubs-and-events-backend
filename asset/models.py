@@ -60,6 +60,7 @@ class Announcement(models.Model):
 class Album(models.Model):
     ''' Album model '''
     name = models.CharField(max_length=128)
+    is_publicly_visible = models.BooleanField(default=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='album_created_in')
     community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True,
                                         related_name='album_linked_to')
