@@ -39,14 +39,14 @@ class NotificationSerializer(serializers.ModelSerializer):
                     notification.request.user.name, notification.request.community.name_en
                 )
                 text_th = '{} ได้ส่งคำขอเข้าร่วม {}'.format(
-                    notification.request.user.name, notification.request.community.name_en
+                    notification.request.user.name, notification.request.community.name_th
                 )
             else:
                 text = '{} has accepted your request to join {}.'.format(
                     notification.request.user.name, notification.request.community.name_en
                 )
                 text_th = '{} ได้ตอบรับคำขอเข้าร่วมของคุณสู่ {}'.format(
-                    notification.request.user.name, notification.request.community.name_en
+                    notification.request.user.name, notification.request.community.name_th
                 )
         elif has_instance(obj, MembershipLogNotification):
             notification = MembershipLogNotification.objects.get(pk=obj.id)
@@ -61,7 +61,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             object_id = notification.announcement.id
             community_id = notification.announcement.community.id
             text = 'A new announcement is created in {}.'.format(notification.announcement.community.name_en)
-            text_th = 'ประกาศใหม่ได้ถูกสร้างใน {}'.format(notification.announcement.community.name_en)
+            text_th = 'ประกาศใหม่ได้ถูกสร้างใน {}'.format(notification.announcement.community.name_th)
         elif has_instance(obj, CommunityEventNotification):
             notification = CommunityEventNotification.objects.get(pk=obj.id)
             notification_type = 'community_event'
@@ -71,7 +71,7 @@ class NotificationSerializer(serializers.ModelSerializer):
                 notification.community_event.name_en, notification.community_event.created_under.name_en
             )
             text_th = 'กิจกรรมใหม่ {} ได้ถูกสร้างใน {}'.format(
-                notification.community_event.name_en, notification.community_event.created_under.name_en
+                notification.community_event.name_en, notification.community_event.created_under.name_th
             )
         elif has_instance(obj, EventNotification):
             notification = EventNotification.objects.get(pk=obj.id)
@@ -79,7 +79,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             object_id = notification.event.id
             community_id = notification.event.id
             text = 'A new event {} is created.'.format(notification.event.name_en)
-            text_th = 'กิจกรรมใหม่ {} ได้ถูกสร้าง'.format(notification.event.name_en)
+            text_th = 'กิจกรรมใหม่ {} ได้ถูกสร้าง'.format(notification.event.name_th)
 
         return {
             'notification_type': notification_type,
