@@ -29,6 +29,9 @@ class IsAbleToRetrieveAlbum(permissions.BasePermission):
         if isinstance(obj, Album):
             if IsMemberOfCommunity().has_object_permission(request, view, obj):
                 return True
+            elif obj.community_event is not None \
+                    and IsMemberOfCommunity().has_object_permission(request, view, obj.community_event):
+                return True
             elif IsInPubliclyVisibleCommunity().has_object_permission(request, view, obj) and obj.is_publicly_visible:
                 return True
         return False
