@@ -547,38 +547,40 @@ class MembershipLogSerializer(serializers.ModelSerializer):
         ''' Retrieve community id '''
         return obj.membership.community.id
 
-    def get_log_text(self, obj):
+    def get_log_text(self, obj, use_community_name=False):
         ''' Retrieve log text '''
         previous = get_previous_membership_log(obj)
 
         # Retrieve the community type
-        community_type = 'community'
+        community_type = 'the community'
 
-        if has_instance(obj.membership.community, Club):
-            community_type = 'club'
+        if use_community_name:
+            community_type = obj.membership.community.name_en
+        elif has_instance(obj.membership.community, Club):
+            community_type = 'the club'
         elif has_instance(obj.membership.community, CommunityEvent):
-            community_type = 'community event'
+            community_type = 'the community event'
         elif has_instance(obj.membership.community, Event):
-            community_type = 'event'
+            community_type = 'the event'
         elif has_instance(obj.membership.community, Lab):
-            community_type = 'lab'
+            community_type = 'the lab'
 
         # If the first log
         if previous is None:
-            return _('{} has joined the {}.'.format(obj.membership.user.name, community_type))
+            return _('{} has joined {}.'.format(obj.membership.user.name, community_type))
 
         # If not the first log, the difference is the status
         if previous.status != obj.status:
             if (previous.status, obj.status) == ('R', 'A'):
                 return _('{} is back in duty.'.format(obj.membership.user.name))
             elif obj.status == 'A':
-                return _('{} has joined the {}.'.format(obj.membership.user.name, community_type))
+                return _('{} has joined {}.'.format(obj.membership.user.name, community_type))
             elif obj.status == 'R':
-                return _('{} has retired from the {}.'.format(obj.membership.user.name, community_type))
+                return _('{} has retired from {}.'.format(obj.membership.user.name, community_type))
             elif obj.status == 'L':
-                return _('{} has left the {}.'.format(obj.membership.user.name, community_type))
+                return _('{} has left {}.'.format(obj.membership.user.name, community_type))
             elif obj.status == 'X':
-                return _('{} is removed from the {}.'.format(obj.membership.user.name, community_type))
+                return _('{} is removed from {}.'.format(obj.membership.user.name, community_type))
 
         # If not the first log, the difference is the position
         elif previous.position != obj.position:
@@ -597,14 +599,16 @@ class MembershipLogSerializer(serializers.ModelSerializer):
 
         return None
 
-    def get_log_text_th(self, obj):
+    def get_log_text_th(self, obj, use_community_name=False):
         ''' Retrieve log text in the Thai language '''
         previous = get_previous_membership_log(obj)
 
         # Retrieve the community type
         community_type = 'สังคม'
 
-        if has_instance(obj.membership.community, Club):
+        if use_community_name:
+            community_type = ' ' + obj.membership.community.name_th
+        elif has_instance(obj.membership.community, Club):
             community_type = 'ชุมนุม'
         elif has_instance(obj.membership.community, CommunityEvent):
             if has_instance(obj.membership.community.created_under, Club):
@@ -618,7 +622,7 @@ class MembershipLogSerializer(serializers.ModelSerializer):
 
         # If the first log
         if previous is None:
-            return _('{} ได้เข้าร่วม {}'.format(obj.membership.user.name, community_type))
+            return _('{} ได้เข้าร่วม{}'.format(obj.membership.user.name, community_type))
 
         # If not the first log, the difference is the status
         if previous.status != obj.status:

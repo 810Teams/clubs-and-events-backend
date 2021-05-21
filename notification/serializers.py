@@ -53,8 +53,8 @@ class NotificationSerializer(serializers.ModelSerializer):
             notification_type = 'membership_log'
             object_id = notification.membership_log.id
             community_id = notification.membership_log.membership.community.id
-            text = MembershipLogSerializer().get_log_text(notification.membership_log)
-            text_th = MembershipLogSerializer().get_log_text_th(notification.membership_log)
+            text = MembershipLogSerializer().get_log_text(notification.membership_log, use_community_name=True)
+            text_th = MembershipLogSerializer().get_log_text_th(notification.membership_log, use_community_name=True)
         elif has_instance(obj, AnnouncementNotification):
             notification = AnnouncementNotification.objects.get(pk=obj.id)
             notification_type = 'announcement'
