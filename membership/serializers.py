@@ -611,9 +611,9 @@ class MembershipLogSerializer(serializers.ModelSerializer):
         elif has_instance(obj.membership.community, Club):
             community_type = 'ชุมนุม'
         elif has_instance(obj.membership.community, CommunityEvent):
-            if has_instance(obj.membership.community.created_under, Club):
+            if has_instance(CommunityEvent.objects.get(pk=obj.membership.community.id).created_under, Club):
                 community_type = 'กิจกรรมชุมนุม'
-            elif has_instance(obj.membership.community.created_under, Lab):
+            elif has_instance(CommunityEvent.objects.get(pk=obj.membership.community.id).created_under, Lab):
                 community_type = 'กิจกรรมห้องปฏิบัติการ'
         elif has_instance(obj.membership.community, Event):
             community_type = 'กิจกรรม'
