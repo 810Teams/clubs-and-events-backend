@@ -71,7 +71,7 @@ class NotificationSerializer(serializers.ModelSerializer):
                 notification.community_event.name_en, notification.community_event.created_under.name_en
             )
             text_th = 'กิจกรรมใหม่ {} ได้ถูกสร้างใน {}'.format(
-                notification.community_event.name_en, notification.community_event.created_under.name_th
+                notification.community_event.name_th, notification.community_event.created_under.name_th
             )
         elif has_instance(obj, EventNotification):
             notification = EventNotification.objects.get(pk=obj.id)
