@@ -383,6 +383,7 @@ class MembershipLogViewSet(viewsets.ModelViewSet):
 
         queryset = filter_queryset(queryset, request, target_param='position', is_foreign_key=False)
         queryset = filter_queryset(queryset, request, target_param='status', is_foreign_key=False)
+        queryset = limit_queryset(queryset, request)
 
         serializer = self.get_serializer(queryset, many=True)
 
