@@ -103,29 +103,132 @@ class AlbumAPITest(APITestCase):
         response = self.client.get('/api/asset/album/')
         self.assertEqual(len(response.data), 1)
 
-    def test_retrieve_album_authenticated(self):
-        ''' Test retrieve album while authenticated '''
-        self.client.login(username='user_05', password='12345678')
+    def test_retrieve_album_as_leader(self):
+        ''' Test retrieve album as leader '''
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=True, name='My Album 1')
+        self._test_retrieve_album_as(username='user_01', album_id=album.id, allows_retrieve=True)
 
-        album = Album.objects.create(community_id=self.club_public.id, name='My Album 1')
-        response = self.client.get('/api/asset/album/{}/'.format(album.id))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=False, name='My Album 2')
+        self._test_retrieve_album_as(username='user_01', album_id=album.id, allows_retrieve=True)
 
-        album = Album.objects.create(community_id=self.club_private.id, name='My Album 2')
-        response = self.client.get('/api/asset/album/{}/'.format(album.id))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=True, name='My Album 3')
+        self._test_retrieve_album_as(username='user_01', album_id=album.id, allows_retrieve=True)
 
-        self.client.logout()
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=False, name='My Album 4')
+        self._test_retrieve_album_as(username='user_01', album_id=album.id, allows_retrieve=True)
 
-    def test_retrieve_album_unauthenticated(self):
-        ''' Test retrieve album while unauthenticated '''
-        album = Album.objects.create(community_id=self.club_public.id, name='My Album 1')
-        response = self.client.get('/api/asset/album/{}/'.format(album.id))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_retrieve_album_as_deputy_leader(self):
+        ''' Test retrieve album as deputy leader '''
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=True, name='My Album 1')
+        self._test_retrieve_album_as(username='user_02', album_id=album.id, allows_retrieve=True)
 
-        album = Album.objects.create(community_id=self.club_private.id, name='My Album 2')
-        response = self.client.get('/api/asset/album/{}/'.format(album.id))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=False, name='My Album 2')
+        self._test_retrieve_album_as(username='user_02', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=True, name='My Album 3')
+        self._test_retrieve_album_as(username='user_02', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=False, name='My Album 4')
+        self._test_retrieve_album_as(username='user_03', album_id=album.id, allows_retrieve=True)
+
+    def test_retrieve_album_as_staff(self):
+        ''' Test retrieve album as staff  '''
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=True, name='My Album 1')
+        self._test_retrieve_album_as(username='user_03', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=False, name='My Album 2')
+        self._test_retrieve_album_as(username='user_03', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=True, name='My Album 3')
+        self._test_retrieve_album_as(username='user_03', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=False, name='My Album 4')
+        self._test_retrieve_album_as(username='user_03', album_id=album.id, allows_retrieve=True)
+
+    def test_retrieve_album_as_member(self):
+        ''' Test retrieve album as member '''
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=True, name='My Album 1')
+        self._test_retrieve_album_as(username='user_04', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=False, name='My Album 2')
+        self._test_retrieve_album_as(username='user_04', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=True, name='My Album 3')
+        self._test_retrieve_album_as(username='user_04', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=False, name='My Album 4')
+        self._test_retrieve_album_as(username='user_04', album_id=album.id, allows_retrieve=True)
+
+    def test_retrieve_album_as_non_member(self):
+        ''' Test retrieve album as non-member '''
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=True, name='My Album 1')
+        self._test_retrieve_album_as(username='user_05', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=False, name='My Album 2')
+        self._test_retrieve_album_as(username='user_05', album_id=album.id, allows_retrieve=False)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=True, name='My Album 3')
+        self._test_retrieve_album_as(username='user_05', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=False, name='My Album 4')
+        self._test_retrieve_album_as(username='user_05', album_id=album.id, allows_retrieve=False)
+
+    def test_retrieve_album_as_guest(self):
+        ''' Test retrieve album as guest '''
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=True, name='My Album 1')
+        self._test_retrieve_album_as(album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(community_id=self.club_public.id, is_publicly_visible=False, name='My Album 2')
+        self._test_retrieve_album_as(album_id=album.id, allows_retrieve=False)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=True, name='My Album 3')
+        self._test_retrieve_album_as(album_id=album.id, allows_retrieve=False)
+
+        album = Album.objects.create(community_id=self.club_private.id, is_publicly_visible=False, name='My Album 4')
+        self._test_retrieve_album_as(album_id=album.id, allows_retrieve=False)
+
+    def test_retrieve_album_as_community_event_member_alone(self):
+        ''' Test retrieve album as a member of the community event alone but not its parent community '''
+        album = Album.objects.create(
+            community_id=self.club_public.id, community_event_id=self.club_event.id,
+            is_publicly_visible=True, name='My Album 1'
+        )
+        self._test_retrieve_album_as(username='user_05', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(
+            community_id=self.club_public.id, community_event_id=self.club_event.id,
+            is_publicly_visible=False, name='My Album 2'
+        )
+        self._test_retrieve_album_as(username='user_05', album_id=album.id, allows_retrieve=False)
+
+        Membership.objects.create(user_id=self.user_05.id, community_id=self.club_event.id)
+
+        album = Album.objects.create(
+            community_id=self.club_public.id, community_event_id=self.club_event.id,
+            is_publicly_visible=True, name='My Album 3'
+        )
+        self._test_retrieve_album_as(username='user_05', album_id=album.id, allows_retrieve=True)
+
+        album = Album.objects.create(
+            community_id=self.club_public.id, community_event_id=self.club_event.id,
+            is_publicly_visible=False, name='My Album 4'
+        )
+        self._test_retrieve_album_as(username='user_05', album_id=album.id, allows_retrieve=True)
+
+    def _test_retrieve_album_as(self, username=str(), album_id=None, allows_retrieve=True):
+        ''' Test retrieve album as different membership positions '''
+        if username.strip() != str():
+            self.client.login(username=username, password='12345678')
+
+        response = self.client.get('/api/asset/album/{}/'.format(album_id))
+
+        if allows_retrieve:
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+        else:
+            self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        if username.strip() != str():
+            self.client.logout()
 
     def test_create_album_as_leader(self):
         ''' Test create album as leader '''

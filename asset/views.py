@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from asset.models import Announcement, Album, AlbumImage, Comment
 from asset.permissions import IsAbleToRetrieveAnnouncement, IsAbleToDeleteComment, IsAbleToRetrieveAlbum
+from asset.permissions import IsAbleToRetrieveAlbumImage
 from asset.serializers import ExistingAnnouncementSerializer, NotExistingAnnouncementSerializer
 from asset.serializers import ExistingAlbumSerializer, NotExistingAlbumSerializer
 from asset.serializers import AlbumImageSerializer, CommentSerializer
@@ -82,7 +83,7 @@ class AlbumViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsInActiveCommunity(), IsAbleToRetrieveAlbum(),)
+            return (IsInActiveCommunity(), IsAbleToRetrieveAlbum())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method in ('PUT', 'PATCH', 'DELETE'):
@@ -118,7 +119,7 @@ class AlbumImageViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (IsInActiveCommunity(), IsInPubliclyVisibleCommunity(),)
+            return (IsInActiveCommunity(), IsAbleToRetrieveAlbumImage())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method == 'DELETE':

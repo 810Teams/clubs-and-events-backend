@@ -6,7 +6,7 @@
 
 from rest_framework import permissions
 
-from asset.models import Announcement, Comment, Album
+from asset.models import Announcement, Comment, Album, AlbumImage
 from core.permissions import IsInPubliclyVisibleCommunity, IsMemberOfCommunity, IsDeputyLeaderOfCommunity
 
 
@@ -23,7 +23,7 @@ class IsAbleToRetrieveAnnouncement(permissions.BasePermission):
 
 
 class IsAbleToRetrieveAlbum(permissions.BasePermission):
-    ''' Main permission of GET request of Announcement '''
+    ''' Main permission of GET request of Album '''
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
         if isinstance(obj, Album):
@@ -34,6 +34,15 @@ class IsAbleToRetrieveAlbum(permissions.BasePermission):
                 return True
             elif IsInPubliclyVisibleCommunity().has_object_permission(request, view, obj) and obj.is_publicly_visible:
                 return True
+        return False
+
+
+class IsAbleToRetrieveAlbumImage(permissions.BasePermission):
+    ''' Main permission of GET request of AlbumImage '''
+    def has_object_permission(self, request, view, obj):
+        ''' Check permission on object '''
+        if isinstance(obj, AlbumImage):
+            return IsAbleToRetrieveAlbum().has_object_permission(request, view, obj.album)
         return False
 
 
