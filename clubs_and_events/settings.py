@@ -250,11 +250,11 @@ NLP_EN_MODEL = 'en_core_web_sm'
 
 
 # Google Cloud Storage
-# Comment all variables in this section to disable Google Cloud Storage and use local storage
+# Comment all variables in this section to disable Google Cloud Storage and switch to local storage
 
 GOOGLE_APPLICATION_CREDENTIALS = '_keys/it-community-dev-03-caaeadc2e996.json'
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_PROJECT_ID = 'it-community-dev-03'
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file('_keys/it-community-dev-03-caaeadc2e996.json')
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
 GS_BUCKET_NAME = 'it-community-dev-03.appspot.com'
 GS_DEFAULT_ACL = 'publicRead'
