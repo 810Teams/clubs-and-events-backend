@@ -192,11 +192,11 @@ SHOW_LDAP_ERROR_MESSAGE = False
 
 # Email Settings
 
+EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'community.it.kmitl@gmail.com'
 EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
-EMAIL_USE_TLS = True
 
 
 # Notification Settings
