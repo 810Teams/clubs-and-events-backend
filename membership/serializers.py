@@ -580,7 +580,9 @@ class MembershipLogSerializer(serializers.ModelSerializer):
             elif obj.status == 'L':
                 return _('{} has left {}.'.format(obj.membership.user.name, community_type))
             elif obj.status == 'X':
-                return _('{} is removed from {}.'.format(obj.membership.user.name, community_type))
+                return _('{} is removed from {} by {}.'.format(
+                    obj.membership.user.name, community_type, obj.created_by.name
+                ))
 
         # If not the first log, the difference is the position
         elif previous.position != obj.position:
@@ -607,7 +609,7 @@ class MembershipLogSerializer(serializers.ModelSerializer):
         community_type = 'สังคม'
 
         if use_community_name:
-            community_type = ' ' + obj.membership.community.name_th
+            community_type = ' ' + obj.membership.community.name_th + ' '
         elif has_instance(obj.membership.community, Club):
             community_type = 'ชุมนุม'
         elif has_instance(obj.membership.community, CommunityEvent):
@@ -635,7 +637,7 @@ class MembershipLogSerializer(serializers.ModelSerializer):
             elif obj.status == 'L':
                 return _('{} ได้ออกจาก{}'.format(obj.membership.user.name, community_type))
             elif obj.status == 'X':
-                return _('{} ถูกนำออกจาก{}'.format(obj.membership.user.name, community_type))
+                return _('{} ถูกนำออกจาก{}โดย {}'.format(obj.membership.user.name, community_type, obj.created_by.name))
 
         # If not the first log, the difference is the position
         elif previous.position != obj.position:
