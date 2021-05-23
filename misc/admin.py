@@ -37,8 +37,8 @@ class VoteAdmin(admin.ModelAdmin):
     list_per_page = 20
 
     def partial_comment(self, obj):
-        ''' Get truncated comment at max length of 32 '''
-        return truncate(obj.comment, max_length=32)
+        ''' Get truncated comment at max length of 64 '''
+        return truncate(obj.comment, max_length=64)
 
 
 admin.site.register(FAQ, FAQAdmin)
