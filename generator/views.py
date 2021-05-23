@@ -8,7 +8,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from core.permissions import IsMemberOfCommunity, IsDeputyLeaderOfCommunity, IsInActiveCommunity
+from core.permissions import IsDeputyLeaderOfCommunity, IsStaffOfCommunity, IsMemberOfCommunity, IsInActiveCommunity
 from core.utils.filters import filter_queryset, filter_queryset_permission
 from core.utils.general import get_random_string
 from generator.models import QRCode, JoinKey, GeneratedDocx
@@ -26,7 +26,7 @@ class QRCodeViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsMemberOfCommunity())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsStaffOfCommunity())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method == 'DELETE':
@@ -59,7 +59,7 @@ class JoinKeyViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         ''' Get permissions '''
         if self.request.method == 'GET':
-            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsMemberOfCommunity())
+            return (permissions.IsAuthenticated(), IsInActiveCommunity(), IsStaffOfCommunity())
         elif self.request.method == 'POST':
             return (permissions.IsAuthenticated(),)
         elif self.request.method == 'DELETE':
