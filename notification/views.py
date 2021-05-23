@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from smtplib import SMTPAuthenticationError
 
 from asset.models import Announcement
+from clubs_and_events.settings import EMAIL_NOTIFICATIONS
 from community.models import Event, CommunityEvent
 from core.permissions import IsInActiveCommunity
 from core.utils.filters import filter_queryset_permission, limit_queryset
@@ -114,7 +115,12 @@ def test_send_mail(request):
 
     # Verification
     _ = EmailPreference.objects.get(user_id=request.user.id)
-    if not eval('_.receive_{}'.format(obj_type.lower())):
+    if not EMAIL_NOTIFICATIONS:
+        return Response(
+            {'detail': 'Email notification setting is turned off in \'settings.py\'.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    elif not eval('_.receive_{}'.format(obj_type.lower())):
         return Response(
             {'detail': 'User\'s email preference for \'{}\' is turned off.'.format(obj_type.lower())},
             status=status.HTTP_400_BAD_REQUEST
