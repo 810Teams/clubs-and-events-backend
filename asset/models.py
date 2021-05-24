@@ -60,6 +60,7 @@ class Announcement(models.Model):
 class Album(models.Model):
     ''' Album model '''
     name = models.CharField(max_length=128)
+    is_publicly_visible = models.BooleanField(default=True)
     community = models.ForeignKey(Community, on_delete=models.CASCADE, related_name='album_created_in')
     community_event = models.ForeignKey(CommunityEvent, on_delete=models.SET_NULL, null=True, blank=True,
                                         related_name='album_linked_to')
@@ -152,7 +153,7 @@ class Comment(models.Model):
     text = models.TextField(max_length=1024)
     written_by = models.CharField(max_length=64)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    ip_address = models.CharField(max_length=15, null=True, blank=True)
+    ip_address = models.CharField(max_length=64, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)

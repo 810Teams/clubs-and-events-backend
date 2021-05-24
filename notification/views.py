@@ -7,8 +7,10 @@
 from rest_framework import permissions, viewsets, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from smtplib import SMTPAuthenticationError
 
 from asset.models import Announcement
+from clubs_and_events.settings import EMAIL_NOTIFICATIONS
 from community.models import Event, CommunityEvent
 from core.permissions import IsInActiveCommunity
 from core.utils.filters import filter_queryset_permission, limit_queryset
@@ -16,11 +18,12 @@ from core.utils.users import get_email
 from membership.models import Request, Invitation
 from notification.models import Notification, RequestNotification, MembershipLogNotification
 from notification.models import AnnouncementNotification, CommunityEventNotification, EventNotification
-from notification.notifier import send_mail_notification
+from notification.notifier import send_mail_notification, send_mail_notification_process
 from notification.permissions import IsNotificationOwner
 from notification.serializers import NotificationSerializer, RequestNotificationSerializer
 from notification.serializers import MembershipLogNotificationSerializer, AnnouncementNotificationSerializer
 from notification.serializers import CommunityEventNotificationSerializer, EventNotificationSerializer
+from user.models import EmailPreference
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -101,7 +104,7 @@ def test_send_mail(request):
         obj = Request.objects.get(pk=obj_id)
     elif obj_type.lower() == 'announcement':
         obj = Announcement.objects.get(pk=obj_id)
-    elif obj_type.lower() == 'communityevent':
+    elif obj_type.lower() == 'community_event':
         obj = CommunityEvent.objects.get(pk=obj_id)
     elif obj_type.lower() == 'event':
         obj = Event.objects.get(pk=obj_id)
@@ -110,10 +113,27 @@ def test_send_mail(request):
     else:
         return Response({'detail': 'Invalid object type.'}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Verification
+    _ = EmailPreference.objects.get(user_id=request.user.id)
+    if not EMAIL_NOTIFICATIONS:
+        return Response(
+            {'detail': 'Email notification setting is turned off in \'settings.py\'.'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    elif not eval('_.receive_{}'.format(obj_type.lower())):
+        return Response(
+            {'detail': 'User\'s email preference for \'{}\' is turned off.'.format(obj_type.lower())},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     # Send mail notification
-    send_mail_notification(users=(request.user,), lang=lang, obj=obj)
+    try:
+        send_mail_notification_process(users=(request.user,), lang=lang, obj=obj)
+    except SMTPAuthenticationError as exception:
+        return Response({'detail': exception.__str__()}, status=status.HTTP_400_BAD_REQUEST)
 
     # Response
     return Response(
         {'detail': 'Mail notification sent to {}.'.format(get_email(request.user))}, status=status.HTTP_200_OK
     )
+

@@ -18,8 +18,8 @@ class FAQAdmin(admin.ModelAdmin):
     list_per_page = 20
 
     def partial_question(self, obj):
-        ''' Get truncated question at max length of 32 '''
-        return truncate(obj.question, max_length=32)
+        ''' Get truncated question at max length of 64 '''
+        return truncate(obj.question, max_length=64)
 
     def image_size(self, obj):
         ''' Get announcement image size and dimensions '''
@@ -37,8 +37,8 @@ class VoteAdmin(admin.ModelAdmin):
     list_per_page = 20
 
     def partial_comment(self, obj):
-        ''' Get truncated comment at max length of 32 '''
-        return truncate(obj.comment, max_length=32)
+        ''' Get truncated comment at max length of 64 '''
+        return truncate(obj.comment, max_length=64)
 
 
 admin.site.register(FAQ, FAQAdmin)

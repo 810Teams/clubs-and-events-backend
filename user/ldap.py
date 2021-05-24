@@ -22,7 +22,7 @@ def get_LDAP_user(username, password):
     try:
         connection = Connection(server, user=LDAP_BIND_USERNAME, password=LDAP_BIND_PASSWORD, auto_bind=True)
     except (LDAPBindError, LDAPSocketOpenError) as e:
-        if not SHOW_LDAP_ERROR_MESSAGE:
+        if SHOW_LDAP_ERROR_MESSAGE:
             error(e.__str__().capitalize())
         return None
 

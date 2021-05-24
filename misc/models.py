@@ -23,7 +23,9 @@ class FAQ(models.Model):
         return '{}/faq/{}.{}'.format(STORAGE_BASE_DIR, self.id, get_file_extension(file_name))
 
     question = models.CharField(max_length=255)
+    question_th = models.CharField(max_length=255)
     answer = models.TextField(max_length=2048)
+    answer_th = models.TextField(max_length=2048)
     image = models.ImageField(null=True, blank=True, upload_to=get_image_path)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

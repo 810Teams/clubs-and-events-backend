@@ -192,11 +192,11 @@ SHOW_LDAP_ERROR_MESSAGE = False
 
 # Email Settings
 
+EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = '587'
 EMAIL_HOST_USER = 'community.it.kmitl@gmail.com'
 EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
-EMAIL_USE_TLS = True
 
 
 # Notification Settings
@@ -217,10 +217,10 @@ MEDIA_ROOT = load_project_path()
 
 STORAGE_BASE_DIR = '_storage'
 DO_IMAGE_DOWNSCALING = True
-MAX_ANNOUNCEMENT_IMAGE_DIMENSION = 2048, 2048
-MAX_ALBUM_IMAGE_DIMENSION = 4096, 4096
+MAX_ANNOUNCEMENT_IMAGE_DIMENSION = 1920, 1920
+MAX_ALBUM_IMAGE_DIMENSION = 3840, 2160
 MAX_COMMUNITY_LOGO_DIMENSION = 1024, 1024
-MAX_COMMUNITY_BANNER_DIMENSION = 2048, 2048
+MAX_COMMUNITY_BANNER_DIMENSION = 2560, 1440
 MAX_PROFILE_PICTURE_DIMENSION = 512, 512
 
 
@@ -250,11 +250,11 @@ NLP_EN_MODEL = 'en_core_web_sm'
 
 
 # Google Cloud Storage
-# Comment all variables in this section to disable Google Cloud Storage and use local storage
+# Comment all variables in this section to disable Google Cloud Storage and switch to local storage
 
 GOOGLE_APPLICATION_CREDENTIALS = '_keys/it-community-dev-03-caaeadc2e996.json'
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_PROJECT_ID = 'it-community-dev-03'
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file('_keys/it-community-dev-03-caaeadc2e996.json')
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
 GS_BUCKET_NAME = 'it-community-dev-03.appspot.com'
 GS_DEFAULT_ACL = 'publicRead'

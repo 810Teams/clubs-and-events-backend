@@ -6,7 +6,7 @@
 
 from rest_framework import permissions
 
-from asset.models import Announcement, Comment
+from asset.models import Announcement, Comment, Album, AlbumImage
 from core.permissions import IsInPubliclyVisibleCommunity, IsMemberOfCommunity, IsDeputyLeaderOfCommunity
 
 
@@ -15,10 +15,34 @@ class IsAbleToRetrieveAnnouncement(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
         if isinstance(obj, Announcement):
-            if obj.is_publicly_visible and IsInPubliclyVisibleCommunity().has_object_permission(request, view, obj):
+            if IsMemberOfCommunity().has_object_permission(request, view, obj):
                 return True
-            elif not obj.is_publicly_visible and IsMemberOfCommunity().has_object_permission(request, view, obj):
+            elif IsInPubliclyVisibleCommunity().has_object_permission(request, view, obj) and obj.is_publicly_visible:
                 return True
+        return False
+
+
+class IsAbleToRetrieveAlbum(permissions.BasePermission):
+    ''' Main permission of GET request of Album '''
+    def has_object_permission(self, request, view, obj):
+        ''' Check permission on object '''
+        if isinstance(obj, Album):
+            if IsMemberOfCommunity().has_object_permission(request, view, obj):
+                return True
+            elif obj.community_event is not None \
+                    and IsMemberOfCommunity().has_object_permission(request, view, obj.community_event):
+                return True
+            elif IsInPubliclyVisibleCommunity().has_object_permission(request, view, obj) and obj.is_publicly_visible:
+                return True
+        return False
+
+
+class IsAbleToRetrieveAlbumImage(permissions.BasePermission):
+    ''' Main permission of GET request of AlbumImage '''
+    def has_object_permission(self, request, view, obj):
+        ''' Check permission on object '''
+        if isinstance(obj, AlbumImage):
+            return IsAbleToRetrieveAlbum().has_object_permission(request, view, obj.album)
         return False
 
 
