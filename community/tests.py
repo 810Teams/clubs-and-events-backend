@@ -36,7 +36,7 @@ class CommunityAPITest(APITestCase):
 
         self.club_public = Club.objects.create(
             name_th='ชุมนุมทดสอบสังคม สาธารณะ', name_en='Community Testing Club (Public)',
-            is_publicly_visible=True, is_official=True
+            is_publicly_visible=True, is_official=True, valid_through=datetime.date(2099, 7, 31)
         )
         self.club_private = Club.objects.create(
             name_th='ชุมนุมทดสอบสังคม ส่วนตัว', name_en='Community Testing Club (Private)',

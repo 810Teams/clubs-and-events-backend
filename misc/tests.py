@@ -42,7 +42,7 @@ class FAQAPITest(APITestCase):
         ''' Test retrieve FAQ while authenticated '''
         self.client.login(username='user_01', password='12345678')
 
-        faq = FAQ.objects.create(question='Why do I feel not working?', answer='It\'s simple. You\'re just lazy.')
+        faq = FAQ.objects.create(question_en='Why do I feel not working?', answer_en='It\'s simple. You\'re just lazy.')
         response = self.client.get('/api/misc/faq/{}/'.format(faq.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
