@@ -74,7 +74,7 @@ class FAQAPITest(APITestCase):
         response = self.client.put('/api/misc/faq/{}/'.format(faq.id), {
             'answer': 'There are various reasons that may be causing this.'
         })
-        self.assertEqual(FAQ.objects.get(pk=faq.id).answer, 'It\'s simple. You\'re just lazy.')
+        self.assertEqual(FAQ.objects.get(pk=faq.id).answer_en, 'It\'s simple. You\'re just lazy.')
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         faq = FAQ.objects.create(
@@ -83,7 +83,7 @@ class FAQAPITest(APITestCase):
         response = self.client.patch('/api/misc/faq/{}/'.format(faq.id), {
             'answer': 'You need more caffeine.'
         })
-        self.assertEqual(FAQ.objects.get(pk=faq.id).answer, 'It\'s simple. You were up all night gaming.')
+        self.assertEqual(FAQ.objects.get(pk=faq.id).answer_en, 'It\'s simple. You were up all night gaming.')
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         self.client.logout()
