@@ -6,7 +6,9 @@
 
 from datetime import datetime
 
+from django.utils import timezone
 from rest_framework import filters, permissions, status, viewsets, generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from community.models import Community, Club, Event, CommunityEvent, Lab
@@ -88,8 +90,7 @@ class ClubViewSet(viewsets.ModelViewSet):
             if self.request.method == 'POST' or not self.get_object().is_official:
                 return UnofficialClubSerializer
         except AssertionError:
-            pass
-        return OfficialClubSerializer
+            return OfficialClubSerializer
 
     def list(self, request, *args, **kwargs):
         ''' List clubs '''
@@ -102,6 +103,19 @@ class ClubViewSet(viewsets.ModelViewSet):
         queryset = filter_queryset(queryset, request, target_param='url_id', is_foreign_key=False)
         queryset = filter_queryset_exclude_own(queryset, request)
         queryset = exclude_queryset(queryset, request, target_param='status', is_foreign_key=False)
+
+        try:
+            query = request.query_params.get('is_valid')
+            if query is not None:
+                if eval(query) == True:
+                    queryset = [i for i in queryset
+                                if i.valid_through is not None and i.valid_through >= timezone.now().date()]
+                else:
+                    queryset = [i for i in queryset
+                                if not (i.valid_through is not None and i.valid_through >= timezone.now().date())]
+        except (ValueError, ValidationError):
+            queryset = None
+
         queryset = limit_queryset(queryset, request)
 
         if request.query_params.get('url_id') is not None and len(queryset) == 0:

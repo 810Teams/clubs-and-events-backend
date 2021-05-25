@@ -6,6 +6,7 @@
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -349,6 +350,13 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
 
         return data
 
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        meta = super(OfficialClubSerializer, self).get_meta(obj)
+        meta['is_valid'] = obj.valid_through is not None and obj.valid_through >= timezone.now().date()
+
+        return meta
+
 
 class UnofficialClubSerializer(CommunitySerializerTemplate):
     ''' Unofficial club serializer '''
@@ -358,6 +366,13 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
         exclude = ('url_id', 'is_publicly_visible', 'room', 'is_active', 'created_at', 'updated_at', 'created_by',
                    'updated_by')
         read_only_fields = ('is_official', 'valid_through')
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        meta = super(UnofficialClubSerializer, self).get_meta(obj)
+        meta['is_valid'] = False
+
+        return meta
 
 
 class EventSerializerTemplate(CommunitySerializerTemplate):
