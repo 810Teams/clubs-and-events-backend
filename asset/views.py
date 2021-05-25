@@ -22,7 +22,7 @@ from notification.notifier import notify
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
     ''' Announcement view set '''
-    queryset = Announcement.objects.all()
+    queryset = Announcement.objects.filter(is_active=True)
     http_method_names = ('get', 'post', 'put', 'patch', 'delete', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
     search_fields = ('text',)
@@ -71,6 +71,14 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         notify(users=users, obj=obj)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        ''' Disable instance '''
+        announcement = self.get_object()
+        announcement.is_active = False
+        announcement.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AlbumViewSet(viewsets.ModelViewSet):
