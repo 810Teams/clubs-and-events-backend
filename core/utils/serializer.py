@@ -8,9 +8,10 @@ from collections import OrderedDict
 from datetime import datetime
 
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
-from community.models import Event
+from community.models import Event, Club
 from core.utils.nlp import validate_profanity
 
 
@@ -64,6 +65,13 @@ def clean_field(data, field_name, replacement=None):
             if data[field_name].replace('\n', str()).replace('\r', str()).strip() == str():
                 data[field_name] = replacement
     return data
+
+
+def is_valid_club(club):
+    ''' Verify if the club is valid or not '''
+    if not isinstance(club, Club):
+        return False
+    return club.is_official and club.valid_through is not None and club.valid_through >= timezone.now().date()
 
 
 def is_ended_event(event):

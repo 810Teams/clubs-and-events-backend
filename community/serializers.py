@@ -6,7 +6,6 @@
 
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import serializers
 
@@ -18,7 +17,7 @@ from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommuni
 from core.permissions import IsMemberOfCommunity, IsStaffOfCommunity, IsInActiveCommunity
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
-from core.utils.serializer import field_exists, clean_field, is_ended_event
+from core.utils.serializer import field_exists, clean_field, is_valid_club, is_ended_event
 from core.utils.users import get_client_ip
 from core.utils.nlp import is_th, is_en
 from membership.models import Membership, ApprovalRequest, Invitation, Request
@@ -353,7 +352,7 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
     def get_meta(self, obj):
         ''' Retrieve meta data '''
         meta = super(OfficialClubSerializer, self).get_meta(obj)
-        meta['is_valid'] = obj.valid_through is not None and obj.valid_through >= timezone.now().date()
+        meta['is_valid'] = is_valid_club(obj)
 
         return meta
 

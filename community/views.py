@@ -6,7 +6,6 @@
 
 from datetime import datetime
 
-from django.utils import timezone
 from rest_framework import filters, permissions, status, viewsets, generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -22,6 +21,7 @@ from community.serializers import LabSerializer
 from core.permissions import IsDeputyLeaderOfCommunity, IsMemberOfCommunity, IsInActiveCommunity
 from core.utils.filters import filter_queryset, filter_queryset_permission, filter_queryset_exclude_own, limit_queryset
 from core.utils.filters import exclude_queryset
+from core.utils.serializer import is_valid_club
 from membership.models import Membership
 from notification.notifier import notify
 from user.permissions import IsStudent, IsLecturer
@@ -108,11 +108,9 @@ class ClubViewSet(viewsets.ModelViewSet):
             query = request.query_params.get('is_valid')
             if query is not None:
                 if eval(query) == True:
-                    queryset = [i for i in queryset
-                                if i.valid_through is not None and i.valid_through >= timezone.now().date()]
+                    queryset = [i for i in queryset if is_valid_club(i)]
                 else:
-                    queryset = [i for i in queryset
-                                if not (i.valid_through is not None and i.valid_through >= timezone.now().date())]
+                    queryset = [i for i in queryset if not is_valid_club(i)]
         except (ValueError, ValidationError):
             queryset = None
 
