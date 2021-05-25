@@ -201,8 +201,8 @@ EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
 
 # Notification Settings
 
-EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
 EMAIL_NOTIFICATIONS = True
+EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
 SEND_IMAGES_AS_ATTACHMENTS = False
 FRONT_END_URL = 'https://napontunglukmongkol.github.io/clubs-and-events-frontend/#/'
 
