@@ -23,7 +23,7 @@ class FAQViewSet(viewsets.ModelViewSet):
     serializer_class = FAQSerializer
     http_method_names = ('get', 'head', 'options')
     filter_backends = (filters.SearchFilter,)
-    search_fields = ('question', 'question_th', 'answer', 'answer_th')
+    search_fields = ('question_en', 'question_th', 'answer_en', 'answer_th')
 
 
 class VoteViewSet(viewsets.ModelViewSet):

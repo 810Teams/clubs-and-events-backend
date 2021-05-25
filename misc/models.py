@@ -22,9 +22,9 @@ class FAQ(models.Model):
         ''' Retrieve image path '''
         return '{}/faq/{}.{}'.format(STORAGE_BASE_DIR, self.id, get_file_extension(file_name))
 
-    question = models.CharField(max_length=255)
+    question_en = models.CharField(max_length=255)
     question_th = models.CharField(max_length=255)
-    answer = models.TextField(max_length=2048)
+    answer_en = models.TextField(max_length=2048)
     answer_th = models.TextField(max_length=2048)
     image = models.ImageField(null=True, blank=True, upload_to=get_image_path)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -36,7 +36,7 @@ class FAQ(models.Model):
 
     def __str__(self):
         ''' String representation '''
-        return '{}'.format(truncate(self.question, max_length=32))
+        return '{}'.format(truncate(self.question_en, max_length=32))
 
     def save(self, *args, **kwargs):
         ''' Save instance '''
