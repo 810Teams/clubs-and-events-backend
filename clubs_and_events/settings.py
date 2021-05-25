@@ -237,6 +237,7 @@ STUDENT_COMMITTEE_PRESIDENT_NAME = 'นายธนพนธ์ วงศ์ป�
 
 COMMENT_LIMIT_PER_INTERVAL = 2
 COMMENT_INTERVAL_TIME = timedelta(minutes=5)
+COMMENT_DELETE_TIME = timedelta(minutes=15)
 
 
 # Vote Settings

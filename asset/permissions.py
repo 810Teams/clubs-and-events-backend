@@ -4,9 +4,11 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
+from django.utils import timezone
 from rest_framework import permissions
 
 from asset.models import Announcement, Comment, Album, AlbumImage
+from clubs_and_events.settings import COMMENT_DELETE_TIME
 from core.permissions import IsInPubliclyVisibleCommunity, IsMemberOfCommunity, IsDeputyLeaderOfCommunity
 
 
@@ -51,7 +53,8 @@ class IsAbleToDeleteComment(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         ''' Check permission on object '''
         if isinstance(obj, Comment):
-            if obj.created_by is not None and obj.created_by.id == request.user.id:
+            if obj.created_by is not None and obj.created_by.id == request.user.id \
+                    and obj.created_at + COMMENT_DELETE_TIME > timezone.now():
                 return True
             elif IsDeputyLeaderOfCommunity().has_object_permission(request, view, obj):
                 return True

@@ -4,8 +4,6 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from datetime import timedelta
-
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.utils import timezone
