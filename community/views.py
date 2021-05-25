@@ -90,7 +90,8 @@ class ClubViewSet(viewsets.ModelViewSet):
             if self.request.method == 'POST' or not self.get_object().is_official:
                 return UnofficialClubSerializer
         except AssertionError:
-            return OfficialClubSerializer
+            pass
+        return OfficialClubSerializer
 
     def list(self, request, *args, **kwargs):
         ''' List clubs '''
