@@ -53,7 +53,7 @@ class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Announcement
-        fields = '__all__'
+        exclude = ('is_active',)
         read_only_fields = ('community', 'created_by', 'updated_by')
 
     def get_meta(self, obj):
@@ -72,7 +72,7 @@ class NotExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     class Meta:
         ''' Meta'''
         model = Announcement
-        fields = '__all__'
+        exclude = ('is_active',)
         read_only_fields = ('created_by', 'updated_by')
 
     def validate(self, data, get_errors=False):
