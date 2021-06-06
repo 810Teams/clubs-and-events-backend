@@ -54,7 +54,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     birthdate = models.DateField(null=True, blank=True)
 
     # Statuses
-    USER_GROUPS = tuple([(i['user_group'], i['display_name']) for i in LDAP_USER_GROUPS])
+    USER_GROUPS = (
+        ('student', 'Student'),
+        ('lecturer', 'Lecturer'),
+        ('support', 'Support Staff')
+    )
 
     user_group = models.CharField(max_length=8, choices=USER_GROUPS, default='student')
     is_active = models.BooleanField(default=True)

@@ -542,10 +542,10 @@ class NotExistingCommunityEventSerializer(EventSerializerTemplate):
             )
 
         if has_instance(data['created_under'], Club):
-            if not Club.objects.get(pk=data['created_under'].id).is_official:
+            if not is_valid_club(Club.objects.get(pk=data['created_under'].id)):
                 add_error_message(
                     errors, key='created_under',
-                    message='Community events are not able to be created under unofficial clubs.'
+                    message='Community events are not able to be created under unofficial or expired clubs.'
                 )
 
         # Parent community validation
