@@ -19,7 +19,7 @@ class FAQAdmin(admin.ModelAdmin):
 
     def partial_question(self, obj):
         ''' Get truncated question at max length of 64 '''
-        return truncate(obj.question, max_length=64)
+        return truncate(obj.question_en, max_length=64)
 
     def image_size(self, obj):
         ''' Get announcement image size and dimensions '''

@@ -254,7 +254,7 @@ class JoinKeyAPITest(APITestCase):
         self._test_crud(
             'user_04',
             create_code=status.HTTP_400_BAD_REQUEST,
-            retrieve_code=status.HTTP_200_OK,
+            retrieve_code=status.HTTP_403_FORBIDDEN,
             delete_code=status.HTTP_403_FORBIDDEN
         )
 

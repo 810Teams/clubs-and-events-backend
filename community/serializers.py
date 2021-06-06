@@ -17,7 +17,7 @@ from community.permissions import IsMemberOfBaseCommunity, IsAbleToDeleteCommuni
 from core.permissions import IsMemberOfCommunity, IsStaffOfCommunity, IsInActiveCommunity
 from core.utils.general import has_instance
 from core.utils.serializer import add_error_message, validate_profanity_serializer, raise_validation_errors
-from core.utils.serializer import field_exists, clean_field, is_ended_event
+from core.utils.serializer import field_exists, clean_field, is_valid_club, is_ended_event
 from core.utils.users import get_client_ip
 from core.utils.nlp import is_th, is_en
 from membership.models import Membership, ApprovalRequest, Invitation, Request
@@ -349,6 +349,13 @@ class OfficialClubSerializer(CommunitySerializerTemplate):
 
         return data
 
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        meta = super(OfficialClubSerializer, self).get_meta(obj)
+        meta['is_valid'] = is_valid_club(obj)
+
+        return meta
+
 
 class UnofficialClubSerializer(CommunitySerializerTemplate):
     ''' Unofficial club serializer '''
@@ -358,6 +365,13 @@ class UnofficialClubSerializer(CommunitySerializerTemplate):
         exclude = ('url_id', 'is_publicly_visible', 'room', 'is_active', 'created_at', 'updated_at', 'created_by',
                    'updated_by')
         read_only_fields = ('is_official', 'valid_through')
+
+    def get_meta(self, obj):
+        ''' Retrieve meta data '''
+        meta = super(UnofficialClubSerializer, self).get_meta(obj)
+        meta['is_valid'] = False
+
+        return meta
 
 
 class EventSerializerTemplate(CommunitySerializerTemplate):
@@ -528,10 +542,10 @@ class NotExistingCommunityEventSerializer(EventSerializerTemplate):
             )
 
         if has_instance(data['created_under'], Club):
-            if not Club.objects.get(pk=data['created_under'].id).is_official:
+            if not is_valid_club(Club.objects.get(pk=data['created_under'].id)):
                 add_error_message(
                     errors, key='created_under',
-                    message='Community events are not able to be created under unofficial clubs.'
+                    message='Community events are not able to be created under unofficial or expired clubs.'
                 )
 
         # Parent community validation

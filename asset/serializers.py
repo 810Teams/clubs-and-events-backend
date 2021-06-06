@@ -4,8 +4,6 @@
     @author Teerapat Kraisrisirikul (810Teams)
 '''
 
-from datetime import timedelta
-
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.utils import timezone
@@ -53,7 +51,7 @@ class ExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     class Meta:
         ''' Meta '''
         model = Announcement
-        fields = '__all__'
+        exclude = ('is_active',)
         read_only_fields = ('community', 'created_by', 'updated_by')
 
     def get_meta(self, obj):
@@ -72,7 +70,7 @@ class NotExistingAnnouncementSerializer(AnnouncementSerializerTemplate):
     class Meta:
         ''' Meta'''
         model = Announcement
-        fields = '__all__'
+        exclude = ('is_active',)
         read_only_fields = ('created_by', 'updated_by')
 
     def validate(self, data, get_errors=False):
@@ -286,7 +284,7 @@ class CommentSerializer(serializers.ModelSerializer):
             target_comment = user_comments[len(user_comments) - COMMENT_LIMIT_PER_INTERVAL]
             if target_comment.created_at + COMMENT_INTERVAL_TIME > timezone.now():
                 add_error_message(
-                    errors, key='event', message='Comments limit reached, please try again after a while.'
+                    errors, message='Comments limit reached, please try again after a while.'
                 )
 
         # Prevent comment creation in non-active community

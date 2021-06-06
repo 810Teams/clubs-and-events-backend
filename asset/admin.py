@@ -13,8 +13,8 @@ from core.utils.general import truncate
 
 class AnnouncementAdmin(admin.ModelAdmin):
     ''' Announcement admin '''
-    list_display = ('id', 'partial_text', 'image_size', 'is_publicly_visible', 'community', 'created_at', 'created_by',
-                    'updated_at', 'updated_by')
+    list_display = ('id', 'partial_text', 'image_size', 'is_publicly_visible', 'community', 'is_active', 'created_at',
+                    'created_by', 'updated_at', 'updated_by')
     readonly_fields = ('created_by', 'updated_by')
     list_per_page = 20
 
@@ -88,7 +88,7 @@ class AlbumAdmin(admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     ''' Comment admin '''
-    list_display = ('id', 'partial_text', 'written_by', 'event', 'is_active', 'ip_address', 'created_at', 'created_by')
+    list_display = ('id', 'partial_text', 'written_by', 'event', 'ip_address', 'is_active', 'created_at', 'created_by')
     readonly_fields = ('ip_address', 'created_by')
     list_per_page = 20
 

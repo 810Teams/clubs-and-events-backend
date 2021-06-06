@@ -181,9 +181,9 @@ LDAP_BIND_USERNAME = load_key(key='ldap', decrypt=True)[1]
 LDAP_BIND_PASSWORD = load_key(key='ldap', decrypt=True)[2]
 LDAP_BASE = 'DC=it,DC=kmitl,DC=ac,DC=th'
 LDAP_USER_GROUPS = (
-    {'sub_base': 'OU=Student',  'user_group': 'student',  'display_name': 'Student',       'is_staff': False},
-    {'sub_base': 'OU=Lecturer', 'user_group': 'lecturer', 'display_name': 'Lecturer',      'is_staff': True},
-    {'sub_base': 'OU=Support',  'user_group': 'support',  'display_name': 'Support Staff', 'is_staff': True}
+    {'sub_base': 'OU=Student',  'user_group': 'student',  'is_staff': False},
+    {'sub_base': 'OU=Lecturer', 'user_group': 'lecturer', 'is_staff': True},
+    {'sub_base': 'OU=Support',  'user_group': 'support',  'is_staff': True}
 )
 LDAP_USERNAME_FIELD = 'sAMAccountName'
 LDAP_DISPLAY_NAME_FIELD = 'displayName'
@@ -201,8 +201,8 @@ EMAIL_HOST_PASSWORD = load_key(key='email', decrypt=True)
 
 # Notification Settings
 
-EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
 EMAIL_NOTIFICATIONS = True
+EMAIL_DOMAIN_NAME = 'it.kmitl.ac.th'
 SEND_IMAGES_AS_ATTACHMENTS = False
 FRONT_END_URL = 'https://napontunglukmongkol.github.io/clubs-and-events-frontend/#/'
 
@@ -237,6 +237,7 @@ STUDENT_COMMITTEE_PRESIDENT_NAME = 'นายธนพนธ์ วงศ์ป�
 
 COMMENT_LIMIT_PER_INTERVAL = 2
 COMMENT_INTERVAL_TIME = timedelta(minutes=5)
+COMMENT_DELETE_TIME = timedelta(minutes=15)
 
 
 # Vote Settings

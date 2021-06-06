@@ -12,6 +12,7 @@ from clubs_and_events.settings import CLUB_ADVANCED_RENEWAL
 from community.models import Community, Club, Event, CommunityEvent, Lab
 from core.permissions import IsDeputyLeaderOfCommunity, IsLeaderOfCommunity
 from core.utils.general import has_instance
+from core.utils.serializer import is_valid_club
 from membership.models import Membership
 from user.permissions import IsStudent, IsLecturer
 
@@ -96,6 +97,10 @@ class IsPubliclyVisibleCommunity(permissions.BasePermission):
         if isinstance(obj, Community):
             if request.user.is_authenticated:
                 return True
+            elif has_instance(obj, Club):
+                club = Club.objects.get(pk=obj.id)
+                if not is_valid_club(club):
+                    return False
             elif has_instance(obj, CommunityEvent):
                 community_event = CommunityEvent.objects.get(pk=obj.id)
                 return community_event.is_publicly_visible and community_event.created_under.is_publicly_visible

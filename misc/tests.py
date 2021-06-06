@@ -26,7 +26,7 @@ class FAQAPITest(APITestCase):
         ''' Test list FAQ while authenticated '''
         self.client.login(username='user_01', password='12345678')
 
-        FAQ.objects.create(question='Why do I feel not working?', answer='It\'s simple. You\'re just lazy.')
+        FAQ.objects.create(question_en='Why do I feel not working?', answer_en='It\'s simple. You\'re just lazy.')
         response = self.client.get('/api/misc/faq/')
         self.assertEqual(len(response.data), 1)
 
@@ -34,7 +34,7 @@ class FAQAPITest(APITestCase):
 
     def test_list_faq_unauthenticated(self):
         ''' Test list FAQ while unauthenticated '''
-        FAQ.objects.create(question='Why do I feel not working?', answer='It\'s simple. You\'re just lazy.')
+        FAQ.objects.create(question_en='Why do I feel not working?', answer_en='It\'s simple. You\'re just lazy.')
         response = self.client.get('/api/misc/faq/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -42,7 +42,7 @@ class FAQAPITest(APITestCase):
         ''' Test retrieve FAQ while authenticated '''
         self.client.login(username='user_01', password='12345678')
 
-        faq = FAQ.objects.create(question='Why do I feel not working?', answer='It\'s simple. You\'re just lazy.')
+        faq = FAQ.objects.create(question_en='Why do I feel not working?', answer_en='It\'s simple. You\'re just lazy.')
         response = self.client.get('/api/misc/faq/{}/'.format(faq.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -50,7 +50,7 @@ class FAQAPITest(APITestCase):
 
     def test_retrieve_faq_unauthenticated(self):
         ''' Test retrieve FAQ while unauthenticated '''
-        faq = FAQ.objects.create(question='Why do I feel not working?', answer='It\'s simple. You\'re just lazy.')
+        faq = FAQ.objects.create(question_en='Why do I feel not working?', answer_en='It\'s simple. You\'re just lazy.')
         response = self.client.get('/api/misc/faq/{}/'.format(faq.id))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -70,18 +70,20 @@ class FAQAPITest(APITestCase):
         ''' Test update FAQ '''
         self.client.login(username='user_01', password='12345678')
 
-        faq = FAQ.objects.create(question='Why do I feel not working?', answer='It\'s simple. You\'re just lazy.')
+        faq = FAQ.objects.create(question_en='Why do I feel not working?', answer_en='It\'s simple. You\'re just lazy.')
         response = self.client.put('/api/misc/faq/{}/'.format(faq.id), {
             'answer': 'There are various reasons that may be causing this.'
         })
-        self.assertEqual(FAQ.objects.get(pk=faq.id).answer, 'It\'s simple. You\'re just lazy.')
+        self.assertEqual(FAQ.objects.get(pk=faq.id).answer_en, 'It\'s simple. You\'re just lazy.')
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-        faq = FAQ.objects.create(question='Why do I feel sleepy?', answer='It\'s simple. You were up all night gaming.')
+        faq = FAQ.objects.create(
+            question_en='Why do I feel sleepy?', answer_en='It\'s simple. You were up all night gaming.'
+        )
         response = self.client.patch('/api/misc/faq/{}/'.format(faq.id), {
             'answer': 'You need more caffeine.'
         })
-        self.assertEqual(FAQ.objects.get(pk=faq.id).answer, 'It\'s simple. You were up all night gaming.')
+        self.assertEqual(FAQ.objects.get(pk=faq.id).answer_en, 'It\'s simple. You were up all night gaming.')
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
         self.client.logout()
@@ -90,7 +92,7 @@ class FAQAPITest(APITestCase):
         ''' Test delete FAQ '''
         self.client.login(username='user_01', password='12345678')
 
-        faq = FAQ.objects.create(question='Why do I feel not working?', answer='It\'s simple. You\'re just lazy.')
+        faq = FAQ.objects.create(question_en='Why do I feel not working?', answer_en='It\'s simple. You\'re just lazy.')
         response = self.client.delete('/api/misc/faq/{}/'.format(faq.id))
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
