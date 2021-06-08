@@ -15,6 +15,9 @@ from google.oauth2 import service_account
 from pathlib import Path
 
 from core.utils.loaders import load_key, load_project_path
+from corsheaders.defaults import default_headers
+
+import os
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -63,6 +66,10 @@ INSTALLED_APPS = [
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'Bypass-Tunnel-Reminder'
+]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -215,7 +222,7 @@ MEDIA_ROOT = load_project_path()
 
 # Storage Settings
 
-STORAGE_BASE_DIR = '_storage'
+STORAGE_BASE_DIR = 'storage'
 DO_IMAGE_DOWNSCALING = True
 MAX_ANNOUNCEMENT_IMAGE_DIMENSION = 1920, 1920
 MAX_ALBUM_IMAGE_DIMENSION = 3840, 2160
