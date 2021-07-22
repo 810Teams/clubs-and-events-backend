@@ -66,7 +66,7 @@ Documentation on designing guides can be viewed in each markdown file below.
 6. [Student Committee Panel](_readme/guide/student-committee-panel.md)
 
 ## Team
-|<img src="https://scontent.fbkk5-6.fna.fbcdn.net/v/t1.6435-9/74798248_2898274603550273_1880388616933343232_n.jpg?_nc_cat=102&ccb=1-3&_nc_sid=09cbfe&_nc_ohc=7omHtWb_0XQAX9sK9Kn&_nc_ht=scontent.fbkk5-6.fna&oh=f4ea0d082af00e32e67d59e7be024b1c&oe=60CF217C" width="150px" height="150px">|<img src="https://scontent.fbkk5-3.fna.fbcdn.net/v/t1.6435-9/81999269_3013913458618908_8891176932352196608_n.jpg?_nc_cat=105&ccb=1-3&_nc_sid=09cbfe&_nc_ohc=6pCYw9AmRpIAX-pdm6H&_nc_ht=scontent.fbkk5-3.fna&oh=b3d5f931da8dfaf3f9e79d8f5253ce80&oe=60CF023E" width="150px" height="150px">|
+|<img src="https://avatars.githubusercontent.com/u/26340809?v=4" width="150px" height="150px">|<img src="https://avatars.githubusercontent.com/u/32960703?v=4" width="150px" height="150px">|
 |:---:|:---:|
 |[810Teams](https://github.com/810Teams)|[NaponTunglukmongkol](https://github.com/NaponTunglukmongkol)|
 |Teerapat<br/>Kraisrisirikul|Napon<br/>Tunglukmongkol
